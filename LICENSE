@@ -1,0 +1,10 @@
+
+### One thing I strongly recommend
+
+For GitHub, add a **project screenshot/banner at the top** above the Problem Statement. It makes the repository look much more like a serious product rather than just a college project.
+
+Your opening could eventually look like:
+
+**Kabadi Setu → screenshot → badges → one-line description → problem → solution → features.**
+
+And don't write that the project is *fully offline, production-ready, or using a custom trained AI model* yet—the README above deliberately separates the **current prototype** from the **production roadmap**, which is much safer when judges or recruiters inspect the repo.
