@@ -1,0 +1,1243 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Kabadi Setu | AI Recycling Platform</title>
+
+    <link
+        rel="stylesheet"
+        href="{{ url_for('static', filename='style.css') }}"
+    >
+
+</head>
+
+
+<body>
+
+<div class="app">
+
+
+    <!-- =====================================================
+         SIDEBAR
+         ===================================================== -->
+
+    <aside class="sidebar">
+
+        <div class="logo">
+
+            <div class="logo-icon">
+                ♻
+            </div>
+
+            <div>
+                <h2>Kabadi Setu</h2>
+                <span>Smart Recycling Network</span>
+            </div>
+
+        </div>
+
+
+        <!-- ROLE SWITCH -->
+
+        <div class="role-switch">
+
+            <button
+                id="householdRole"
+                class="role-btn active"
+                type="button"
+                onclick="switchRole('household')"
+            >
+                🏠 Household
+            </button>
+
+
+            <button
+                id="collectorRole"
+                class="role-btn"
+                type="button"
+                onclick="switchRole('collector')"
+            >
+                🚚 Collector
+            </button>
+
+        </div>
+
+
+        <!-- NAVIGATION -->
+
+        <nav>
+
+            <button
+                class="nav-item active"
+                type="button"
+                onclick="showSection('dashboard')"
+            >
+                🏠 Dashboard
+            </button>
+
+
+            <button
+                class="nav-item"
+                type="button"
+                onclick="showSection('scanner')"
+            >
+                🤖 AI Scanner
+            </button>
+
+
+            <button
+                class="nav-item"
+                type="button"
+                onclick="showSection('recyclers')"
+            >
+                ♻ Recycler Network
+            </button>
+
+
+            <button
+                class="nav-item"
+                type="button"
+                onclick="showSection('inventory')"
+            >
+                📦 My Inventory
+            </button>
+
+
+            <button
+                class="nav-item"
+                type="button"
+                onclick="showSection('earnings')"
+            >
+                💰 Earnings
+            </button>
+
+
+            <button
+                class="nav-item"
+                type="button"
+                onclick="showSection('transactions')"
+            >
+                📋 Transactions
+            </button>
+
+        </nav>
+
+
+        <!-- LANGUAGE -->
+
+        <div class="sidebar-footer">
+
+            <div class="language">
+
+                <label for="languageSelect">
+                    Language
+                </label>
+
+                <select id="languageSelect">
+
+                    <option value="en">
+                        English
+                    </option>
+
+                    <option value="hi">
+                        हिन्दी
+                    </option>
+
+                    <option value="mr">
+                        मराठी
+                    </option>
+
+                </select>
+
+            </div>
+
+        </div>
+
+    </aside>
+
+
+
+    <!-- =====================================================
+         MAIN
+         ===================================================== -->
+
+    <main class="main">
+
+
+        <!-- =================================================
+             HEADER
+             ================================================= -->
+
+        <header class="topbar">
+
+            <div>
+
+                <p class="small-title">
+                    SMART RECYCLING
+                </p>
+
+                <h1 id="pageTitle">
+                    Give your waste a second life
+                </h1>
+
+            </div>
+
+
+            <div class="top-actions">
+
+                <span class="location">
+                    📍 Your Location
+                </span>
+
+
+                <!-- ONE AND ONLY PROFILE BUTTON -->
+
+                <button
+                    id="profileButton"
+                    class="avatar"
+                    type="button"
+                    onclick="openProfile()"
+                    aria-label="Open profile"
+                >
+                    Y
+                </button>
+
+            </div>
+
+        </header>
+
+
+
+        <!-- =================================================
+             DASHBOARD
+             ================================================= -->
+
+        <section
+            id="dashboard"
+            class="page-section active-section"
+        >
+
+            <div class="hero">
+
+                <div class="hero-content">
+
+                    <span class="badge">
+                        AI-POWERED RECYCLING
+                    </span>
+
+                    <h2>
+                        Turn recyclable waste into value.
+                    </h2>
+
+                    <p>
+                        Upload a photo, identify your material,
+                        discover today's indicative price,
+                        and connect with nearby collectors.
+                    </p>
+
+                    <button
+                        class="primary-btn"
+                        type="button"
+                        onclick="showSection('scanner')"
+                    >
+                        Start AI Scan →
+                    </button>
+
+                </div>
+
+
+                <div class="hero-visual">
+
+                    <div class="recycle-circle">
+                        ♻
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- STATS -->
+
+            <div class="stats-grid">
+
+                <div class="stat-card">
+
+                    <span>♻</span>
+
+                    <div>
+                        <strong>16+</strong>
+                        <small>Material Categories</small>
+                    </div>
+
+                </div>
+
+
+                <div class="stat-card">
+
+                    <span>🤖</span>
+
+                    <div>
+                        <strong>AI</strong>
+                        <small>Image Classification</small>
+                    </div>
+
+                </div>
+
+
+                <div class="stat-card">
+
+                    <span>📍</span>
+
+                    <div>
+                        <strong>3</strong>
+                        <small>Verified Recyclers</small>
+                    </div>
+
+                </div>
+
+
+                <div class="stat-card">
+
+                    <span>🔗</span>
+
+                    <div>
+                        <strong>Traceable</strong>
+                        <small>Digital Transactions</small>
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- HOW IT WORKS -->
+
+            <div class="flow-section">
+
+                <div class="section-heading">
+
+                    <div>
+
+                        <p class="small-title">
+                            HOW IT WORKS
+                        </p>
+
+                        <h2>
+                            From household to formal recycling
+                        </h2>
+
+                    </div>
+
+                </div>
+
+
+                <div class="flow-grid">
+
+                    <div class="flow-card">
+
+                        <div class="flow-number">
+                            01
+                        </div>
+
+                        <h3>
+                            Upload
+                        </h3>
+
+                        <p>
+                            Take a photo of recyclable material.
+                        </p>
+
+                    </div>
+
+
+                    <div class="flow-card">
+
+                        <div class="flow-number">
+                            02
+                        </div>
+
+                        <h3>
+                            AI Classifies
+                        </h3>
+
+                        <p>
+                            AI identifies the likely material category.
+                        </p>
+
+                    </div>
+
+
+                    <div class="flow-card">
+
+                        <div class="flow-number">
+                            03
+                        </div>
+
+                        <h3>
+                            Get Indicative Price
+                        </h3>
+
+                        <p>
+                            See the current prototype rate before pickup.
+                        </p>
+
+                    </div>
+
+
+                    <div class="flow-card">
+
+                        <div class="flow-number">
+                            04
+                        </div>
+
+                        <h3>
+                            Collector Pickup
+                        </h3>
+
+                        <p>
+                            Collector weighs the material physically.
+                        </p>
+
+                    </div>
+
+
+                    <div class="flow-card">
+
+                        <div class="flow-number">
+                            05
+                        </div>
+
+                        <h3>
+                            Best Recycler
+                        </h3>
+
+                        <p>
+                            Collector compares recycler prices.
+                        </p>
+
+                    </div>
+
+
+                    <div class="flow-card">
+
+                        <div class="flow-number">
+                            06
+                        </div>
+
+                        <h3>
+                            Formal Recycling
+                        </h3>
+
+                        <p>
+                            Material reaches a verified recycler.
+                        </p>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+
+        <!-- =================================================
+             AI SCANNER
+             ================================================= -->
+
+        <section
+            id="scanner"
+            class="page-section"
+        >
+
+            <div class="section-heading">
+
+                <div>
+
+                    <p class="small-title">
+                        ARTIFICIAL INTELLIGENCE
+                    </p>
+
+                    <h2>
+                        AI Waste Scanner
+                    </h2>
+
+                    <p>
+                        Upload an image to identify the material.
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <div class="scanner-layout">
+
+
+                <!-- UPLOAD -->
+
+                <div class="scanner-card">
+
+                    <div
+                        id="uploadArea"
+                        class="upload-area"
+                    >
+
+                        <div class="upload-icon">
+                            📷
+                        </div>
+
+                        <h3>
+                            Upload waste image
+                        </h3>
+
+                        <p>
+                            JPG, JPEG or PNG
+                        </p>
+
+
+                        <input
+                            id="imageInput"
+                            type="file"
+                            accept="image/*"
+                            hidden
+                            onchange="previewImage(event)"
+                        >
+
+
+                        <button
+                            class="primary-btn"
+                            type="button"
+                            onclick="document.getElementById('imageInput').click()"
+                        >
+                            Choose Image
+                        </button>
+
+                    </div>
+
+
+                    <!-- PREVIEW -->
+
+                    <div
+                        id="previewContainer"
+                        class="preview-container"
+                        style="display:none;"
+                    >
+
+                        <img
+                            id="previewImage"
+                            src=""
+                            alt="Waste preview"
+                        >
+
+
+                        <button
+                            class="secondary-btn"
+                            type="button"
+                            onclick="analyzeWaste()"
+                        >
+                            🤖 Analyze with AI
+                        </button>
+
+                    </div>
+
+                </div>
+
+
+
+                <!-- RESULT -->
+
+                <div
+                    id="resultCard"
+                    class="result-card"
+                >
+
+                    <div class="result-header">
+
+                        <span class="badge">
+                            AI RESULT
+                        </span>
+
+                        <span
+                            id="modelName"
+                            class="model-name"
+                        >
+                            Waiting for image
+                        </span>
+
+                    </div>
+
+
+                    <div class="result-main">
+
+                        <div>
+
+                            <small>
+                                MATERIAL
+                            </small>
+
+                            <h2 id="materialResult">
+                                —
+                            </h2>
+
+                        </div>
+
+
+                        <div class="confidence">
+
+                            <small>
+                                CONFIDENCE
+                            </small>
+
+                            <strong id="confidenceResult">
+                                —
+                            </strong>
+
+                        </div>
+
+                    </div>
+
+
+                    <div class="result-grid">
+
+                        <div class="result-box">
+
+                            <span>
+                                Category
+                            </span>
+
+                            <strong id="categoryResult">
+                                —
+                            </strong>
+
+                        </div>
+
+
+                        <div class="result-box">
+
+                            <span>
+                                Indicative Rate
+                            </span>
+
+                            <strong id="rateResult">
+                                —
+                            </strong>
+
+                        </div>
+
+
+                        <div class="result-box">
+
+                            <span>
+                                Market Range
+                            </span>
+
+                            <strong id="rangeResult">
+                                —
+                            </strong>
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- WEIGHT -->
+
+                    <div class="weight-section">
+
+                        <label for="weightInput">
+                            Actual physical weight (kg)
+                        </label>
+
+                        <input
+                            id="weightInput"
+                            type="number"
+                            min="0"
+                            step="0.1"
+                            placeholder="Enter weight after collector weighs it"
+                            oninput="updateValue()"
+                        >
+
+
+                        <div class="value-display">
+
+                            <span>
+                                Indicative value
+                            </span>
+
+                            <strong id="valueResult">
+                                ₹0
+                            </strong>
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- WARNING -->
+
+                    <div
+                        id="warningBox"
+                        class="warning-box"
+                        style="display:none;"
+                    ></div>
+
+
+                    <button
+                        class="primary-btn full-btn"
+                        type="button"
+                        onclick="requestPickup()"
+                    >
+                        Request Collector Pickup
+                    </button>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+
+        <!-- =================================================
+             RECYCLER NETWORK
+             ================================================= -->
+
+        <section
+            id="recyclers"
+            class="page-section"
+        >
+
+            <div class="section-heading">
+
+                <div>
+
+                    <p class="small-title">
+                        RECYCLER MARKETPLACE
+                    </p>
+
+                    <h2>
+                        Compare Recycler Rates
+                    </h2>
+
+                    <p>
+                        Collectors can compare verified recycler
+                        offers and choose the best available price.
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <div class="market-card">
+
+                <div class="market-controls">
+
+
+                    <select id="recyclerMaterial">
+
+                        {% for name, material in materials.items() %}
+
+                        <option value="{{ name }}">
+                            {{ name }}
+                        </option>
+
+                        {% endfor %}
+
+                    </select>
+
+
+                    <input
+                        id="recyclerWeight"
+                        type="number"
+                        min="0"
+                        step="0.1"
+                        value="1"
+                        placeholder="Weight kg"
+                    >
+
+
+                    <button
+                        class="primary-btn"
+                        type="button"
+                        onclick="loadRecyclerRates()"
+                    >
+                        Compare Rates
+                    </button>
+
+                </div>
+
+
+                <div
+                    id="recyclerResults"
+                    class="recycler-results"
+                >
+
+                    <div class="empty-state">
+
+                        <div>
+                            ♻
+                        </div>
+
+                        <p>
+                            Select material and weight to compare offers.
+                        </p>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+
+        <!-- =================================================
+             INVENTORY
+             ================================================= -->
+
+        <section
+            id="inventory"
+            class="page-section"
+        >
+
+            <div class="section-heading">
+
+                <div>
+
+                    <p class="small-title">
+                        COLLECTOR
+                    </p>
+
+                    <h2>
+                        My Inventory
+                    </h2>
+
+                    <p>
+                        Track collected recyclable materials.
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <div class="inventory-grid">
+
+                <div class="inventory-card">
+                    <span>🔩</span>
+                    <strong>Iron</strong>
+                    <small>0 kg</small>
+                </div>
+
+
+                <div class="inventory-card">
+                    <span>🥫</span>
+                    <strong>Aluminium</strong>
+                    <small>0 kg</small>
+                </div>
+
+
+                <div class="inventory-card">
+                    <span>🔌</span>
+                    <strong>Copper</strong>
+                    <small>0 kg</small>
+                </div>
+
+
+                <div class="inventory-card">
+                    <span>💻</span>
+                    <strong>E-Waste</strong>
+                    <small>0 kg</small>
+                </div>
+
+            </div>
+
+        </section>
+
+
+
+        <!-- =================================================
+             EARNINGS
+             ================================================= -->
+
+        <section
+            id="earnings"
+            class="page-section"
+        >
+
+            <div class="section-heading">
+
+                <div>
+
+                    <p class="small-title">
+                        COLLECTOR DASHBOARD
+                    </p>
+
+                    <h2>
+                        Earnings
+                    </h2>
+
+                </div>
+
+            </div>
+
+
+            <div class="earnings-card">
+
+                <div>
+
+                    <span>
+                        Total earnings
+                    </span>
+
+                    <strong>
+                        ₹0
+                    </strong>
+
+                </div>
+
+
+                <div>
+
+                    <span>
+                        This month
+                    </span>
+
+                    <strong>
+                        ₹0
+                    </strong>
+
+                </div>
+
+
+                <div>
+
+                    <span>
+                        Transactions
+                    </span>
+
+                    <strong>
+                        0
+                    </strong>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+
+        <!-- =================================================
+             TRANSACTIONS
+             ================================================= -->
+
+        <section
+            id="transactions"
+            class="page-section"
+        >
+
+            <div class="section-heading">
+
+                <div>
+
+                    <p class="small-title">
+                        TRACEABILITY
+                    </p>
+
+                    <h2>
+                        Transactions
+                    </h2>
+
+                    <p>
+                        Digital records of material handovers.
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <div class="empty-transactions">
+
+                <div>
+                    📋
+                </div>
+
+                <h3>
+                    No transactions yet
+                </h3>
+
+                <p>
+                    Completed pickup and recycler handovers
+                    will appear here.
+                </p>
+
+            </div>
+
+        </section>
+
+
+    </main>
+
+</div>
+
+
+
+<!-- =========================================================
+     PICKUP MODAL
+     ========================================================= -->
+
+<div
+    id="pickupModal"
+    class="modal"
+    style="display:none;"
+>
+
+    <div class="modal-content">
+
+        <button
+            class="modal-close"
+            type="button"
+            onclick="closeModal()"
+        >
+            ×
+        </button>
+
+
+        <div class="modal-icon">
+            🚚
+        </div>
+
+
+        <h2>
+            Request Pickup
+        </h2>
+
+
+        <p>
+            Enter your pickup location.
+        </p>
+
+
+        <input
+            id="addressInput"
+            type="text"
+            placeholder="House / Street / Area"
+        >
+
+
+        <<button
+    type="button"
+    class="primary-btn full-btn"
+    onclick="window.requestPickup()"
+>
+    Request Collector Pickup
+</button>
+
+    </div>
+
+</div>
+
+
+
+<!-- =========================================================
+     PROFILE MODAL
+     ONLY ONE PROFILE MODAL
+     ========================================================= -->
+
+<div
+    id="profileModal"
+    class="profile-modal"
+    style="display:none;"
+    onclick="if(event.target === this) closeProfile()"
+>
+
+    <div class="profile-card">
+
+
+        <!-- CLOSE -->
+
+        <button
+            class="profile-close"
+            type="button"
+            onclick="closeProfile()"
+            aria-label="Close profile"
+        >
+            ×
+        </button>
+
+
+        <!-- AVATAR -->
+
+        <div class="profile-big-avatar">
+            Y
+        </div>
+
+
+        <!-- NAME -->
+
+        <h2>
+            Yashasvi
+        </h2>
+
+
+        <p class="profile-subtitle">
+            Kabadi Setu User
+        </p>
+
+
+        <div class="profile-divider"></div>
+
+
+        <!-- DETAILS -->
+
+        <div class="profile-details">
+
+
+            <div class="profile-detail">
+
+                <span>
+                    👤 Account
+                </span>
+
+                <strong>
+                    Active
+                </strong>
+
+            </div>
+
+
+            <div class="profile-detail">
+
+                <span>
+                    🏠 Current Role
+                </span>
+
+                <strong id="profileRoleText">
+                    Household
+                </strong>
+
+            </div>
+
+
+            <div class="profile-detail">
+
+                <span>
+                    ♻ Platform
+                </span>
+
+                <strong>
+                    Kabadi Setu
+                </strong>
+
+            </div>
+
+
+            <div class="profile-detail">
+
+                <span>
+                    📍 Location
+                </span>
+
+                <strong>
+                    India
+                </strong>
+
+            </div>
+
+
+        </div>
+
+
+        <!-- CLOSE -->
+
+        <button
+            class="profile-close-btn"
+            type="button"
+            onclick="closeProfile()"
+        >
+            Close
+        </button>
+
+
+    </div>
+
+</div>
+
+
+
+<!-- =========================================================
+     PROFILE JAVASCRIPT
+     ========================================================= -->
+
+<script>
+
+function openProfile() {
+
+    const modal =
+        document.getElementById("profileModal");
+
+    if (modal) {
+
+        modal.style.display = "flex";
+
+    }
+
+}
+
+
+function closeProfile() {
+
+    const modal =
+        document.getElementById("profileModal");
+
+    if (modal) {
+
+        modal.style.display = "none";
+
+    }
+
+}
+
+
+document.addEventListener(
+    "keydown",
+    function(event) {
+
+        if (event.key === "Escape") {
+
+            closeProfile();
+
+        }
+
+    }
+);
+
+</script>
+
+
+
+<!-- MAIN JAVASCRIPT -->
+
+<script
+    src="{{ url_for('static', filename='script.js') }}"
+></script>
+
+
+</body>
+
+</html>
