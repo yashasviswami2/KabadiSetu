@@ -7144,3 +7144,537 @@ window.acceptCollectorRequest =
         );
 
     };
+
+    // =========================================================
+// FINAL PICKUP BUTTON FIX
+// =========================================================
+
+window.confirmPickup = async function () {
+
+    console.log("Pickup button clicked");
+
+    // Get address
+    const addressElement = document.getElementById("addressInput");
+
+    if (!addressElement) {
+        alert("Pickup address field was not found.");
+        return;
+    }
+
+    const address = addressElement.value.trim();
+
+    if (!address) {
+        alert("Please enter your pickup location.");
+        addressElement.focus();
+        return;
+    }
+
+    // Get actual weight
+    const weightElement = document.getElementById("weightInput");
+
+    const weight = weightElement
+        ? Number(weightElement.value) || 0
+        : 0;
+
+    if (weight <= 0) {
+        alert("Please enter the actual physical weight first.");
+        closeModal();
+        return;
+    }
+
+    // Get material safely
+    let material = "";
+
+    // First try global variable
+    if (window.currentMaterial) {
+        material = window.currentMaterial;
+    }
+
+    // Otherwise get it from the AI result on screen
+    if (!material) {
+        const materialElement =
+            document.getElementById("materialResult");
+
+        if (materialElement) {
+            material = materialElement.innerText.trim();
+        }
+    }
+
+    // Final fallback
+    if (!material || material === "—") {
+        material = "Recyclable Material";
+    }
+
+    // Disable button while submitting
+    const buttons = document.querySelectorAll(
+        "#pickupModal button"
+    );
+
+    let submitButton = null;
+
+    buttons.forEach(button => {
+        if (
+            button.innerText.includes("Request Collector") ||
+            button.innerText.includes("Confirm Pickup")
+        ) {
+            submitButton = button;
+        }
+    });
+
+    if (submitButton) {
+        submitButton.disabled = true;
+        submitButton.innerText = "Requesting Pickup...";
+    }
+
+    try {
+
+        const response = await fetch("/pickup", {
+            method: "POST",
+
+            headers: {
+                "Content-Type": "application/json"
+            },
+
+            body: JSON.stringify({
+                material: material,
+                weight: weight,
+                address: address
+            })
+        });
+
+        // Handle server error
+        if (!response.ok) {
+            throw new Error(
+                "Server error: " + response.status
+            );
+        }
+
+        const data = await response.json();
+
+        if (!data.success) {
+            throw new Error(
+                data.error || "Pickup request failed."
+            );
+        }
+
+        // Add request to collector queue
+        if (
+            typeof addPickupToCollectorQueue === "function"
+        ) {
+            addPickupToCollectorQueue(
+                data.material || material,
+                data.weight || weight,
+                address,
+                data.request_id
+            );
+        }
+
+        // Close pickup modal
+        const modal =
+            document.getElementById("pickupModal");
+
+        if (modal) {
+            modal.style.display = "none";
+        }
+
+        // Success message
+        alert(
+            "✅ Collector Pickup Requested!\n\n" +
+            "Request ID: " +
+            data.request_id +
+            "\n\n" +
+            "Material: " +
+            (data.material || material) +
+            "\n" +
+            "Weight: " +
+            (data.weight || weight) +
+            " kg\n" +
+            "Location: " +
+            address
+        );
+
+        // Clear address
+        addressElement.value = "";
+
+    } catch (error) {
+
+        console.error(
+            "Pickup Request Error:",
+            error
+        );
+
+        alert(
+            "❌ Pickup request failed.\n\n" +
+            error.message
+        );
+
+    } finally {
+
+        if (submitButton) {
+            submitButton.disabled = false;
+            submitButton.innerText =
+                "Request Collector Pickup";
+        }
+    }
+};
+
+
+// =========================================================
+// SAFE CLOSE MODAL
+// =========================================================
+
+window.closeModal = function () {
+
+    const modal =
+        document.getElementById("pickupModal");
+
+    if (modal) {
+        modal.style.display = "none";
+    }
+};
+
+
+// =========================================================
+// SAFE REQUEST PICKUP
+// =========================================================
+
+window.requestPickup = function () {
+
+    const weightElement =
+        document.getElementById("weightInput");
+
+    const weight = weightElement
+        ? Number(weightElement.value) || 0
+        : 0;
+
+    if (weight <= 0) {
+
+        alert(
+            "Please enter the actual physical weight first."
+        );
+
+        if (weightElement) {
+            weightElement.focus();
+        }
+
+        return;
+    }
+
+    const modal =
+        document.getElementById("pickupModal");
+
+    if (!modal) {
+        alert("Pickup modal could not be found.");
+        return;
+    }
+
+    modal.style.display = "flex";
+};
+
+
+// =========================================================
+// END PICKUP FIX
+// =========================================================
+
+// =========================================================
+// KABADI SETU - PICKUP MODAL FINAL HANDLER
+// =========================================================
+
+(function () {
+
+    function setupPickupButton() {
+
+        const button =
+            document.getElementById("confirmPickupButton");
+
+        if (!button) {
+            console.error(
+                "Kabadi Setu: confirmPickupButton not found."
+            );
+            return;
+        }
+
+        // Prevent duplicate listeners
+        if (button.dataset.pickupReady === "true") {
+            return;
+        }
+
+        button.dataset.pickupReady = "true";
+
+        button.addEventListener("click", async function (event) {
+
+            event.preventDefault();
+            event.stopPropagation();
+
+            console.log(
+                "KABADI SETU: PICKUP BUTTON CLICKED"
+            );
+
+            const addressInput =
+                document.getElementById("addressInput");
+
+            const weightInput =
+                document.getElementById("weightInput");
+
+            if (!addressInput) {
+                alert("Address field not found.");
+                return;
+            }
+
+            const address =
+                addressInput.value.trim();
+
+            if (!address) {
+                alert(
+                    "Please enter your pickup location."
+                );
+
+                addressInput.focus();
+
+                return;
+            }
+
+            const weight =
+                weightInput
+                    ? Number(weightInput.value)
+                    : 0;
+
+            if (weight <= 0) {
+
+                alert(
+                    "Please enter the actual physical weight first."
+                );
+
+                if (weightInput) {
+                    weightInput.focus();
+                }
+
+                return;
+            }
+
+            // ---------------------------------------------
+            // GET MATERIAL
+            // ---------------------------------------------
+
+            let material = "";
+
+            if (
+                typeof window.currentMaterial !==
+                "undefined"
+            ) {
+                material =
+                    window.currentMaterial || "";
+            }
+
+            if (!material) {
+
+                const materialResult =
+                    document.getElementById(
+                        "materialResult"
+                    );
+
+                if (materialResult) {
+
+                    material =
+                        materialResult.innerText.trim();
+                }
+            }
+
+            if (
+                !material ||
+                material === "—" ||
+                material === "-"
+            ) {
+
+                alert(
+                    "Please analyze the waste image first."
+                );
+
+                return;
+            }
+
+            // ---------------------------------------------
+            // BUTTON LOADING STATE
+            // ---------------------------------------------
+
+            button.disabled = true;
+
+            button.innerText =
+                "Requesting Pickup...";
+
+            // ---------------------------------------------
+            // SEND REQUEST TO FLASK
+            // ---------------------------------------------
+
+            try {
+
+                console.log(
+                    "Sending pickup request:",
+                    {
+                        material: material,
+                        weight: weight,
+                        address: address
+                    }
+                );
+
+                const response =
+                    await fetch(
+                        "/pickup",
+                        {
+                            method: "POST",
+
+                            headers: {
+                                "Content-Type":
+                                    "application/json"
+                            },
+
+                            body:
+                                JSON.stringify({
+                                    material:
+                                        material,
+
+                                    weight:
+                                        weight,
+
+                                    address:
+                                        address
+                                })
+                        }
+                    );
+
+                console.log(
+                    "Pickup server status:",
+                    response.status
+                );
+
+                if (!response.ok) {
+
+                    throw new Error(
+                        "Server returned HTTP " +
+                        response.status
+                    );
+                }
+
+                const data =
+                    await response.json();
+
+                console.log(
+                    "Pickup server response:",
+                    data
+                );
+
+                if (!data.success) {
+
+                    throw new Error(
+                        data.error ||
+                        "Pickup request failed."
+                    );
+                }
+
+                // -----------------------------------------
+                // ADD TO COLLECTOR QUEUE
+                // -----------------------------------------
+
+                if (
+                    typeof window.addPickupToCollectorQueue ===
+                    "function"
+                ) {
+
+                    window.addPickupToCollectorQueue(
+                        data.material ||
+                            material,
+
+                        data.weight ||
+                            weight,
+
+                        address,
+
+                        data.request_id
+                    );
+                }
+
+                // -----------------------------------------
+                // CLOSE MODAL
+                // -----------------------------------------
+
+                const modal =
+                    document.getElementById(
+                        "pickupModal"
+                    );
+
+                if (modal) {
+
+                    modal.style.display =
+                        "none";
+                }
+
+                // -----------------------------------------
+                // SUCCESS
+                // -----------------------------------------
+
+                alert(
+                    "✅ Pickup Request Created!\n\n" +
+
+                    "Request ID: " +
+                    data.request_id +
+
+                    "\n\nMaterial: " +
+                    (data.material ||
+                        material) +
+
+                    "\nWeight: " +
+                    (data.weight ||
+                        weight) +
+                    " kg" +
+
+                    "\nLocation: " +
+                    address
+                );
+
+                // Clear address
+                addressInput.value = "";
+
+            } catch (error) {
+
+                console.error(
+                    "KABADI SETU PICKUP ERROR:",
+                    error
+                );
+
+                alert(
+                    "❌ Pickup request failed.\n\n" +
+                    error.message
+                );
+
+            } finally {
+
+                button.disabled = false;
+
+                button.innerText =
+                    "Request Collector Pickup";
+            }
+
+        });
+    }
+
+
+    // ---------------------------------------------
+    // INITIAL SETUP
+    // ---------------------------------------------
+
+    if (
+        document.readyState ===
+        "loading"
+    ) {
+
+        document.addEventListener(
+            "DOMContentLoaded",
+            setupPickupButton
+        );
+
+    } else {
+
+        setupPickupButton();
+    }
+
+})();

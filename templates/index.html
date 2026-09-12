@@ -1000,60 +1000,62 @@
 <!-- =========================================================
      PICKUP MODAL
      ========================================================= -->
+<!-- =====================================================
+     PICKUP MODAL
+====================================================== -->
 
 <div
     id="pickupModal"
     class="modal"
     style="display:none;"
 >
+    <div
+        class="modal-content"
+        onclick="event.stopPropagation()"
+    >
 
-    <div class="modal-content">
-
+        <!-- CLOSE BUTTON -->
         <button
             class="modal-close"
             type="button"
-            onclick="closeModal()"
+            onclick="window.closeModal()"
         >
             ×
         </button>
 
-
+        <!-- ICON -->
         <div class="modal-icon">
             🚚
         </div>
 
-
+        <!-- TITLE -->
         <h2>
             Request Pickup
         </h2>
-
 
         <p>
             Enter your pickup location.
         </p>
 
-
+        <!-- ADDRESS -->
         <input
             id="addressInput"
             type="text"
             placeholder="House / Street / Area"
+            autocomplete="street-address"
         >
 
-
-        <<button
-    type="button"
+        <!-- SUBMIT -->
+        <button
+    id="confirmPickupButton"
     class="primary-btn full-btn"
-    onclick="window.requestPickup()"
+    type="button"
 >
     Request Collector Pickup
 </button>
 
     </div>
-
 </div>
-
-
-
 <!-- =========================================================
      PROFILE MODAL
      ONLY ONE PROFILE MODAL
