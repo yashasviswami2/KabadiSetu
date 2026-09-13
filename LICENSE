@@ -1,10 +1,21 @@
+MIT License
 
-### One thing I strongly recommend
+Copyright (c) 2026 Yashasvi Swami
 
-For GitHub, add a **project screenshot/banner at the top** above the Problem Statement. It makes the repository look much more like a serious product rather than just a college project.
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
 
-Your opening could eventually look like:
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
 
-**Kabadi Setu → screenshot → badges → one-line description → problem → solution → features.**
-
-And don't write that the project is *fully offline, production-ready, or using a custom trained AI model* yet—the README above deliberately separates the **current prototype** from the **production roadmap**, which is much safer when judges or recruiters inspect the repo.
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
