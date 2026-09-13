@@ -28162,3 +28162,10627 @@ console.log(
 
 
 })();
+// ============================================================
+// STEP 5N - COLLECTOR → RECYCLER SELLING FLOW
+// Inventory → Recycler Comparison → Handover → Sale
+// ============================================================
+
+(function () {
+
+    console.log(
+        "🚀 Step 5N - Collector → Recycler Selling Flow loaded."
+    );
+
+
+    const INVENTORY_KEY =
+        "kabadiSetuCollectorInventory";
+
+    const SALES_KEY =
+        "kabadiSetuCollectorSales";
+
+
+    let selectedSale = null;
+
+    let selectedRecyclerList = [];
+
+
+    // ============================================================
+    // STORAGE
+    // ============================================================
+
+    function getInventory() {
+
+        try {
+
+            const data =
+                JSON.parse(
+                    localStorage.getItem(
+                        INVENTORY_KEY
+                    ) || "[]"
+                );
+
+            return Array.isArray(data)
+                ? data
+                : [];
+
+        } catch (error) {
+
+            return [];
+
+        }
+
+    }
+
+
+    function saveInventory(
+        inventory
+    ) {
+
+        localStorage.setItem(
+            INVENTORY_KEY,
+            JSON.stringify(
+                inventory
+            )
+        );
+
+    }
+
+
+    function getSales() {
+
+        try {
+
+            const data =
+                JSON.parse(
+                    localStorage.getItem(
+                        SALES_KEY
+                    ) || "[]"
+                );
+
+            return Array.isArray(data)
+                ? data
+                : [];
+
+        } catch (error) {
+
+            return [];
+
+        }
+
+    }
+
+
+    function saveSales(
+        sales
+    ) {
+
+        localStorage.setItem(
+            SALES_KEY,
+            JSON.stringify(
+                sales
+            )
+        );
+
+    }
+
+
+    // ============================================================
+    // HELPERS
+    // ============================================================
+
+    function money(
+        value
+    ) {
+
+        return "₹" +
+            Number(
+                value || 0
+            ).toLocaleString(
+                "en-IN"
+            );
+
+    }
+
+
+    function generateSaleId() {
+
+        const now =
+            new Date();
+
+        const date =
+            now.getFullYear() +
+            String(
+                now.getMonth() + 1
+            ).padStart(2, "0") +
+            String(
+                now.getDate()
+            ).padStart(2, "0");
+
+
+        return (
+            "KS-SALE-" +
+            date +
+            "-" +
+            Math.floor(
+                100000 +
+                Math.random() *
+                900000
+            )
+        );
+
+    }
+
+
+    function generateHandoverId() {
+
+        return (
+            "CH-" +
+            Date.now()
+                .toString(36)
+                .toUpperCase() +
+            "-" +
+            Math.floor(
+                100 +
+                Math.random() *
+                900
+            )
+        );
+
+    }
+
+
+    function generateToken() {
+
+        return (
+            "KSETU-COL-" +
+            Date.now()
+                .toString(36)
+                .toUpperCase()
+        );
+
+    }
+
+
+    // ============================================================
+    // CREATE SELLING CARD
+    // ============================================================
+
+    function createSellingCard() {
+
+        let card =
+            document.getElementById(
+                "collectorRecyclerSellingCard"
+            );
+
+
+        if (card) {
+            return card;
+        }
+
+
+        card =
+            document.createElement("div");
+
+
+        card.id =
+            "collectorRecyclerSellingCard";
+
+
+        card.style.cssText = `
+            margin-top:20px;
+            background:#ffffff;
+            border-radius:18px;
+            padding:20px;
+            box-shadow:0 5px 20px rgba(0,0,0,.08);
+        `;
+
+
+        card.innerHTML = `
+
+            <div style="
+                display:flex;
+                justify-content:space-between;
+                align-items:center;
+                gap:15px;
+                margin-bottom:18px;
+            ">
+
+                <div>
+
+                    <div style="
+                        font-size:11px;
+                        color:#15803d;
+                        font-weight:700;
+                        letter-spacing:.5px;
+                    ">
+                        COLLECTOR → RECYCLER
+                    </div>
+
+                    <h3 style="
+                        margin:5px 0 4px;
+                    ">
+                        ♻️ Sell Material to Recycler
+                    </h3>
+
+                    <div style="
+                        font-size:12px;
+                        color:#777;
+                    ">
+                        Compare authorized recycler rates
+                        and choose the best price.
+                    </div>
+
+                </div>
+
+                <div style="
+                    font-size:35px;
+                ">
+                    💰
+                </div>
+
+            </div>
+
+
+            <div style="
+                display:grid;
+                grid-template-columns:
+                    repeat(
+                        auto-fit,
+                        minmax(180px,1fr)
+                    );
+                gap:12px;
+            ">
+
+
+                <div>
+
+                    <label style="
+                        display:block;
+                        font-size:12px;
+                        font-weight:600;
+                        margin-bottom:6px;
+                    ">
+                        Material
+                    </label>
+
+                    <select
+                        id="collectorSaleMaterial"
+                        style="
+                            width:100%;
+                            box-sizing:border-box;
+                            padding:12px;
+                            border:1px solid #ddd;
+                            border-radius:10px;
+                            background:white;
+                        "
+                    >
+
+                        <option value="">
+                            Select material
+                        </option>
+
+                    </select>
+
+                </div>
+
+
+                <div>
+
+                    <label style="
+                        display:block;
+                        font-size:12px;
+                        font-weight:600;
+                        margin-bottom:6px;
+                    ">
+                        Weight to Sell (kg)
+                    </label>
+
+                    <input
+                        id="collectorSaleWeight"
+                        type="number"
+                        min="0.01"
+                        step="0.01"
+                        placeholder="Enter weight"
+                        style="
+                            width:100%;
+                            box-sizing:border-box;
+                            padding:12px;
+                            border:1px solid #ddd;
+                            border-radius:10px;
+                        "
+                    />
+
+                </div>
+
+            </div>
+
+
+            <div
+                id="collectorAvailableStock"
+                style="
+                    margin-top:10px;
+                    font-size:12px;
+                    color:#777;
+                "
+            >
+                Select a material to see available stock.
+            </div>
+
+
+            <button
+                id="compareRecyclerSaleBtn"
+                style="
+                    width:100%;
+                    margin-top:15px;
+                    padding:13px;
+                    border:none;
+                    border-radius:11px;
+                    background:#111827;
+                    color:white;
+                    cursor:pointer;
+                    font-weight:700;
+                "
+            >
+                🏆 Compare Recycler Prices
+            </button>
+
+
+            <div
+                id="collectorRecyclerSaleResults"
+                style="
+                    margin-top:18px;
+                "
+            >
+            </div>
+
+        `;
+
+
+        document.body.appendChild(
+            card
+        );
+
+
+        populateMaterialDropdown();
+
+
+        const materialSelect =
+            document.getElementById(
+                "collectorSaleMaterial"
+            );
+
+
+        const weightInput =
+            document.getElementById(
+                "collectorSaleWeight"
+            );
+
+
+        if (materialSelect) {
+
+            materialSelect.onchange =
+                function () {
+
+                    updateAvailableStock();
+
+                };
+
+        }
+
+
+        if (weightInput) {
+
+            weightInput.oninput =
+                function () {
+
+                    updateAvailableStock();
+
+                };
+
+        }
+
+
+        const compareButton =
+            document.getElementById(
+                "compareRecyclerSaleBtn"
+            );
+
+
+        if (compareButton) {
+
+            compareButton.onclick =
+                function () {
+
+                    compareRecyclerPrices();
+
+                };
+
+        }
+
+
+        return card;
+
+    }
+
+
+    // ============================================================
+    // POPULATE MATERIAL DROPDOWN
+    // ============================================================
+
+    function populateMaterialDropdown() {
+
+        const select =
+            document.getElementById(
+                "collectorSaleMaterial"
+            );
+
+
+        if (!select) {
+            return;
+        }
+
+
+        const inventory =
+            getInventory();
+
+
+        const currentValue =
+            select.value;
+
+
+        select.innerHTML = `
+
+            <option value="">
+                Select material
+            </option>
+
+        `;
+
+
+        inventory.forEach(
+            function (item) {
+
+                if (!item) {
+                    return;
+                }
+
+
+                const material =
+                    item.material;
+
+
+                const weight =
+                    Number(
+                        item.weight ||
+                        item.physicalWeight ||
+                        0
+                    );
+
+
+                if (
+                    !material ||
+                    weight <= 0
+                ) {
+
+                    return;
+
+                }
+
+
+                const option =
+                    document.createElement(
+                        "option"
+                    );
+
+
+                option.value =
+                    material;
+
+
+                option.textContent =
+                    material +
+                    " — " +
+                    weight +
+                    " kg available";
+
+
+                select.appendChild(
+                    option
+                );
+
+            }
+        );
+
+
+        if (currentValue) {
+
+            select.value =
+                currentValue;
+
+        }
+
+    }
+
+
+    // ============================================================
+    // AVAILABLE STOCK
+    // ============================================================
+
+    function getAvailableWeight(
+        material
+    ) {
+
+        const inventory =
+            getInventory();
+
+
+        const item =
+            inventory.find(
+                function (entry) {
+
+                    return (
+                        entry &&
+                        String(
+                            entry.material
+                        ).toLowerCase() ===
+                        String(
+                            material
+                        ).toLowerCase()
+                    );
+
+                }
+            );
+
+
+        if (!item) {
+            return 0;
+        }
+
+
+        return Number(
+            item.weight ||
+            item.physicalWeight ||
+            0
+        ) || 0;
+
+    }
+
+
+    function updateAvailableStock() {
+
+        const material =
+            document.getElementById(
+                "collectorSaleMaterial"
+            )?.value;
+
+
+        const stockElement =
+            document.getElementById(
+                "collectorAvailableStock"
+            );
+
+
+        if (!stockElement) {
+            return;
+        }
+
+
+        if (!material) {
+
+            stockElement.innerText =
+                "Select a material to see available stock.";
+
+            return;
+
+        }
+
+
+        const available =
+            getAvailableWeight(
+                material
+            );
+
+
+        stockElement.innerHTML =
+            `
+                📦 Available inventory:
+                <strong>
+                    ${available} kg
+                </strong>
+            `;
+
+
+        const weightInput =
+            document.getElementById(
+                "collectorSaleWeight"
+            );
+
+
+        if (
+            weightInput &&
+            !weightInput.value
+        ) {
+
+            weightInput.value =
+                available;
+
+        }
+
+    }
+
+
+    // ============================================================
+    // COMPARE RECYCLER PRICES
+    // ============================================================
+
+    async function compareRecyclerPrices() {
+
+        const material =
+            document.getElementById(
+                "collectorSaleMaterial"
+            )?.value;
+
+
+        const weight =
+            Number(
+                document.getElementById(
+                    "collectorSaleWeight"
+                )?.value
+            );
+
+
+        const results =
+            document.getElementById(
+                "collectorRecyclerSaleResults"
+            );
+
+
+        if (!material) {
+
+            alert(
+                "Please select a material."
+            );
+
+            return;
+
+        }
+
+
+        const available =
+            getAvailableWeight(
+                material
+            );
+
+
+        if (
+            !weight ||
+            weight <= 0
+        ) {
+
+            alert(
+                "Please enter a valid weight."
+            );
+
+            return;
+
+        }
+
+
+        if (
+            weight > available
+        ) {
+
+            alert(
+                `You only have ${available} kg of ${material} in inventory.`
+            );
+
+            return;
+
+        }
+
+
+        if (!results) {
+            return;
+        }
+
+
+        results.innerHTML = `
+
+            <div style="
+                text-align:center;
+                padding:20px;
+                color:#666;
+            ">
+                🔄 Comparing recycler prices...
+            </div>
+
+        `;
+
+
+        try {
+
+            const response =
+                await fetch(
+                    "/recyclers",
+                    {
+                        method:"POST",
+
+                        headers:{
+                            "Content-Type":
+                                "application/json"
+                        },
+
+                        body:
+                            JSON.stringify({
+
+                                material:
+                                    material,
+
+                                weight:
+                                    weight
+
+                            })
+
+                    }
+                );
+
+
+            const data =
+                await response.json();
+
+
+            if (
+                !response.ok ||
+                !data.success
+            ) {
+
+                throw new Error(
+                    data.error ||
+                    "Recycler comparison failed."
+                );
+
+            }
+
+
+            selectedRecyclerList =
+                Array.isArray(
+                    data.recyclers
+                )
+                    ? data.recyclers
+                    : [];
+
+
+            selectedRecyclerList.sort(
+                function (a, b) {
+
+                    return (
+                        Number(
+                            b.rate
+                        ) -
+                        Number(
+                            a.rate
+                        )
+                    );
+
+                }
+            );
+
+
+            renderRecyclerComparison(
+                material,
+                weight,
+                selectedRecyclerList
+            );
+
+
+        } catch (error) {
+
+            console.error(
+                "Step 5N recycler comparison error:",
+                error
+            );
+
+
+            results.innerHTML = `
+
+                <div style="
+                    padding:15px;
+                    background:#fef2f2;
+                    border:1px solid #fecaca;
+                    border-radius:12px;
+                    color:#991b1b;
+                    font-size:13px;
+                ">
+                    ❌ Unable to compare recycler prices.
+                    Please try again.
+                </div>
+
+            `;
+
+        }
+
+    }
+
+
+    // ============================================================
+    // RENDER RECYCLER COMPARISON
+    // ============================================================
+
+    function renderRecyclerComparison(
+        material,
+        weight,
+        recyclers
+    ) {
+
+        const results =
+            document.getElementById(
+                "collectorRecyclerSaleResults"
+            );
+
+
+        if (!results) {
+            return;
+        }
+
+
+        if (
+            recyclers.length === 0
+        ) {
+
+            results.innerHTML = `
+
+                <div style="
+                    padding:20px;
+                    text-align:center;
+                    color:#777;
+                ">
+                    No recycler offers found.
+                </div>
+
+            `;
+
+            return;
+
+        }
+
+
+        const best =
+            recyclers[0];
+
+
+        results.innerHTML = `
+
+            <div style="
+                padding:17px;
+                border-radius:15px;
+                background:#f0fdf4;
+                border:1px solid #bbf7d0;
+                margin-bottom:13px;
+            ">
+
+                <div style="
+                    font-size:11px;
+                    color:#15803d;
+                    font-weight:700;
+                ">
+                    🏆 BEST AVAILABLE PRICE
+                </div>
+
+
+                <div style="
+                    display:flex;
+                    justify-content:space-between;
+                    align-items:center;
+                    gap:10px;
+                    margin-top:7px;
+                ">
+
+                    <strong style="
+                        font-size:16px;
+                    ">
+                        ${best.name}
+                    </strong>
+
+
+                    <strong style="
+                        font-size:20px;
+                    ">
+                        ${money(best.rate)}/kg
+                    </strong>
+
+                </div>
+
+
+                <div style="
+                    font-size:12px;
+                    color:#666;
+                    margin-top:7px;
+                ">
+                    Estimated value for
+                    ${weight} kg:
+                    <strong>
+                        ${money(
+                            Number(best.rate) *
+                            Number(weight)
+                        )}
+                    </strong>
+                </div>
+
+            </div>
+
+
+            <div style="
+                font-size:13px;
+                font-weight:700;
+                margin-bottom:10px;
+            ">
+                Recycler Offers
+            </div>
+
+
+            ${
+                recyclers
+                    .map(
+                        function (
+                            recycler,
+                            index
+                        ) {
+
+                            const rate =
+                                Number(
+                                    recycler.rate
+                                ) || 0;
+
+
+                            const value =
+                                rate *
+                                Number(
+                                    weight
+                                );
+
+
+                            return `
+
+                                <div style="
+                                    border:1px solid #e5e7eb;
+                                    border-radius:14px;
+                                    padding:15px;
+                                    margin-bottom:9px;
+                                    background:white;
+                                ">
+
+                                    <div style="
+                                        display:flex;
+                                        justify-content:space-between;
+                                        gap:10px;
+                                    ">
+
+                                        <div>
+
+                                            <strong>
+                                                ${
+                                                    index === 0
+                                                        ? "🏆 "
+                                                        : ""
+                                                }
+                                                ${recycler.name}
+                                            </strong>
+
+                                            <div style="
+                                                font-size:11px;
+                                                color:#777;
+                                                margin-top:4px;
+                                            ">
+                                                📍 ${
+                                                    recycler.distance ||
+                                                    "Distance unavailable"
+                                                }
+                                                &nbsp; • &nbsp;
+                                                ⭐ ${
+                                                    recycler.rating ||
+                                                    "—"
+                                                }
+                                            </div>
+
+                                        </div>
+
+
+                                        <div style="
+                                            text-align:right;
+                                        ">
+
+                                            <strong style="
+                                                font-size:17px;
+                                            ">
+                                                ${money(rate)}/kg
+                                            </strong>
+
+                                            <div style="
+                                                font-size:11px;
+                                                color:#777;
+                                            ">
+                                                ${money(value)}
+                                            </div>
+
+                                        </div>
+
+                                    </div>
+
+
+                                    <div style="
+                                        display:flex;
+                                        gap:7px;
+                                        flex-wrap:wrap;
+                                        margin-top:9px;
+                                    ">
+
+                                        <span style="
+                                            padding:4px 8px;
+                                            border-radius:12px;
+                                            background:#f0fdf4;
+                                            color:#15803d;
+                                            font-size:10px;
+                                        ">
+                                            ✓ ${
+                                                recycler.authorization ||
+                                                "Verified"
+                                            }
+                                        </span>
+
+
+                                        <span style="
+                                            padding:4px 8px;
+                                            border-radius:12px;
+                                            background:#f8fafc;
+                                            color:#555;
+                                            font-size:10px;
+                                        ">
+                                            ${
+                                                recycler.pickup
+                                                    ? "🚚 Pickup Available"
+                                                    : "📦 Drop-off"
+                                            }
+                                        </span>
+
+                                    </div>
+
+
+                                    <button
+                                        class="selectCollectorRecyclerBtn"
+                                        data-index="${index}"
+                                        style="
+                                            width:100%;
+                                            margin-top:12px;
+                                            padding:11px;
+                                            border:none;
+                                            border-radius:9px;
+                                            background:${
+                                                index === 0
+                                                    ? "#16a34a"
+                                                    : "#111827"
+                                            };
+                                            color:white;
+                                            cursor:pointer;
+                                            font-weight:600;
+                                        "
+                                    >
+                                        ${
+                                            index === 0
+                                                ? "🏆 Select Best Recycler"
+                                                : "Select Recycler"
+                                        }
+                                    </button>
+
+                                </div>
+
+                            `;
+
+                        }
+                    )
+                    .join("")
+            }
+
+        `;
+
+
+        document
+            .querySelectorAll(
+                ".selectCollectorRecyclerBtn"
+            )
+            .forEach(
+                function (button) {
+
+                    button.onclick =
+                        function () {
+
+                            const index =
+                                Number(
+                                    this.getAttribute(
+                                        "data-index"
+                                    )
+                                );
+
+
+                            selectRecycler(
+                                index,
+                                material,
+                                weight
+                            );
+
+                        };
+
+                }
+            );
+
+    }
+
+
+    // ============================================================
+    // SELECT RECYCLER
+    // ============================================================
+
+    function selectRecycler(
+        index,
+        material,
+        weight
+    ) {
+
+        const recycler =
+            selectedRecyclerList[
+                index
+            ];
+
+
+        if (!recycler) {
+
+            alert(
+                "Recycler information unavailable."
+            );
+
+            return;
+
+        }
+
+
+        selectedSale = {
+
+            saleId:
+                generateSaleId(),
+
+            handoverId:
+                generateHandoverId(),
+
+            token:
+                generateToken(),
+
+            material:
+                material,
+
+            weight:
+                Number(weight),
+
+            recycler:
+                recycler,
+
+            rate:
+                Number(
+                    recycler.rate
+                ) || 0,
+
+            estimatedValue:
+                Number(
+                    recycler.rate
+                ) *
+                Number(weight),
+
+            selectedAt:
+                new Date().toISOString(),
+
+            status:
+                "Recycler Selected"
+
+        };
+
+
+        showSaleConfirmation();
+
+    }
+
+
+    // ============================================================
+    // SALE CONFIRMATION MODAL
+    // ============================================================
+
+    function showSaleConfirmation() {
+
+        if (!selectedSale) {
+            return;
+        }
+
+
+        closeExistingSaleModal();
+
+
+        const modal =
+            document.createElement(
+                "div"
+            );
+
+
+        modal.id =
+            "collectorSaleConfirmationModal";
+
+
+        modal.innerHTML = `
+
+            <div style="
+                position:fixed;
+                inset:0;
+                background:rgba(0,0,0,.65);
+                z-index:99998;
+                display:flex;
+                align-items:center;
+                justify-content:center;
+                padding:20px;
+            ">
+
+                <div style="
+                    width:min(500px,100%);
+                    max-height:90vh;
+                    overflow:auto;
+                    background:white;
+                    border-radius:20px;
+                    padding:24px;
+                ">
+
+                    <div style="
+                        display:flex;
+                        justify-content:space-between;
+                        align-items:center;
+                    ">
+
+                        <h2 style="
+                            margin:0;
+                        ">
+                            ♻️ Confirm Recycler Sale
+                        </h2>
+
+                        <button
+                            id="closeCollectorSaleModal"
+                            style="
+                                border:none;
+                                background:#f1f5f9;
+                                width:35px;
+                                height:35px;
+                                border-radius:50%;
+                                cursor:pointer;
+                                font-size:18px;
+                            "
+                        >
+                            ×
+                        </button>
+
+                    </div>
+
+
+                    <div style="
+                        margin-top:20px;
+                        background:#f8fafc;
+                        border-radius:15px;
+                        padding:16px;
+                    ">
+
+                        <div style="
+                            font-size:11px;
+                            color:#777;
+                        ">
+                            MATERIAL
+                        </div>
+
+                        <strong style="
+                            font-size:17px;
+                        ">
+                            ${selectedSale.material}
+                        </strong>
+
+
+                        <div style="
+                            margin-top:13px;
+                            font-size:11px;
+                            color:#777;
+                        ">
+                            PHYSICAL WEIGHT
+                        </div>
+
+                        <strong>
+                            ${selectedSale.weight} kg
+                        </strong>
+
+
+                        <div style="
+                            margin-top:13px;
+                            font-size:11px;
+                            color:#777;
+                        ">
+                            SELECTED RECYCLER
+                        </div>
+
+                        <strong>
+                            ♻️ ${selectedSale.recycler.name}
+                        </strong>
+
+
+                        <div style="
+                            margin-top:13px;
+                            font-size:11px;
+                            color:#777;
+                        ">
+                            RECYCLER RATE
+                        </div>
+
+                        <strong>
+                            ${money(
+                                selectedSale.rate
+                            )}/kg
+                        </strong>
+
+
+                        <div style="
+                            margin-top:13px;
+                            font-size:11px;
+                            color:#777;
+                        ">
+                            ESTIMATED SALE VALUE
+                        </div>
+
+                        <strong style="
+                            font-size:21px;
+                        ">
+                            ${money(
+                                selectedSale.estimatedValue
+                            )}
+                        </strong>
+
+                    </div>
+
+
+                    <div style="
+                        margin-top:15px;
+                        padding:13px;
+                        border-radius:12px;
+                        background:#fff7ed;
+                        color:#9a3412;
+                        font-size:12px;
+                        line-height:1.6;
+                    ">
+
+                        ⚠️ <strong>Important:</strong>
+                        This is an indicative settlement value.
+                        Final payment is subject to physical
+                        weighing and the recycler's applicable
+                        rate at handover.
+
+                    </div>
+
+
+                    <div style="
+                        display:flex;
+                        gap:10px;
+                        margin-top:18px;
+                    ">
+
+                        <button
+                            id="cancelCollectorSaleBtn"
+                            style="
+                                flex:1;
+                                padding:13px;
+                                border:1px solid #ddd;
+                                border-radius:10px;
+                                background:white;
+                                cursor:pointer;
+                            "
+                        >
+                            Cancel
+                        </button>
+
+
+                        <button
+                            id="confirmCollectorSaleBtn"
+                            style="
+                                flex:1;
+                                padding:13px;
+                                border:none;
+                                border-radius:10px;
+                                background:#16a34a;
+                                color:white;
+                                font-weight:700;
+                                cursor:pointer;
+                            "
+                        >
+                            🔐 Confirm Handover
+                        </button>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        `;
+
+
+        document.body.appendChild(
+            modal
+        );
+
+
+        document.getElementById(
+            "closeCollectorSaleModal"
+        ).onclick =
+            closeExistingSaleModal;
+
+
+        document.getElementById(
+            "cancelCollectorSaleBtn"
+        ).onclick =
+            closeExistingSaleModal;
+
+
+        document.getElementById(
+            "confirmCollectorSaleBtn"
+        ).onclick =
+            confirmCollectorHandover;
+
+    }
+
+
+    // ============================================================
+    // CLOSE MODAL
+    // ============================================================
+
+    function closeExistingSaleModal() {
+
+        const modal =
+            document.getElementById(
+                "collectorSaleConfirmationModal"
+            );
+
+
+        if (modal) {
+
+            modal.remove();
+
+        }
+
+    }
+
+
+    // ============================================================
+    // CONFIRM HANDOVER
+    // ============================================================
+
+    function confirmCollectorHandover() {
+
+        if (!selectedSale) {
+            return;
+        }
+
+
+        selectedSale.status =
+            "Handover Ready";
+
+
+        closeExistingSaleModal();
+
+
+        showHandoverReceipt();
+
+    }
+
+
+    // ============================================================
+    // HANDOVER RECEIPT
+    // ============================================================
+
+    function showHandoverReceipt() {
+
+        const modal =
+            document.createElement(
+                "div"
+            );
+
+
+        modal.id =
+            "collectorHandoverReceiptModal";
+
+
+        modal.innerHTML = `
+
+            <div style="
+                position:fixed;
+                inset:0;
+                background:rgba(0,0,0,.7);
+                z-index:99999;
+                display:flex;
+                align-items:center;
+                justify-content:center;
+                padding:20px;
+            ">
+
+                <div style="
+                    width:min(500px,100%);
+                    max-height:90vh;
+                    overflow:auto;
+                    background:white;
+                    border-radius:20px;
+                    padding:25px;
+                ">
+
+
+                    <div style="
+                        text-align:center;
+                    ">
+
+                        <div style="
+                            font-size:45px;
+                        ">
+                            🔐
+                        </div>
+
+                        <h2 style="
+                            margin:7px 0;
+                        ">
+                            Recycler Handover
+                        </h2>
+
+                        <div style="
+                            font-size:12px;
+                            color:#777;
+                        ">
+                            Digital collector-to-recycler
+                            handover reference
+                        </div>
+
+                    </div>
+
+
+                    <div style="
+                        margin-top:20px;
+                        padding:18px;
+                        background:#f8fafc;
+                        border-radius:15px;
+                    ">
+
+                        <div style="
+                            display:flex;
+                            justify-content:space-between;
+                            margin-bottom:10px;
+                        ">
+
+                            <span>
+                                Material
+                            </span>
+
+                            <strong>
+                                ${selectedSale.material}
+                            </strong>
+
+                        </div>
+
+
+                        <div style="
+                            display:flex;
+                            justify-content:space-between;
+                            margin-bottom:10px;
+                        ">
+
+                            <span>
+                                Weight
+                            </span>
+
+                            <strong>
+                                ${selectedSale.weight} kg
+                            </strong>
+
+                        </div>
+
+
+                        <div style="
+                            display:flex;
+                            justify-content:space-between;
+                            margin-bottom:10px;
+                        ">
+
+                            <span>
+                                Recycler
+                            </span>
+
+                            <strong>
+                                ${selectedSale.recycler.name}
+                            </strong>
+
+                        </div>
+
+
+                        <div style="
+                            display:flex;
+                            justify-content:space-between;
+                            margin-bottom:10px;
+                        ">
+
+                            <span>
+                                Rate
+                            </span>
+
+                            <strong>
+                                ${money(
+                                    selectedSale.rate
+                                )}/kg
+                            </strong>
+
+                        </div>
+
+
+                        <div style="
+                            display:flex;
+                            justify-content:space-between;
+                        ">
+
+                            <span>
+                                Estimated Value
+                            </span>
+
+                            <strong style="
+                                font-size:18px;
+                            ">
+                                ${money(
+                                    selectedSale.estimatedValue
+                                )}
+                            </strong>
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- HANDOVER ID -->
+
+                    <div style="
+                        margin-top:15px;
+                        padding:16px;
+                        border:2px dashed #cbd5e1;
+                        border-radius:14px;
+                        text-align:center;
+                    ">
+
+                        <div style="
+                            font-size:10px;
+                            color:#777;
+                            letter-spacing:.5px;
+                        ">
+                            HANDOVER ID
+                        </div>
+
+                        <strong style="
+                            display:block;
+                            margin-top:5px;
+                            font-size:20px;
+                            letter-spacing:1px;
+                        ">
+                            ${selectedSale.handoverId}
+                        </strong>
+
+                    </div>
+
+
+                    <!-- TOKEN -->
+
+                    <div style="
+                        margin-top:10px;
+                        padding:12px;
+                        background:#f0fdf4;
+                        border-radius:12px;
+                        text-align:center;
+                    ">
+
+                        <div style="
+                            font-size:10px;
+                            color:#777;
+                        ">
+                            DIGITAL HANDOVER TOKEN
+                        </div>
+
+                        <strong style="
+                            font-size:13px;
+                        ">
+                            ${selectedSale.token}
+                        </strong>
+
+                    </div>
+
+
+                    <div style="
+                        margin-top:14px;
+                        padding:12px;
+                        background:#fff7ed;
+                        border-radius:12px;
+                        font-size:11px;
+                        color:#9a3412;
+                        line-height:1.6;
+                    ">
+
+                        ⚠️ Verify the physical weight and
+                        recycler rate before final settlement.
+
+                    </div>
+
+
+                    <button
+                        id="markCollectorSaleCompletedBtn"
+                        style="
+                            width:100%;
+                            margin-top:18px;
+                            padding:14px;
+                            border:none;
+                            border-radius:11px;
+                            background:#16a34a;
+                            color:white;
+                            cursor:pointer;
+                            font-weight:700;
+                        "
+                    >
+                        💰 Mark as Sold & Complete Handover
+                    </button>
+
+
+                    <button
+                        id="cancelCollectorHandoverBtn"
+                        style="
+                            width:100%;
+                            margin-top:8px;
+                            padding:11px;
+                            border:none;
+                            background:white;
+                            color:#666;
+                            cursor:pointer;
+                        "
+                    >
+                        Cancel Handover
+                    </button>
+
+                </div>
+
+            </div>
+
+        `;
+
+
+        document.body.appendChild(
+            modal
+        );
+
+
+        document.getElementById(
+            "markCollectorSaleCompletedBtn"
+        ).onclick =
+            completeCollectorSale;
+
+
+        document.getElementById(
+            "cancelCollectorHandoverBtn"
+        ).onclick =
+            function () {
+
+                modal.remove();
+
+                selectedSale =
+                    null;
+
+            };
+
+    }
+
+
+    // ============================================================
+    // COMPLETE SALE
+    // ============================================================
+
+    function completeCollectorSale() {
+
+        if (!selectedSale) {
+            return;
+        }
+
+
+        // --------------------------------------------------------
+        // UPDATE INVENTORY
+        // --------------------------------------------------------
+
+        const inventory =
+            getInventory();
+
+
+        const item =
+            inventory.find(
+                function (entry) {
+
+                    return (
+                        entry &&
+                        String(
+                            entry.material
+                        ).toLowerCase() ===
+                        String(
+                            selectedSale.material
+                        ).toLowerCase()
+                    );
+
+                }
+            );
+
+
+        if (!item) {
+
+            alert(
+                "Inventory item no longer exists."
+            );
+
+            return;
+
+        }
+
+
+        const currentWeight =
+            Number(
+                item.weight ||
+                item.physicalWeight ||
+                0
+            );
+
+
+        if (
+            selectedSale.weight >
+            currentWeight
+        ) {
+
+            alert(
+                "Insufficient inventory for this sale."
+            );
+
+            return;
+
+        }
+
+
+        const remainingWeight =
+            Number(
+                (
+                    currentWeight -
+                    selectedSale.weight
+                ).toFixed(2)
+            );
+
+
+        if (
+            remainingWeight <= 0
+        ) {
+
+            const index =
+                inventory.indexOf(
+                    item
+                );
+
+
+            inventory.splice(
+                index,
+                1
+            );
+
+        } else {
+
+            item.weight =
+                remainingWeight;
+
+            item.updatedAt =
+                new Date().toISOString();
+
+        }
+
+
+        saveInventory(
+            inventory
+        );
+
+
+        // --------------------------------------------------------
+        // CREATE SALE RECORD
+        // --------------------------------------------------------
+
+        selectedSale.status =
+            "Completed";
+
+
+        selectedSale.completedAt =
+            new Date().toISOString();
+
+
+        selectedSale.finalValue =
+            Number(
+                (
+                    selectedSale.rate *
+                    selectedSale.weight
+                ).toFixed(2)
+            );
+
+
+        selectedSale.recycler =
+            {
+                ...selectedSale.recycler
+            };
+
+
+        const sales =
+            getSales();
+
+
+        sales.unshift(
+            selectedSale
+        );
+
+
+        saveSales(
+            sales
+        );
+
+
+        // --------------------------------------------------------
+        // NOTIFICATION
+        // --------------------------------------------------------
+
+        try {
+
+            if (
+                typeof window.addCollectorNotification ===
+                "function"
+            ) {
+
+                window.addCollectorNotification(
+                    "Recycler Sale Completed",
+                    `${selectedSale.material} (${selectedSale.weight} kg) sold to ${selectedSale.recycler.name} for approximately ${money(selectedSale.finalValue)}.`,
+                    "sale"
+                );
+
+            }
+
+        } catch (error) {
+
+            console.warn(
+                "Sale notification skipped.",
+                error
+            );
+
+        }
+
+
+        // --------------------------------------------------------
+        // CLOSE MODAL
+        // --------------------------------------------------------
+
+        const modal =
+            document.getElementById(
+                "collectorHandoverReceiptModal"
+            );
+
+
+        if (modal) {
+            modal.remove();
+        }
+
+
+        // --------------------------------------------------------
+        // REFRESH UI
+        // --------------------------------------------------------
+
+        refreshCollectorSellingUI();
+
+
+        // --------------------------------------------------------
+        // SUCCESS
+        // --------------------------------------------------------
+
+        showSaleSuccess();
+
+
+        selectedSale =
+            null;
+
+    }
+
+
+    // ============================================================
+    // SUCCESS SCREEN
+    // ============================================================
+
+    function showSaleSuccess() {
+
+        const overlay =
+            document.createElement(
+                "div"
+            );
+
+
+        overlay.id =
+            "collectorSaleSuccessOverlay";
+
+
+        overlay.innerHTML = `
+
+            <div style="
+                position:fixed;
+                inset:0;
+                background:rgba(0,0,0,.65);
+                z-index:100000;
+                display:flex;
+                align-items:center;
+                justify-content:center;
+                padding:20px;
+            ">
+
+                <div style="
+                    width:min(450px,100%);
+                    background:white;
+                    border-radius:20px;
+                    padding:30px;
+                    text-align:center;
+                ">
+
+                    <div style="
+                        font-size:55px;
+                    ">
+                        🎉
+                    </div>
+
+
+                    <h2 style="
+                        margin:10px 0;
+                    ">
+                        Sale Completed!
+                    </h2>
+
+
+                    <p style="
+                        color:#666;
+                        font-size:13px;
+                        line-height:1.6;
+                    ">
+                        The material has been marked as
+                        sold and removed from your inventory.
+                    </p>
+
+
+                    <div style="
+                        margin:18px 0;
+                        padding:18px;
+                        border-radius:15px;
+                        background:#f0fdf4;
+                    ">
+
+                        <div style="
+                            font-size:11px;
+                            color:#777;
+                        ">
+                            SALE VALUE
+                        </div>
+
+                        <strong style="
+                            display:block;
+                            margin-top:5px;
+                            font-size:27px;
+                        ">
+                            ${money(
+                                selectedSale
+                                    ? selectedSale.finalValue
+                                    : 0
+                            )}
+                        </strong>
+
+                    </div>
+
+
+                    <button
+                        id="closeCollectorSaleSuccess"
+                        style="
+                            width:100%;
+                            padding:13px;
+                            border:none;
+                            border-radius:11px;
+                            background:#111827;
+                            color:white;
+                            cursor:pointer;
+                            font-weight:700;
+                        "
+                    >
+                        Done
+                    </button>
+
+                </div>
+
+            </div>
+
+        `;
+
+
+        /*
+         * selectedSale is cleared after this function,
+         * therefore capture the value before rendering.
+         */
+
+        const sales =
+            getSales();
+
+
+        const latestSale =
+            sales[0];
+
+
+        const value =
+            latestSale
+                ? latestSale.finalValue
+                : 0;
+
+
+        overlay.innerHTML =
+            overlay.innerHTML.replace(
+                "${money(selectedSale ? selectedSale.finalValue : 0)}",
+                money(value)
+            );
+
+
+        document.body.appendChild(
+            overlay
+        );
+
+
+        document.getElementById(
+            "closeCollectorSaleSuccess"
+        ).onclick =
+            function () {
+
+                overlay.remove();
+
+            };
+
+    }
+
+
+    // ============================================================
+    // REFRESH
+    // ============================================================
+
+    function refreshCollectorSellingUI() {
+
+        populateMaterialDropdown();
+
+        updateAvailableStock();
+
+
+        try {
+
+            if (
+                typeof window.renderCollectorInventory ===
+                "function"
+            ) {
+
+                window.renderCollectorInventory();
+
+            }
+
+        } catch (error) {}
+
+
+        try {
+
+            if (
+                typeof window.renderCollectorEarningsDashboard ===
+                "function"
+            ) {
+
+                window.renderCollectorEarningsDashboard();
+
+            }
+
+        } catch (error) {}
+
+
+        try {
+
+            if (
+                typeof window.renderCollectorProfile ===
+                "function"
+            ) {
+
+                window.renderCollectorProfile();
+
+            }
+
+        } catch (error) {}
+
+    }
+
+
+    // ============================================================
+    // PUBLIC FUNCTION
+    // ============================================================
+
+    window.openCollectorRecyclerSelling =
+        function () {
+
+            createSellingCard();
+
+            populateMaterialDropdown();
+
+            updateAvailableStock();
+
+            const card =
+                document.getElementById(
+                    "collectorRecyclerSellingCard"
+                );
+
+            if (card) {
+
+                card.scrollIntoView({
+                    behavior:"smooth",
+                    block:"center"
+                });
+
+            }
+
+        };
+
+
+    window.compareCollectorRecyclerPrices =
+        compareRecyclerPrices;
+
+
+    window.completeCollectorSale =
+        completeCollectorSale;
+
+
+    // ============================================================
+    // INITIAL LOAD
+    // ============================================================
+
+    setTimeout(
+        function () {
+
+            /*
+             * Only create the selling panel for collectors.
+             */
+
+            const role =
+                localStorage.getItem(
+                    "kabadiSetuActiveRole"
+                ) ||
+                "household";
+
+
+            if (
+                role === "collector"
+            ) {
+
+                createSellingCard();
+
+            }
+
+
+            console.log(
+                "✅ Step 5N - Collector → Recycler selling flow ready."
+            );
+
+        },
+        2200
+    );
+
+
+    // ============================================================
+    // ROLE SWITCH SUPPORT
+    // ============================================================
+
+    const previousSwitchRole =
+        window.switchRole;
+
+
+    if (
+        typeof previousSwitchRole ===
+        "function"
+    ) {
+
+        window.switchRole =
+            function (
+                role
+            ) {
+
+                previousSwitchRole(
+                    role
+                );
+
+
+                setTimeout(
+                    function () {
+
+                        if (
+                            role === "collector"
+                        ) {
+
+                            createSellingCard();
+
+                        }
+
+                    },
+                    300
+                );
+
+            };
+
+    }
+
+
+    // ============================================================
+    // AUTO REFRESH
+    // ============================================================
+
+    setInterval(
+        function () {
+
+            if (
+                localStorage.getItem(
+                    "kabadiSetuActiveRole"
+                ) === "collector"
+            ) {
+
+                const card =
+                    document.getElementById(
+                        "collectorRecyclerSellingCard"
+                    );
+
+
+                if (card) {
+
+                    populateMaterialDropdown();
+
+                }
+
+            }
+
+        },
+        3000
+    );
+
+
+})();
+
+// ============================================================
+// STEP 5O - COLLECTOR TRANSACTIONS
+// Collector → Recycler Sale History
+// ============================================================
+
+(function () {
+
+    console.log(
+        "🚀 Step 5O - Collector Transactions loaded."
+    );
+
+
+    const SALES_KEY =
+        "kabadiSetuCollectorSales";
+
+
+    // ============================================================
+    // STORAGE
+    // ============================================================
+
+    function getCollectorSales() {
+
+        try {
+
+            const data =
+                JSON.parse(
+                    localStorage.getItem(
+                        SALES_KEY
+                    ) || "[]"
+                );
+
+
+            return Array.isArray(data)
+                ? data
+                : [];
+
+        } catch (error) {
+
+            console.error(
+                "Step 5O: Could not read collector sales.",
+                error
+            );
+
+            return [];
+
+        }
+
+    }
+
+
+    // ============================================================
+    // FORMAT MONEY
+    // ============================================================
+
+    function formatMoney(
+        value
+    ) {
+
+        return (
+            "₹" +
+            Number(
+                value || 0
+            ).toLocaleString(
+                "en-IN",
+                {
+                    maximumFractionDigits: 2
+                }
+            )
+        );
+
+    }
+
+
+    // ============================================================
+    // FORMAT DATE
+    // ============================================================
+
+    function formatDate(
+        value
+    ) {
+
+        if (!value) {
+
+            return "Date unavailable";
+
+        }
+
+
+        const date =
+            new Date(value);
+
+
+        if (
+            isNaN(
+                date.getTime()
+            )
+        ) {
+
+            return "Date unavailable";
+
+        }
+
+
+        return date.toLocaleString(
+            "en-IN",
+            {
+                day: "2-digit",
+                month: "short",
+                year: "numeric",
+                hour: "2-digit",
+                minute: "2-digit"
+            }
+        );
+
+    }
+
+
+    // ============================================================
+    // CREATE TRANSACTIONS SECTION
+    // ============================================================
+
+    function createCollectorTransactionsSection() {
+
+        let section =
+            document.getElementById(
+                "collectorTransactions"
+            );
+
+
+        if (section) {
+
+            return section;
+
+        }
+
+
+        section =
+            document.createElement(
+                "section"
+            );
+
+
+        section.id =
+            "collectorTransactions";
+
+
+        section.className =
+            "page-section";
+
+
+        section.innerHTML = `
+
+            <div
+                id="collectorTransactionsPage"
+                style="
+                    width:100%;
+                "
+            >
+
+                <!-- ================================================= -->
+                <!-- HEADER -->
+                <!-- ================================================= -->
+
+                <div style="
+                    background:linear-gradient(
+                        135deg,
+                        #f0fdf4,
+                        #eff6ff
+                    );
+                    border:1px solid #d1fae5;
+                    border-radius:20px;
+                    padding:24px;
+                    margin-bottom:20px;
+                ">
+
+                    <div style="
+                        display:flex;
+                        justify-content:space-between;
+                        align-items:center;
+                        gap:15px;
+                    ">
+
+                        <div>
+
+                            <div style="
+                                font-size:11px;
+                                color:#15803d;
+                                font-weight:700;
+                                letter-spacing:.5px;
+                            ">
+                                COLLECTOR ACCOUNT
+                            </div>
+
+                            <h2 style="
+                                margin:6px 0 7px;
+                                font-size:27px;
+                            ">
+                                📋 Collector Transactions
+                            </h2>
+
+                            <p style="
+                                margin:0;
+                                color:#666;
+                                font-size:13px;
+                                line-height:1.5;
+                            ">
+                                Complete history of material
+                                sold to verified recyclers.
+                            </p>
+
+                        </div>
+
+
+                        <div style="
+                            font-size:43px;
+                        ">
+                            💰
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <!-- ================================================= -->
+                <!-- SUMMARY -->
+                <!-- ================================================= -->
+
+                <div
+                    id="collectorTransactionSummary"
+                    style="
+                        display:grid;
+                        grid-template-columns:
+                            repeat(
+                                auto-fit,
+                                minmax(150px,1fr)
+                            );
+                        gap:12px;
+                        margin-bottom:20px;
+                    "
+                >
+                </div>
+
+
+                <!-- ================================================= -->
+                <!-- FILTER BAR -->
+                <!-- ================================================= -->
+
+                <div style="
+                    background:#ffffff;
+                    border-radius:17px;
+                    padding:16px;
+                    margin-bottom:15px;
+                    box-shadow:0 4px 15px rgba(0,0,0,.05);
+                ">
+
+                    <div style="
+                        display:flex;
+                        align-items:center;
+                        gap:10px;
+                        flex-wrap:wrap;
+                    ">
+
+                        <strong style="
+                            font-size:13px;
+                        ">
+                            Filter:
+                        </strong>
+
+
+                        <button
+                            class="collectorTransactionFilter"
+                            data-filter="all"
+                            style="
+                                border:none;
+                                background:#111827;
+                                color:white;
+                                padding:8px 14px;
+                                border-radius:20px;
+                                cursor:pointer;
+                                font-size:12px;
+                                font-weight:700;
+                            "
+                        >
+                            All
+                        </button>
+
+
+                        <button
+                            class="collectorTransactionFilter"
+                            data-filter="Completed"
+                            style="
+                                border:1px solid #bbf7d0;
+                                background:#f0fdf4;
+                                color:#15803d;
+                                padding:8px 14px;
+                                border-radius:20px;
+                                cursor:pointer;
+                                font-size:12px;
+                            "
+                        >
+                            Completed
+                        </button>
+
+
+                        <input
+                            id="collectorTransactionSearch"
+                            type="text"
+                            placeholder="🔍 Search material or recycler..."
+                            style="
+                                margin-left:auto;
+                                min-width:220px;
+                                padding:10px 13px;
+                                border:1px solid #ddd;
+                                border-radius:10px;
+                                outline:none;
+                                box-sizing:border-box;
+                            "
+                        />
+
+                    </div>
+
+                </div>
+
+
+                <!-- ================================================= -->
+                <!-- TRANSACTION LIST -->
+                <!-- ================================================= -->
+
+                <div
+                    id="collectorTransactionList"
+                >
+                </div>
+
+            </div>
+
+        `;
+
+
+        const main =
+            document.querySelector(
+                ".main"
+            );
+
+
+        if (main) {
+
+            main.appendChild(
+                section
+            );
+
+        } else {
+
+            document.body.appendChild(
+                section
+            );
+
+        }
+
+
+        attachTransactionFilters();
+
+
+        return section;
+
+    }
+
+
+    // ============================================================
+    // SUMMARY
+    // ============================================================
+
+    function renderSummary(
+        sales
+    ) {
+
+        const container =
+            document.getElementById(
+                "collectorTransactionSummary"
+            );
+
+
+        if (!container) {
+
+            return;
+
+        }
+
+
+        let totalWeight = 0;
+
+        let totalEarnings = 0;
+
+
+        sales.forEach(
+            function (sale) {
+
+                totalWeight +=
+                    Number(
+                        sale.weight
+                    ) || 0;
+
+
+                totalEarnings +=
+                    Number(
+                        sale.finalValue ??
+                        sale.estimatedValue ??
+                        0
+                    ) || 0;
+
+            }
+        );
+
+
+        container.innerHTML = `
+
+            <div style="
+                background:#eff6ff;
+                border:1px solid #bfdbfe;
+                border-radius:15px;
+                padding:17px;
+            ">
+
+                <div style="
+                    font-size:11px;
+                    color:#1d4ed8;
+                    font-weight:700;
+                ">
+                    TOTAL SALES
+                </div>
+
+                <strong style="
+                    display:block;
+                    font-size:25px;
+                    margin-top:4px;
+                ">
+                    ${sales.length}
+                </strong>
+
+                <div style="
+                    font-size:11px;
+                    color:#777;
+                    margin-top:3px;
+                ">
+                    Recycler transactions
+                </div>
+
+            </div>
+
+
+            <div style="
+                background:#f0fdf4;
+                border:1px solid #bbf7d0;
+                border-radius:15px;
+                padding:17px;
+            ">
+
+                <div style="
+                    font-size:11px;
+                    color:#15803d;
+                    font-weight:700;
+                ">
+                    WEIGHT SOLD
+                </div>
+
+                <strong style="
+                    display:block;
+                    font-size:25px;
+                    margin-top:4px;
+                ">
+                    ${Number(
+                        totalWeight.toFixed(2)
+                    )} kg
+                </strong>
+
+                <div style="
+                    font-size:11px;
+                    color:#777;
+                    margin-top:3px;
+                ">
+                    Material transferred
+                </div>
+
+            </div>
+
+
+            <div style="
+                background:#fff7ed;
+                border:1px solid #fed7aa;
+                border-radius:15px;
+                padding:17px;
+            ">
+
+                <div style="
+                    font-size:11px;
+                    color:#c2410c;
+                    font-weight:700;
+                ">
+                    TOTAL EARNINGS
+                </div>
+
+                <strong style="
+                    display:block;
+                    font-size:25px;
+                    margin-top:4px;
+                ">
+                    ${formatMoney(
+                        totalEarnings
+                    )}
+                </strong>
+
+                <div style="
+                    font-size:11px;
+                    color:#777;
+                    margin-top:3px;
+                ">
+                    Recorded sale value
+                </div>
+
+            </div>
+
+
+            <div style="
+                background:#faf5ff;
+                border:1px solid #e9d5ff;
+                border-radius:15px;
+                padding:17px;
+            ">
+
+                <div style="
+                    font-size:11px;
+                    color:#7e22ce;
+                    font-weight:700;
+                ">
+                    AVG. SALE VALUE
+                </div>
+
+                <strong style="
+                    display:block;
+                    font-size:25px;
+                    margin-top:4px;
+                ">
+                    ${formatMoney(
+                        sales.length
+                            ? totalEarnings /
+                              sales.length
+                            : 0
+                    )}
+                </strong>
+
+                <div style="
+                    font-size:11px;
+                    color:#777;
+                    margin-top:3px;
+                ">
+                    Per transaction
+                </div>
+
+            </div>
+
+        `;
+
+    }
+
+
+    // ============================================================
+    // TRANSACTION FILTER
+    // ============================================================
+
+    let currentFilter =
+        "all";
+
+
+    let currentSearch =
+        "";
+
+
+    // ============================================================
+    // RENDER LIST
+    // ============================================================
+
+    function renderCollectorTransactions() {
+
+        const container =
+            document.getElementById(
+                "collectorTransactionList"
+            );
+
+
+        if (!container) {
+
+            return;
+
+        }
+
+
+        const allSales =
+            getCollectorSales();
+
+
+        renderSummary(
+            allSales
+        );
+
+
+        let sales =
+            allSales;
+
+
+        // --------------------------------------------------------
+        // STATUS FILTER
+        // --------------------------------------------------------
+
+        if (
+            currentFilter !==
+            "all"
+        ) {
+
+            sales =
+                sales.filter(
+                    function (sale) {
+
+                        return (
+                            sale.status ===
+                            currentFilter
+                        );
+
+                    }
+                );
+
+        }
+
+
+        // --------------------------------------------------------
+        // SEARCH
+        // --------------------------------------------------------
+
+        if (
+            currentSearch
+        ) {
+
+            const search =
+                currentSearch
+                    .toLowerCase();
+
+
+            sales =
+                sales.filter(
+                    function (sale) {
+
+                        const material =
+                            String(
+                                sale.material ||
+                                ""
+                            ).toLowerCase();
+
+
+                        const recycler =
+                            String(
+                                sale.recycler?.name ||
+                                sale.recyclerName ||
+                                ""
+                            ).toLowerCase();
+
+
+                        const saleId =
+                            String(
+                                sale.saleId ||
+                                ""
+                            ).toLowerCase();
+
+
+                        const handoverId =
+                            String(
+                                sale.handoverId ||
+                                ""
+                            ).toLowerCase();
+
+
+                        return (
+                            material.includes(
+                                search
+                            ) ||
+                            recycler.includes(
+                                search
+                            ) ||
+                            saleId.includes(
+                                search
+                            ) ||
+                            handoverId.includes(
+                                search
+                            )
+                        );
+
+                    }
+                );
+
+        }
+
+
+        // --------------------------------------------------------
+        // EMPTY
+        // --------------------------------------------------------
+
+        if (
+            sales.length ===
+            0
+        ) {
+
+            container.innerHTML = `
+
+                <div style="
+                    background:#ffffff;
+                    border-radius:18px;
+                    padding:50px 20px;
+                    text-align:center;
+                    box-shadow:0 4px 15px rgba(0,0,0,.05);
+                ">
+
+                    <div style="
+                        font-size:48px;
+                        margin-bottom:10px;
+                    ">
+                        📭
+                    </div>
+
+                    <h3 style="
+                        margin:0 0 7px;
+                    ">
+                        No transactions found
+                    </h3>
+
+                    <p style="
+                        margin:0;
+                        color:#777;
+                        font-size:13px;
+                    ">
+                        Completed recycler sales will
+                        appear here.
+                    </p>
+
+                </div>
+
+            `;
+
+            return;
+
+        }
+
+
+        // --------------------------------------------------------
+        // LIST
+        // --------------------------------------------------------
+
+        container.innerHTML =
+            sales
+                .map(
+                    renderTransactionCard
+                )
+                .join("");
+
+    }
+
+
+    // ============================================================
+    // TRANSACTION CARD
+    // ============================================================
+
+    function renderTransactionCard(
+        sale
+    ) {
+
+        const recycler =
+            sale.recycler?.name ||
+            sale.recyclerName ||
+            "Recycler";
+
+
+        const weight =
+            Number(
+                sale.weight
+            ) || 0;
+
+
+        const rate =
+            Number(
+                sale.rate
+            ) || 0;
+
+
+        const value =
+            Number(
+                sale.finalValue ??
+                sale.estimatedValue ??
+                (
+                    rate *
+                    weight
+                )
+            ) || 0;
+
+
+        const status =
+            sale.status ||
+            "Completed";
+
+
+        const date =
+            sale.completedAt ||
+            sale.selectedAt;
+
+
+        const statusColor =
+            status === "Completed"
+                ? "#15803d"
+                : "#c2410c";
+
+
+        const statusBg =
+            status === "Completed"
+                ? "#f0fdf4"
+                : "#fff7ed";
+
+
+        const borderColor =
+            status === "Completed"
+                ? "#bbf7d0"
+                : "#fed7aa";
+
+
+        return `
+
+            <div style="
+                background:#ffffff;
+                border:1px solid #e5e7eb;
+                border-radius:18px;
+                padding:20px;
+                margin-bottom:12px;
+                box-shadow:0 4px 15px rgba(0,0,0,.05);
+            ">
+
+
+                <!-- ============================================= -->
+                <!-- TOP -->
+                <!-- ============================================= -->
+
+                <div style="
+                    display:flex;
+                    justify-content:space-between;
+                    align-items:flex-start;
+                    gap:15px;
+                    margin-bottom:17px;
+                ">
+
+                    <div>
+
+                        <div style="
+                            font-size:10px;
+                            color:#999;
+                            letter-spacing:.5px;
+                            margin-bottom:5px;
+                        ">
+                            SALE TRANSACTION
+                        </div>
+
+                        <strong style="
+                            font-size:16px;
+                        ">
+                            ${sale.saleId || "KS-SALE"}
+                        </strong>
+
+                    </div>
+
+
+                    <span style="
+                        padding:7px 11px;
+                        border-radius:20px;
+                        background:${statusBg};
+                        color:${statusColor};
+                        border:1px solid ${borderColor};
+                        font-size:10px;
+                        font-weight:700;
+                    ">
+                        ${status === "Completed"
+                            ? "✓ COMPLETED"
+                            : status
+                        }
+                    </span>
+
+                </div>
+
+
+                <!-- ============================================= -->
+                <!-- MATERIAL -->
+                <!-- ============================================= -->
+
+                <div style="
+                    display:flex;
+                    justify-content:space-between;
+                    align-items:center;
+                    gap:15px;
+                    background:#f8fafc;
+                    border-radius:14px;
+                    padding:15px;
+                    margin-bottom:13px;
+                ">
+
+                    <div>
+
+                        <div style="
+                            font-size:10px;
+                            color:#777;
+                        ">
+                            MATERIAL SOLD
+                        </div>
+
+                        <strong style="
+                            display:block;
+                            font-size:17px;
+                            margin-top:4px;
+                        ">
+                            ♻️ ${sale.material || "Material"}
+                        </strong>
+
+                    </div>
+
+
+                    <div style="
+                        text-align:right;
+                    ">
+
+                        <div style="
+                            font-size:10px;
+                            color:#777;
+                        ">
+                            WEIGHT
+                        </div>
+
+                        <strong style="
+                            font-size:17px;
+                        ">
+                            ${weight} kg
+                        </strong>
+
+                    </div>
+
+                </div>
+
+
+                <!-- ============================================= -->
+                <!-- DETAILS -->
+                <!-- ============================================= -->
+
+                <div style="
+                    display:grid;
+                    grid-template-columns:
+                        repeat(
+                            auto-fit,
+                            minmax(145px,1fr)
+                        );
+                    gap:9px;
+                ">
+
+
+                    <div style="
+                        padding:12px;
+                        border-radius:12px;
+                        background:#f8fafc;
+                    ">
+
+                        <div style="
+                            font-size:10px;
+                            color:#888;
+                        ">
+                            RECYCLER
+                        </div>
+
+                        <strong style="
+                            display:block;
+                            font-size:12px;
+                            margin-top:4px;
+                        ">
+                            ♻️ ${recycler}
+                        </strong>
+
+                    </div>
+
+
+                    <div style="
+                        padding:12px;
+                        border-radius:12px;
+                        background:#f8fafc;
+                    ">
+
+                        <div style="
+                            font-size:10px;
+                            color:#888;
+                        ">
+                            RATE
+                        </div>
+
+                        <strong style="
+                            display:block;
+                            font-size:13px;
+                            margin-top:4px;
+                        ">
+                            ${formatMoney(rate)}/kg
+                        </strong>
+
+                    </div>
+
+
+                    <div style="
+                        padding:12px;
+                        border-radius:12px;
+                        background:#f0fdf4;
+                    ">
+
+                        <div style="
+                            font-size:10px;
+                            color:#15803d;
+                        ">
+                            SALE VALUE
+                        </div>
+
+                        <strong style="
+                            display:block;
+                            font-size:16px;
+                            margin-top:4px;
+                        ">
+                            ${formatMoney(value)}
+                        </strong>
+
+                    </div>
+
+
+                    <div style="
+                        padding:12px;
+                        border-radius:12px;
+                        background:#f8fafc;
+                    ">
+
+                        <div style="
+                            font-size:10px;
+                            color:#888;
+                        ">
+                            DATE
+                        </div>
+
+                        <strong style="
+                            display:block;
+                            font-size:11px;
+                            margin-top:4px;
+                        ">
+                            ${formatDate(date)}
+                        </strong>
+
+                    </div>
+
+                </div>
+
+
+                <!-- ============================================= -->
+                <!-- HANDOVER -->
+                <!-- ============================================= -->
+
+                <div style="
+                    margin-top:13px;
+                    padding:13px;
+                    border:1px dashed #cbd5e1;
+                    border-radius:12px;
+                    background:#fafafa;
+                ">
+
+                    <div style="
+                        display:flex;
+                        justify-content:space-between;
+                        gap:10px;
+                        flex-wrap:wrap;
+                    ">
+
+                        <div>
+
+                            <div style="
+                                font-size:10px;
+                                color:#888;
+                            ">
+                                HANDOVER ID
+                            </div>
+
+                            <strong style="
+                                font-size:12px;
+                            ">
+                                ${sale.handoverId || "—"}
+                            </strong>
+
+                        </div>
+
+
+                        <div>
+
+                            <div style="
+                                font-size:10px;
+                                color:#888;
+                            ">
+                                DIGITAL TOKEN
+                            </div>
+
+                            <strong style="
+                                font-size:11px;
+                            ">
+                                ${sale.token || "—"}
+                            </strong>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <!-- ============================================= -->
+                <!-- TRACEABILITY -->
+                <!-- ============================================= -->
+
+                <div style="
+                    margin-top:13px;
+                    padding:12px;
+                    border-radius:12px;
+                    background:#f8fafc;
+                    font-size:11px;
+                    color:#666;
+                ">
+
+                    🏠 Household
+                    →
+                    🚚 Collector
+                    →
+                    ♻️ ${recycler}
+                    →
+                    🌱 Formal Recycling
+
+                </div>
+
+            </div>
+
+        `;
+
+    }
+
+
+    // ============================================================
+    // FILTERS
+    // ============================================================
+
+    function attachTransactionFilters() {
+
+        document
+            .querySelectorAll(
+                ".collectorTransactionFilter"
+            )
+            .forEach(
+                function (button) {
+
+                    button.onclick =
+                        function () {
+
+                            currentFilter =
+                                this.getAttribute(
+                                    "data-filter"
+                                ) ||
+                                "all";
+
+
+                            document
+                                .querySelectorAll(
+                                    ".collectorTransactionFilter"
+                                )
+                                .forEach(
+                                    function (btn) {
+
+                                        btn.style.fontWeight =
+                                            "400";
+
+                                    }
+                                );
+
+
+                            this.style.fontWeight =
+                                "700";
+
+
+                            renderCollectorTransactions();
+
+                        };
+
+                }
+            );
+
+
+        const search =
+            document.getElementById(
+                "collectorTransactionSearch"
+            );
+
+
+        if (search) {
+
+            search.oninput =
+                function () {
+
+                    currentSearch =
+                        this.value.trim();
+
+
+                    renderCollectorTransactions();
+
+                };
+
+        }
+
+    }
+
+
+    // ============================================================
+    // PUBLIC FUNCTION
+    // ============================================================
+
+    window.renderCollectorTransactions =
+        function () {
+
+            createCollectorTransactionsSection();
+
+            renderCollectorTransactions();
+
+        };
+
+
+    // ============================================================
+    // COLLECTOR NAVIGATION
+    // ============================================================
+
+    function setupCollectorTransactionNavigation() {
+
+        const nav =
+            document.querySelector(
+                ".sidebar nav"
+            );
+
+
+        if (!nav) {
+
+            return;
+
+        }
+
+
+        /*
+         * Hide the generic Transactions navigation
+         * while collector mode is active.
+         */
+
+        Array.from(
+            nav.querySelectorAll(
+                ".nav-item"
+            )
+        ).forEach(
+            function (item) {
+
+                const text =
+                    (
+                        item.innerText ||
+                        ""
+                    ).toLowerCase();
+
+
+                if (
+                    text.includes(
+                        "transaction"
+                    ) &&
+                    !item.id.includes(
+                        "collector"
+                    )
+                ) {
+
+                    item.dataset.householdTransaction =
+                        "true";
+
+                }
+
+            }
+        );
+
+
+        let collectorNav =
+            document.getElementById(
+                "collectorTransactionsNav"
+            );
+
+
+        if (
+            !collectorNav
+        ) {
+
+            collectorNav =
+                document.createElement(
+                    "button"
+                );
+
+
+            collectorNav.id =
+                "collectorTransactionsNav";
+
+
+            collectorNav.className =
+                "nav-item collector-only-nav";
+
+
+            collectorNav.innerHTML = `
+                <span>📋</span>
+                Collector Transactions
+            `;
+
+
+            collectorNav.onclick =
+                function () {
+
+                    if (
+                        getRole() !==
+                        "collector"
+                    ) {
+
+                        return;
+
+                    }
+
+
+                    if (
+                        typeof window.showSection ===
+                        "function"
+                    ) {
+
+                        window.showSection(
+                            "collectorTransactions"
+                        );
+
+                    }
+
+
+                    window.renderCollectorTransactions();
+
+                };
+
+
+            nav.appendChild(
+                collectorNav
+            );
+
+        }
+
+
+        updateCollectorTransactionNav();
+
+    }
+
+
+    // ============================================================
+    // ROLE
+    // ============================================================
+
+    function getRole() {
+
+        return (
+            localStorage.getItem(
+                "kabadiSetuActiveRole"
+            ) ||
+            "household"
+        );
+
+    }
+
+
+    // ============================================================
+    // NAV VISIBILITY
+    // ============================================================
+
+    function updateCollectorTransactionNav() {
+
+        const collectorNav =
+            document.getElementById(
+                "collectorTransactionsNav"
+            );
+
+
+        if (collectorNav) {
+
+            collectorNav.style.display =
+                getRole() === "collector"
+                    ? ""
+                    : "none";
+
+        }
+
+
+        document
+            .querySelectorAll(
+                '[data-household-transaction="true"]'
+            )
+            .forEach(
+                function (item) {
+
+                    item.style.display =
+                        getRole() === "collector"
+                            ? "none"
+                            : "";
+
+                }
+            );
+
+    }
+
+
+    // ============================================================
+    // ROLE SWITCH SUPPORT
+    // ============================================================
+
+    const previousSwitchRole =
+        window.switchRole;
+
+
+    if (
+        typeof previousSwitchRole ===
+        "function"
+    ) {
+
+        window.switchRole =
+            function (
+                role
+            ) {
+
+                previousSwitchRole(
+                    role
+                );
+
+
+                setTimeout(
+                    function () {
+
+                        setupCollectorTransactionNavigation();
+
+                        updateCollectorTransactionNav();
+
+
+                        if (
+                            role ===
+                            "collector"
+                        ) {
+
+                            createCollectorTransactionsSection();
+
+                        }
+
+                    },
+                    300
+                );
+
+            };
+
+    }
+
+
+    // ============================================================
+    // SHOW SECTION SUPPORT
+    // ============================================================
+
+    const previousShowSection =
+        window.showSection;
+
+
+    if (
+        typeof previousShowSection ===
+        "function"
+    ) {
+
+        window.showSection =
+            function (
+                sectionId
+            ) {
+
+                previousShowSection(
+                    sectionId
+                );
+
+
+                if (
+                    sectionId ===
+                    "collectorTransactions"
+                ) {
+
+                    createCollectorTransactionsSection();
+
+                    renderCollectorTransactions();
+
+                }
+
+
+                updateCollectorTransactionNav();
+
+            };
+
+    }
+
+
+    // ============================================================
+    // INITIALIZATION
+    // ============================================================
+
+    setTimeout(
+        function () {
+
+            setupCollectorTransactionNavigation();
+
+
+            if (
+                getRole() ===
+                "collector"
+            ) {
+
+                createCollectorTransactionsSection();
+
+            }
+
+
+            console.log(
+                "✅ Step 5O - Collector Transactions ready."
+            );
+
+        },
+        1500
+    );
+
+
+    // ============================================================
+    // AUTO REFRESH
+    // ============================================================
+
+    setInterval(
+        function () {
+
+            if (
+                getRole() !==
+                "collector"
+            ) {
+
+                return;
+
+            }
+
+
+            const section =
+                document.getElementById(
+                    "collectorTransactions"
+                );
+
+
+            if (
+                section &&
+                section.classList.contains(
+                    "active-section"
+                )
+            ) {
+
+                renderCollectorTransactions();
+
+            }
+
+        },
+        3000
+    );
+
+
+})();
+
+// ============================================================
+// STEP 5O - COLLECTOR TRANSACTIONS
+// Collector → Recycler Sale History
+// ============================================================
+
+(function () {
+
+    console.log(
+        "🚀 Step 5O - Collector Transactions loaded."
+    );
+
+
+    const SALES_KEY =
+        "kabadiSetuCollectorSales";
+
+
+    // ============================================================
+    // STORAGE
+    // ============================================================
+
+    function getCollectorSales() {
+
+        try {
+
+            const data =
+                JSON.parse(
+                    localStorage.getItem(
+                        SALES_KEY
+                    ) || "[]"
+                );
+
+
+            return Array.isArray(data)
+                ? data
+                : [];
+
+        } catch (error) {
+
+            console.error(
+                "Step 5O: Could not read collector sales.",
+                error
+            );
+
+            return [];
+
+        }
+
+    }
+
+
+    // ============================================================
+    // FORMAT MONEY
+    // ============================================================
+
+    function formatMoney(
+        value
+    ) {
+
+        return (
+            "₹" +
+            Number(
+                value || 0
+            ).toLocaleString(
+                "en-IN",
+                {
+                    maximumFractionDigits: 2
+                }
+            )
+        );
+
+    }
+
+
+    // ============================================================
+    // FORMAT DATE
+    // ============================================================
+
+    function formatDate(
+        value
+    ) {
+
+        if (!value) {
+
+            return "Date unavailable";
+
+        }
+
+
+        const date =
+            new Date(value);
+
+
+        if (
+            isNaN(
+                date.getTime()
+            )
+        ) {
+
+            return "Date unavailable";
+
+        }
+
+
+        return date.toLocaleString(
+            "en-IN",
+            {
+                day: "2-digit",
+                month: "short",
+                year: "numeric",
+                hour: "2-digit",
+                minute: "2-digit"
+            }
+        );
+
+    }
+
+
+    // ============================================================
+    // CREATE TRANSACTIONS SECTION
+    // ============================================================
+
+    function createCollectorTransactionsSection() {
+
+        let section =
+            document.getElementById(
+                "collectorTransactions"
+            );
+
+
+        if (section) {
+
+            return section;
+
+        }
+
+
+        section =
+            document.createElement(
+                "section"
+            );
+
+
+        section.id =
+            "collectorTransactions";
+
+
+        section.className =
+            "page-section";
+
+
+        section.innerHTML = `
+
+            <div
+                id="collectorTransactionsPage"
+                style="
+                    width:100%;
+                "
+            >
+
+                <!-- ================================================= -->
+                <!-- HEADER -->
+                <!-- ================================================= -->
+
+                <div style="
+                    background:linear-gradient(
+                        135deg,
+                        #f0fdf4,
+                        #eff6ff
+                    );
+                    border:1px solid #d1fae5;
+                    border-radius:20px;
+                    padding:24px;
+                    margin-bottom:20px;
+                ">
+
+                    <div style="
+                        display:flex;
+                        justify-content:space-between;
+                        align-items:center;
+                        gap:15px;
+                    ">
+
+                        <div>
+
+                            <div style="
+                                font-size:11px;
+                                color:#15803d;
+                                font-weight:700;
+                                letter-spacing:.5px;
+                            ">
+                                COLLECTOR ACCOUNT
+                            </div>
+
+                            <h2 style="
+                                margin:6px 0 7px;
+                                font-size:27px;
+                            ">
+                                📋 Collector Transactions
+                            </h2>
+
+                            <p style="
+                                margin:0;
+                                color:#666;
+                                font-size:13px;
+                                line-height:1.5;
+                            ">
+                                Complete history of material
+                                sold to verified recyclers.
+                            </p>
+
+                        </div>
+
+
+                        <div style="
+                            font-size:43px;
+                        ">
+                            💰
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <!-- ================================================= -->
+                <!-- SUMMARY -->
+                <!-- ================================================= -->
+
+                <div
+                    id="collectorTransactionSummary"
+                    style="
+                        display:grid;
+                        grid-template-columns:
+                            repeat(
+                                auto-fit,
+                                minmax(150px,1fr)
+                            );
+                        gap:12px;
+                        margin-bottom:20px;
+                    "
+                >
+                </div>
+
+
+                <!-- ================================================= -->
+                <!-- FILTER BAR -->
+                <!-- ================================================= -->
+
+                <div style="
+                    background:#ffffff;
+                    border-radius:17px;
+                    padding:16px;
+                    margin-bottom:15px;
+                    box-shadow:0 4px 15px rgba(0,0,0,.05);
+                ">
+
+                    <div style="
+                        display:flex;
+                        align-items:center;
+                        gap:10px;
+                        flex-wrap:wrap;
+                    ">
+
+                        <strong style="
+                            font-size:13px;
+                        ">
+                            Filter:
+                        </strong>
+
+
+                        <button
+                            class="collectorTransactionFilter"
+                            data-filter="all"
+                            style="
+                                border:none;
+                                background:#111827;
+                                color:white;
+                                padding:8px 14px;
+                                border-radius:20px;
+                                cursor:pointer;
+                                font-size:12px;
+                                font-weight:700;
+                            "
+                        >
+                            All
+                        </button>
+
+
+                        <button
+                            class="collectorTransactionFilter"
+                            data-filter="Completed"
+                            style="
+                                border:1px solid #bbf7d0;
+                                background:#f0fdf4;
+                                color:#15803d;
+                                padding:8px 14px;
+                                border-radius:20px;
+                                cursor:pointer;
+                                font-size:12px;
+                            "
+                        >
+                            Completed
+                        </button>
+
+
+                        <input
+                            id="collectorTransactionSearch"
+                            type="text"
+                            placeholder="🔍 Search material or recycler..."
+                            style="
+                                margin-left:auto;
+                                min-width:220px;
+                                padding:10px 13px;
+                                border:1px solid #ddd;
+                                border-radius:10px;
+                                outline:none;
+                                box-sizing:border-box;
+                            "
+                        />
+
+                    </div>
+
+                </div>
+
+
+                <!-- ================================================= -->
+                <!-- TRANSACTION LIST -->
+                <!-- ================================================= -->
+
+                <div
+                    id="collectorTransactionList"
+                >
+                </div>
+
+            </div>
+
+        `;
+
+
+        const main =
+            document.querySelector(
+                ".main"
+            );
+
+
+        if (main) {
+
+            main.appendChild(
+                section
+            );
+
+        } else {
+
+            document.body.appendChild(
+                section
+            );
+
+        }
+
+
+        attachTransactionFilters();
+
+
+        return section;
+
+    }
+
+
+    // ============================================================
+    // SUMMARY
+    // ============================================================
+
+    function renderSummary(
+        sales
+    ) {
+
+        const container =
+            document.getElementById(
+                "collectorTransactionSummary"
+            );
+
+
+        if (!container) {
+
+            return;
+
+        }
+
+
+        let totalWeight = 0;
+
+        let totalEarnings = 0;
+
+
+        sales.forEach(
+            function (sale) {
+
+                totalWeight +=
+                    Number(
+                        sale.weight
+                    ) || 0;
+
+
+                totalEarnings +=
+                    Number(
+                        sale.finalValue ??
+                        sale.estimatedValue ??
+                        0
+                    ) || 0;
+
+            }
+        );
+
+
+        container.innerHTML = `
+
+            <div style="
+                background:#eff6ff;
+                border:1px solid #bfdbfe;
+                border-radius:15px;
+                padding:17px;
+            ">
+
+                <div style="
+                    font-size:11px;
+                    color:#1d4ed8;
+                    font-weight:700;
+                ">
+                    TOTAL SALES
+                </div>
+
+                <strong style="
+                    display:block;
+                    font-size:25px;
+                    margin-top:4px;
+                ">
+                    ${sales.length}
+                </strong>
+
+                <div style="
+                    font-size:11px;
+                    color:#777;
+                    margin-top:3px;
+                ">
+                    Recycler transactions
+                </div>
+
+            </div>
+
+
+            <div style="
+                background:#f0fdf4;
+                border:1px solid #bbf7d0;
+                border-radius:15px;
+                padding:17px;
+            ">
+
+                <div style="
+                    font-size:11px;
+                    color:#15803d;
+                    font-weight:700;
+                ">
+                    WEIGHT SOLD
+                </div>
+
+                <strong style="
+                    display:block;
+                    font-size:25px;
+                    margin-top:4px;
+                ">
+                    ${Number(
+                        totalWeight.toFixed(2)
+                    )} kg
+                </strong>
+
+                <div style="
+                    font-size:11px;
+                    color:#777;
+                    margin-top:3px;
+                ">
+                    Material transferred
+                </div>
+
+            </div>
+
+
+            <div style="
+                background:#fff7ed;
+                border:1px solid #fed7aa;
+                border-radius:15px;
+                padding:17px;
+            ">
+
+                <div style="
+                    font-size:11px;
+                    color:#c2410c;
+                    font-weight:700;
+                ">
+                    TOTAL EARNINGS
+                </div>
+
+                <strong style="
+                    display:block;
+                    font-size:25px;
+                    margin-top:4px;
+                ">
+                    ${formatMoney(
+                        totalEarnings
+                    )}
+                </strong>
+
+                <div style="
+                    font-size:11px;
+                    color:#777;
+                    margin-top:3px;
+                ">
+                    Recorded sale value
+                </div>
+
+            </div>
+
+
+            <div style="
+                background:#faf5ff;
+                border:1px solid #e9d5ff;
+                border-radius:15px;
+                padding:17px;
+            ">
+
+                <div style="
+                    font-size:11px;
+                    color:#7e22ce;
+                    font-weight:700;
+                ">
+                    AVG. SALE VALUE
+                </div>
+
+                <strong style="
+                    display:block;
+                    font-size:25px;
+                    margin-top:4px;
+                ">
+                    ${formatMoney(
+                        sales.length
+                            ? totalEarnings /
+                              sales.length
+                            : 0
+                    )}
+                </strong>
+
+                <div style="
+                    font-size:11px;
+                    color:#777;
+                    margin-top:3px;
+                ">
+                    Per transaction
+                </div>
+
+            </div>
+
+        `;
+
+    }
+
+
+    // ============================================================
+    // TRANSACTION FILTER
+    // ============================================================
+
+    let currentFilter =
+        "all";
+
+
+    let currentSearch =
+        "";
+
+
+    // ============================================================
+    // RENDER LIST
+    // ============================================================
+
+    function renderCollectorTransactions() {
+
+        const container =
+            document.getElementById(
+                "collectorTransactionList"
+            );
+
+
+        if (!container) {
+
+            return;
+
+        }
+
+
+        const allSales =
+            getCollectorSales();
+
+
+        renderSummary(
+            allSales
+        );
+
+
+        let sales =
+            allSales;
+
+
+        // --------------------------------------------------------
+        // STATUS FILTER
+        // --------------------------------------------------------
+
+        if (
+            currentFilter !==
+            "all"
+        ) {
+
+            sales =
+                sales.filter(
+                    function (sale) {
+
+                        return (
+                            sale.status ===
+                            currentFilter
+                        );
+
+                    }
+                );
+
+        }
+
+
+        // --------------------------------------------------------
+        // SEARCH
+        // --------------------------------------------------------
+
+        if (
+            currentSearch
+        ) {
+
+            const search =
+                currentSearch
+                    .toLowerCase();
+
+
+            sales =
+                sales.filter(
+                    function (sale) {
+
+                        const material =
+                            String(
+                                sale.material ||
+                                ""
+                            ).toLowerCase();
+
+
+                        const recycler =
+                            String(
+                                sale.recycler?.name ||
+                                sale.recyclerName ||
+                                ""
+                            ).toLowerCase();
+
+
+                        const saleId =
+                            String(
+                                sale.saleId ||
+                                ""
+                            ).toLowerCase();
+
+
+                        const handoverId =
+                            String(
+                                sale.handoverId ||
+                                ""
+                            ).toLowerCase();
+
+
+                        return (
+                            material.includes(
+                                search
+                            ) ||
+                            recycler.includes(
+                                search
+                            ) ||
+                            saleId.includes(
+                                search
+                            ) ||
+                            handoverId.includes(
+                                search
+                            )
+                        );
+
+                    }
+                );
+
+        }
+
+
+        // --------------------------------------------------------
+        // EMPTY
+        // --------------------------------------------------------
+
+        if (
+            sales.length ===
+            0
+        ) {
+
+            container.innerHTML = `
+
+                <div style="
+                    background:#ffffff;
+                    border-radius:18px;
+                    padding:50px 20px;
+                    text-align:center;
+                    box-shadow:0 4px 15px rgba(0,0,0,.05);
+                ">
+
+                    <div style="
+                        font-size:48px;
+                        margin-bottom:10px;
+                    ">
+                        📭
+                    </div>
+
+                    <h3 style="
+                        margin:0 0 7px;
+                    ">
+                        No transactions found
+                    </h3>
+
+                    <p style="
+                        margin:0;
+                        color:#777;
+                        font-size:13px;
+                    ">
+                        Completed recycler sales will
+                        appear here.
+                    </p>
+
+                </div>
+
+            `;
+
+            return;
+
+        }
+
+
+        // --------------------------------------------------------
+        // LIST
+        // --------------------------------------------------------
+
+        container.innerHTML =
+            sales
+                .map(
+                    renderTransactionCard
+                )
+                .join("");
+
+    }
+
+
+    // ============================================================
+    // TRANSACTION CARD
+    // ============================================================
+
+    function renderTransactionCard(
+        sale
+    ) {
+
+        const recycler =
+            sale.recycler?.name ||
+            sale.recyclerName ||
+            "Recycler";
+
+
+        const weight =
+            Number(
+                sale.weight
+            ) || 0;
+
+
+        const rate =
+            Number(
+                sale.rate
+            ) || 0;
+
+
+        const value =
+            Number(
+                sale.finalValue ??
+                sale.estimatedValue ??
+                (
+                    rate *
+                    weight
+                )
+            ) || 0;
+
+
+        const status =
+            sale.status ||
+            "Completed";
+
+
+        const date =
+            sale.completedAt ||
+            sale.selectedAt;
+
+
+        const statusColor =
+            status === "Completed"
+                ? "#15803d"
+                : "#c2410c";
+
+
+        const statusBg =
+            status === "Completed"
+                ? "#f0fdf4"
+                : "#fff7ed";
+
+
+        const borderColor =
+            status === "Completed"
+                ? "#bbf7d0"
+                : "#fed7aa";
+
+
+        return `
+
+            <div style="
+                background:#ffffff;
+                border:1px solid #e5e7eb;
+                border-radius:18px;
+                padding:20px;
+                margin-bottom:12px;
+                box-shadow:0 4px 15px rgba(0,0,0,.05);
+            ">
+
+
+                <!-- ============================================= -->
+                <!-- TOP -->
+                <!-- ============================================= -->
+
+                <div style="
+                    display:flex;
+                    justify-content:space-between;
+                    align-items:flex-start;
+                    gap:15px;
+                    margin-bottom:17px;
+                ">
+
+                    <div>
+
+                        <div style="
+                            font-size:10px;
+                            color:#999;
+                            letter-spacing:.5px;
+                            margin-bottom:5px;
+                        ">
+                            SALE TRANSACTION
+                        </div>
+
+                        <strong style="
+                            font-size:16px;
+                        ">
+                            ${sale.saleId || "KS-SALE"}
+                        </strong>
+
+                    </div>
+
+
+                    <span style="
+                        padding:7px 11px;
+                        border-radius:20px;
+                        background:${statusBg};
+                        color:${statusColor};
+                        border:1px solid ${borderColor};
+                        font-size:10px;
+                        font-weight:700;
+                    ">
+                        ${status === "Completed"
+                            ? "✓ COMPLETED"
+                            : status
+                        }
+                    </span>
+
+                </div>
+
+
+                <!-- ============================================= -->
+                <!-- MATERIAL -->
+                <!-- ============================================= -->
+
+                <div style="
+                    display:flex;
+                    justify-content:space-between;
+                    align-items:center;
+                    gap:15px;
+                    background:#f8fafc;
+                    border-radius:14px;
+                    padding:15px;
+                    margin-bottom:13px;
+                ">
+
+                    <div>
+
+                        <div style="
+                            font-size:10px;
+                            color:#777;
+                        ">
+                            MATERIAL SOLD
+                        </div>
+
+                        <strong style="
+                            display:block;
+                            font-size:17px;
+                            margin-top:4px;
+                        ">
+                            ♻️ ${sale.material || "Material"}
+                        </strong>
+
+                    </div>
+
+
+                    <div style="
+                        text-align:right;
+                    ">
+
+                        <div style="
+                            font-size:10px;
+                            color:#777;
+                        ">
+                            WEIGHT
+                        </div>
+
+                        <strong style="
+                            font-size:17px;
+                        ">
+                            ${weight} kg
+                        </strong>
+
+                    </div>
+
+                </div>
+
+
+                <!-- ============================================= -->
+                <!-- DETAILS -->
+                <!-- ============================================= -->
+
+                <div style="
+                    display:grid;
+                    grid-template-columns:
+                        repeat(
+                            auto-fit,
+                            minmax(145px,1fr)
+                        );
+                    gap:9px;
+                ">
+
+
+                    <div style="
+                        padding:12px;
+                        border-radius:12px;
+                        background:#f8fafc;
+                    ">
+
+                        <div style="
+                            font-size:10px;
+                            color:#888;
+                        ">
+                            RECYCLER
+                        </div>
+
+                        <strong style="
+                            display:block;
+                            font-size:12px;
+                            margin-top:4px;
+                        ">
+                            ♻️ ${recycler}
+                        </strong>
+
+                    </div>
+
+
+                    <div style="
+                        padding:12px;
+                        border-radius:12px;
+                        background:#f8fafc;
+                    ">
+
+                        <div style="
+                            font-size:10px;
+                            color:#888;
+                        ">
+                            RATE
+                        </div>
+
+                        <strong style="
+                            display:block;
+                            font-size:13px;
+                            margin-top:4px;
+                        ">
+                            ${formatMoney(rate)}/kg
+                        </strong>
+
+                    </div>
+
+
+                    <div style="
+                        padding:12px;
+                        border-radius:12px;
+                        background:#f0fdf4;
+                    ">
+
+                        <div style="
+                            font-size:10px;
+                            color:#15803d;
+                        ">
+                            SALE VALUE
+                        </div>
+
+                        <strong style="
+                            display:block;
+                            font-size:16px;
+                            margin-top:4px;
+                        ">
+                            ${formatMoney(value)}
+                        </strong>
+
+                    </div>
+
+
+                    <div style="
+                        padding:12px;
+                        border-radius:12px;
+                        background:#f8fafc;
+                    ">
+
+                        <div style="
+                            font-size:10px;
+                            color:#888;
+                        ">
+                            DATE
+                        </div>
+
+                        <strong style="
+                            display:block;
+                            font-size:11px;
+                            margin-top:4px;
+                        ">
+                            ${formatDate(date)}
+                        </strong>
+
+                    </div>
+
+                </div>
+
+
+                <!-- ============================================= -->
+                <!-- HANDOVER -->
+                <!-- ============================================= -->
+
+                <div style="
+                    margin-top:13px;
+                    padding:13px;
+                    border:1px dashed #cbd5e1;
+                    border-radius:12px;
+                    background:#fafafa;
+                ">
+
+                    <div style="
+                        display:flex;
+                        justify-content:space-between;
+                        gap:10px;
+                        flex-wrap:wrap;
+                    ">
+
+                        <div>
+
+                            <div style="
+                                font-size:10px;
+                                color:#888;
+                            ">
+                                HANDOVER ID
+                            </div>
+
+                            <strong style="
+                                font-size:12px;
+                            ">
+                                ${sale.handoverId || "—"}
+                            </strong>
+
+                        </div>
+
+
+                        <div>
+
+                            <div style="
+                                font-size:10px;
+                                color:#888;
+                            ">
+                                DIGITAL TOKEN
+                            </div>
+
+                            <strong style="
+                                font-size:11px;
+                            ">
+                                ${sale.token || "—"}
+                            </strong>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <!-- ============================================= -->
+                <!-- TRACEABILITY -->
+                <!-- ============================================= -->
+
+                <div style="
+                    margin-top:13px;
+                    padding:12px;
+                    border-radius:12px;
+                    background:#f8fafc;
+                    font-size:11px;
+                    color:#666;
+                ">
+
+                    🏠 Household
+                    →
+                    🚚 Collector
+                    →
+                    ♻️ ${recycler}
+                    →
+                    🌱 Formal Recycling
+
+                </div>
+
+            </div>
+
+        `;
+
+    }
+
+
+    // ============================================================
+    // FILTERS
+    // ============================================================
+
+    function attachTransactionFilters() {
+
+        document
+            .querySelectorAll(
+                ".collectorTransactionFilter"
+            )
+            .forEach(
+                function (button) {
+
+                    button.onclick =
+                        function () {
+
+                            currentFilter =
+                                this.getAttribute(
+                                    "data-filter"
+                                ) ||
+                                "all";
+
+
+                            document
+                                .querySelectorAll(
+                                    ".collectorTransactionFilter"
+                                )
+                                .forEach(
+                                    function (btn) {
+
+                                        btn.style.fontWeight =
+                                            "400";
+
+                                    }
+                                );
+
+
+                            this.style.fontWeight =
+                                "700";
+
+
+                            renderCollectorTransactions();
+
+                        };
+
+                }
+            );
+
+
+        const search =
+            document.getElementById(
+                "collectorTransactionSearch"
+            );
+
+
+        if (search) {
+
+            search.oninput =
+                function () {
+
+                    currentSearch =
+                        this.value.trim();
+
+
+                    renderCollectorTransactions();
+
+                };
+
+        }
+
+    }
+
+
+    // ============================================================
+    // PUBLIC FUNCTION
+    // ============================================================
+
+    window.renderCollectorTransactions =
+        function () {
+
+            createCollectorTransactionsSection();
+
+            renderCollectorTransactions();
+
+        };
+
+
+    // ============================================================
+    // COLLECTOR NAVIGATION
+    // ============================================================
+
+    function setupCollectorTransactionNavigation() {
+
+        const nav =
+            document.querySelector(
+                ".sidebar nav"
+            );
+
+
+        if (!nav) {
+
+            return;
+
+        }
+
+
+        /*
+         * Hide the generic Transactions navigation
+         * while collector mode is active.
+         */
+
+        Array.from(
+            nav.querySelectorAll(
+                ".nav-item"
+            )
+        ).forEach(
+            function (item) {
+
+                const text =
+                    (
+                        item.innerText ||
+                        ""
+                    ).toLowerCase();
+
+
+                if (
+                    text.includes(
+                        "transaction"
+                    ) &&
+                    !item.id.includes(
+                        "collector"
+                    )
+                ) {
+
+                    item.dataset.householdTransaction =
+                        "true";
+
+                }
+
+            }
+        );
+
+
+        let collectorNav =
+            document.getElementById(
+                "collectorTransactionsNav"
+            );
+
+
+        if (
+            !collectorNav
+        ) {
+
+            collectorNav =
+                document.createElement(
+                    "button"
+                );
+
+
+            collectorNav.id =
+                "collectorTransactionsNav";
+
+
+            collectorNav.className =
+                "nav-item collector-only-nav";
+
+
+            collectorNav.innerHTML = `
+                <span>📋</span>
+                Collector Transactions
+            `;
+
+
+            collectorNav.onclick =
+                function () {
+
+                    if (
+                        getRole() !==
+                        "collector"
+                    ) {
+
+                        return;
+
+                    }
+
+
+                    if (
+                        typeof window.showSection ===
+                        "function"
+                    ) {
+
+                        window.showSection(
+                            "collectorTransactions"
+                        );
+
+                    }
+
+
+                    window.renderCollectorTransactions();
+
+                };
+
+
+            nav.appendChild(
+                collectorNav
+            );
+
+        }
+
+
+        updateCollectorTransactionNav();
+
+    }
+
+
+    // ============================================================
+    // ROLE
+    // ============================================================
+
+    function getRole() {
+
+        return (
+            localStorage.getItem(
+                "kabadiSetuActiveRole"
+            ) ||
+            "household"
+        );
+
+    }
+
+
+    // ============================================================
+    // NAV VISIBILITY
+    // ============================================================
+
+    function updateCollectorTransactionNav() {
+
+        const collectorNav =
+            document.getElementById(
+                "collectorTransactionsNav"
+            );
+
+
+        if (collectorNav) {
+
+            collectorNav.style.display =
+                getRole() === "collector"
+                    ? ""
+                    : "none";
+
+        }
+
+
+        document
+            .querySelectorAll(
+                '[data-household-transaction="true"]'
+            )
+            .forEach(
+                function (item) {
+
+                    item.style.display =
+                        getRole() === "collector"
+                            ? "none"
+                            : "";
+
+                }
+            );
+
+    }
+
+
+    // ============================================================
+    // ROLE SWITCH SUPPORT
+    // ============================================================
+
+    const previousSwitchRole =
+        window.switchRole;
+
+
+    if (
+        typeof previousSwitchRole ===
+        "function"
+    ) {
+
+        window.switchRole =
+            function (
+                role
+            ) {
+
+                previousSwitchRole(
+                    role
+                );
+
+
+                setTimeout(
+                    function () {
+
+                        setupCollectorTransactionNavigation();
+
+                        updateCollectorTransactionNav();
+
+
+                        if (
+                            role ===
+                            "collector"
+                        ) {
+
+                            createCollectorTransactionsSection();
+
+                        }
+
+                    },
+                    300
+                );
+
+            };
+
+    }
+
+
+    // ============================================================
+    // SHOW SECTION SUPPORT
+    // ============================================================
+
+    const previousShowSection =
+        window.showSection;
+
+
+    if (
+        typeof previousShowSection ===
+        "function"
+    ) {
+
+        window.showSection =
+            function (
+                sectionId
+            ) {
+
+                previousShowSection(
+                    sectionId
+                );
+
+
+                if (
+                    sectionId ===
+                    "collectorTransactions"
+                ) {
+
+                    createCollectorTransactionsSection();
+
+                    renderCollectorTransactions();
+
+                }
+
+
+                updateCollectorTransactionNav();
+
+            };
+
+    }
+
+
+    // ============================================================
+    // INITIALIZATION
+    // ============================================================
+
+    setTimeout(
+        function () {
+
+            setupCollectorTransactionNavigation();
+
+
+            if (
+                getRole() ===
+                "collector"
+            ) {
+
+                createCollectorTransactionsSection();
+
+            }
+
+
+            console.log(
+                "✅ Step 5O - Collector Transactions ready."
+            );
+
+        },
+        1500
+    );
+
+
+    // ============================================================
+    // AUTO REFRESH
+    // ============================================================
+
+    setInterval(
+        function () {
+
+            if (
+                getRole() !==
+                "collector"
+            ) {
+
+                return;
+
+            }
+
+
+            const section =
+                document.getElementById(
+                    "collectorTransactions"
+                );
+
+
+            if (
+                section &&
+                section.classList.contains(
+                    "active-section"
+                )
+            ) {
+
+                renderCollectorTransactions();
+
+            }
+
+        },
+        3000
+    );
+
+
+})();
+
+/* =========================================================
+   STEP 5P — COLLECTOR EARNINGS DASHBOARD
+   ========================================================= */
+
+(function () {
+
+    console.log("🚀 Step 5P - Collector Earnings Dashboard loaded.");
+
+    const SALES_KEY = "kabadiSetuCollectorSales";
+
+    /* ---------------------------------------------------------
+       STORAGE
+       --------------------------------------------------------- */
+
+    function getCollectorSales() {
+        try {
+            const data = JSON.parse(localStorage.getItem(SALES_KEY) || "[]");
+            return Array.isArray(data) ? data : [];
+        } catch (error) {
+            console.error("Error reading collector sales:", error);
+            return [];
+        }
+    }
+
+    function saveCollectorSales(sales) {
+        localStorage.setItem(SALES_KEY, JSON.stringify(sales));
+    }
+
+    /* ---------------------------------------------------------
+       HELPERS
+       --------------------------------------------------------- */
+
+    function isCompletedSale(sale) {
+        if (!sale) return false;
+
+        const status = String(
+            sale.status ||
+            sale.saleStatus ||
+            sale.state ||
+            ""
+        ).toLowerCase();
+
+        return (
+            status.includes("completed") ||
+            status.includes("sold") ||
+            status.includes("complete")
+        );
+    }
+
+    function getSaleWeight(sale) {
+        return Number(
+            sale.finalWeight ??
+            sale.weight ??
+            sale.actualWeight ??
+            0
+        ) || 0;
+    }
+
+    function getSaleRate(sale) {
+        return Number(
+            sale.finalRate ??
+            sale.rate ??
+            sale.recyclerRate ??
+            0
+        ) || 0;
+    }
+
+    function getSaleValue(sale) {
+        const directValue = Number(
+            sale.finalValue ??
+            sale.saleValue ??
+            sale.estimatedValue ??
+            sale.value ??
+            sale.estimated_value ??
+            0
+        );
+
+        if (directValue > 0) {
+            return directValue;
+        }
+
+        return getSaleRate(sale) * getSaleWeight(sale);
+    }
+
+    function getSaleMaterial(sale) {
+        return (
+            sale.material ||
+            sale.category ||
+            "Unknown Material"
+        );
+    }
+
+    function getSaleRecycler(sale) {
+        if (sale.recycler && typeof sale.recycler === "object") {
+            return sale.recycler.name || "Unknown Recycler";
+        }
+
+        return sale.recycler || "Unknown Recycler";
+    }
+
+    function getSaleDate(sale) {
+        const value =
+            sale.completedAt ||
+            sale.soldAt ||
+            sale.createdAt ||
+            sale.date ||
+            sale.timestamp;
+
+        if (!value) return new Date();
+
+        const date = new Date(value);
+
+        return isNaN(date.getTime())
+            ? new Date()
+            : date;
+    }
+
+    function formatCurrency(value) {
+        return "₹" + Number(value || 0).toLocaleString("en-IN", {
+            maximumFractionDigits: 0
+        });
+    }
+
+    function formatWeight(value) {
+        return Number(value || 0).toLocaleString("en-IN", {
+            maximumFractionDigits: 2
+        }) + " kg";
+    }
+
+    function escapeHTML(value) {
+        return String(value ?? "")
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#039;");
+    }
+
+    /* ---------------------------------------------------------
+       GET COMPLETED SALES
+       --------------------------------------------------------- */
+
+    function getCompletedSales() {
+        return getCollectorSales().filter(isCompletedSale);
+    }
+
+    /* ---------------------------------------------------------
+       CURRENT MONTH
+       --------------------------------------------------------- */
+
+    function isCurrentMonth(date) {
+        const now = new Date();
+
+        return (
+            date.getMonth() === now.getMonth() &&
+            date.getFullYear() === now.getFullYear()
+        );
+    }
+
+    /* ---------------------------------------------------------
+       CALCULATE EARNINGS
+       --------------------------------------------------------- */
+
+    function calculateEarnings() {
+
+        const sales = getCompletedSales();
+
+        let totalEarnings = 0;
+        let monthlyEarnings = 0;
+        let totalWeight = 0;
+
+        const materialMap = {};
+        const monthMap = {};
+
+        sales.forEach(function (sale) {
+
+            const value = getSaleValue(sale);
+            const weight = getSaleWeight(sale);
+            const material = getSaleMaterial(sale);
+            const date = getSaleDate(sale);
+
+            totalEarnings += value;
+            totalWeight += weight;
+
+            if (isCurrentMonth(date)) {
+                monthlyEarnings += value;
+            }
+
+            /* Material earnings */
+
+            if (!materialMap[material]) {
+                materialMap[material] = {
+                    material: material,
+                    earnings: 0,
+                    weight: 0,
+                    transactions: 0
+                };
+            }
+
+            materialMap[material].earnings += value;
+            materialMap[material].weight += weight;
+            materialMap[material].transactions += 1;
+
+            /* Monthly earnings */
+
+            const monthKey =
+                date.getFullYear() +
+                "-" +
+                String(date.getMonth() + 1).padStart(2, "0");
+
+            if (!monthMap[monthKey]) {
+                monthMap[monthKey] = 0;
+            }
+
+            monthMap[monthKey] += value;
+        });
+
+        const materialBreakdown =
+            Object.values(materialMap)
+                .sort((a, b) => b.earnings - a.earnings);
+
+        const averageSale =
+            sales.length > 0
+                ? totalEarnings / sales.length
+                : 0;
+
+        return {
+            sales,
+            totalEarnings,
+            monthlyEarnings,
+            totalWeight,
+            transactions: sales.length,
+            averageSale,
+            materialBreakdown,
+            monthMap
+        };
+    }
+
+    /* ---------------------------------------------------------
+       LAST 6 MONTHS
+       --------------------------------------------------------- */
+
+    function getLastSixMonths(monthMap) {
+
+        const result = [];
+
+        const now = new Date();
+
+        for (let i = 5; i >= 0; i--) {
+
+            const date = new Date(
+                now.getFullYear(),
+                now.getMonth() - i,
+                1
+            );
+
+            const key =
+                date.getFullYear() +
+                "-" +
+                String(date.getMonth() + 1).padStart(2, "0");
+
+            result.push({
+                key: key,
+                label: date.toLocaleString("en-IN", {
+                    month: "short"
+                }),
+                value: Number(monthMap[key] || 0)
+            });
+        }
+
+        return result;
+    }
+
+    /* ---------------------------------------------------------
+       CREATE SECTION
+       --------------------------------------------------------- */
+
+    function createCollectorEarningsSection() {
+
+        if (document.getElementById("collectorEarnings")) {
+            return;
+        }
+
+        const section = document.createElement("section");
+
+        section.id = "collectorEarnings";
+        section.className = "page-section";
+
+        section.innerHTML = `
+
+            <div style="
+                max-width:1200px;
+                margin:0 auto;
+                padding:20px;
+            ">
+
+                <div style="
+                    display:flex;
+                    justify-content:space-between;
+                    align-items:center;
+                    margin-bottom:22px;
+                    gap:15px;
+                    flex-wrap:wrap;
+                ">
+
+                    <div>
+                        <h2 style="
+                            margin:0;
+                            font-size:28px;
+                        ">
+                            💰 Collector Earnings
+                        </h2>
+
+                        <p style="
+                            margin:6px 0 0;
+                            opacity:0.7;
+                        ">
+                            Track your earnings from completed recycler sales.
+                        </p>
+                    </div>
+
+                    <button
+                        id="refreshCollectorEarnings"
+                        style="
+                            border:none;
+                            border-radius:10px;
+                            padding:10px 16px;
+                            cursor:pointer;
+                            font-weight:600;
+                        "
+                    >
+                        🔄 Refresh
+                    </button>
+
+                </div>
+
+                <div id="collectorEarningsContent"></div>
+
+            </div>
+        `;
+
+        document.body.appendChild(section);
+
+        const refreshButton =
+            document.getElementById("refreshCollectorEarnings");
+
+        if (refreshButton) {
+            refreshButton.addEventListener(
+                "click",
+                renderCollectorEarningsDashboard
+            );
+        }
+    }
+
+    /* ---------------------------------------------------------
+       SUMMARY CARD
+       --------------------------------------------------------- */
+
+    function summaryCard(icon, title, value, subtitle) {
+
+        return `
+            <div style="
+                padding:20px;
+                border-radius:16px;
+                background:var(--card-bg, #ffffff);
+                border:1px solid rgba(0,0,0,0.08);
+                box-shadow:0 4px 16px rgba(0,0,0,0.05);
+            ">
+
+                <div style="
+                    font-size:28px;
+                    margin-bottom:10px;
+                ">
+                    ${icon}
+                </div>
+
+                <div style="
+                    font-size:13px;
+                    opacity:0.65;
+                    margin-bottom:5px;
+                ">
+                    ${escapeHTML(title)}
+                </div>
+
+                <div style="
+                    font-size:25px;
+                    font-weight:800;
+                ">
+                    ${escapeHTML(value)}
+                </div>
+
+                <div style="
+                    font-size:12px;
+                    opacity:0.55;
+                    margin-top:5px;
+                ">
+                    ${escapeHTML(subtitle)}
+                </div>
+
+            </div>
+        `;
+    }
+
+    /* ---------------------------------------------------------
+       MATERIAL BREAKDOWN
+       --------------------------------------------------------- */
+
+    function renderMaterialBreakdown(data) {
+
+        if (!data.materialBreakdown.length) {
+
+            return `
+                <div style="
+                    padding:30px;
+                    text-align:center;
+                    opacity:0.6;
+                ">
+                    📦 No completed sales yet.
+                </div>
+            `;
+        }
+
+        const highest =
+            data.materialBreakdown[0].earnings || 1;
+
+        return data.materialBreakdown.map(function (item) {
+
+            const percentage =
+                Math.max(
+                    3,
+                    (item.earnings / highest) * 100
+                );
+
+            return `
+                <div style="
+                    margin-bottom:18px;
+                ">
+
+                    <div style="
+                        display:flex;
+                        justify-content:space-between;
+                        gap:10px;
+                        margin-bottom:7px;
+                    ">
+
+                        <div>
+                            <strong>
+                                ${escapeHTML(item.material)}
+                            </strong>
+
+                            <span style="
+                                font-size:12px;
+                                opacity:0.6;
+                                margin-left:8px;
+                            ">
+                                ${formatWeight(item.weight)}
+                            </span>
+                        </div>
+
+                        <strong>
+                            ${formatCurrency(item.earnings)}
+                        </strong>
+
+                    </div>
+
+                    <div style="
+                        width:100%;
+                        height:9px;
+                        border-radius:20px;
+                        background:rgba(0,0,0,0.08);
+                        overflow:hidden;
+                    ">
+
+                        <div style="
+                            width:${percentage}%;
+                            height:100%;
+                            border-radius:20px;
+                            background:currentColor;
+                        "></div>
+
+                    </div>
+
+                    <div style="
+                        font-size:11px;
+                        opacity:0.55;
+                        margin-top:5px;
+                    ">
+                        ${item.transactions}
+                        transaction${item.transactions !== 1 ? "s" : ""}
+                    </div>
+
+                </div>
+            `;
+        }).join("");
+    }
+
+    /* ---------------------------------------------------------
+       MONTHLY EARNINGS
+       --------------------------------------------------------- */
+
+    function renderMonthlyEarnings(data) {
+
+        const months = getLastSixMonths(data.monthMap);
+
+        const maximum =
+            Math.max(
+                ...months.map(item => item.value),
+                1
+            );
+
+        return `
+            <div style="
+                display:flex;
+                align-items:flex-end;
+                justify-content:space-between;
+                gap:10px;
+                height:220px;
+                padding:15px 5px 5px;
+            ">
+
+                ${months.map(function (month) {
+
+                    const height =
+                        month.value > 0
+                            ? Math.max(
+                                8,
+                                (month.value / maximum) * 155
+                            )
+                            : 5;
+
+                    return `
+                        <div style="
+                            flex:1;
+                            display:flex;
+                            flex-direction:column;
+                            align-items:center;
+                            justify-content:flex-end;
+                            height:100%;
+                        ">
+
+                            <div style="
+                                font-size:11px;
+                                margin-bottom:7px;
+                                font-weight:600;
+                            ">
+                                ${month.value > 0
+                                    ? formatCurrency(month.value)
+                                    : "₹0"}
+                            </div>
+
+                            <div style="
+                                width:100%;
+                                max-width:48px;
+                                height:${height}px;
+                                border-radius:8px 8px 3px 3px;
+                                background:currentColor;
+                                opacity:${month.value > 0 ? "1" : "0.2"};
+                            "></div>
+
+                            <div style="
+                                margin-top:8px;
+                                font-size:12px;
+                                opacity:0.65;
+                            ">
+                                ${escapeHTML(month.label)}
+                            </div>
+
+                        </div>
+                    `;
+
+                }).join("")}
+
+            </div>
+        `;
+    }
+
+    /* ---------------------------------------------------------
+       RECENT EARNINGS
+       --------------------------------------------------------- */
+
+    function renderRecentEarnings(data) {
+
+        const recent =
+            [...data.sales]
+                .sort(
+                    (a, b) =>
+                        getSaleDate(b) - getSaleDate(a)
+                )
+                .slice(0, 5);
+
+        if (!recent.length) {
+
+            return `
+                <div style="
+                    text-align:center;
+                    padding:30px;
+                    opacity:0.6;
+                ">
+                    🧾 No completed earnings recorded yet.
+                </div>
+            `;
+        }
+
+        return recent.map(function (sale) {
+
+            const material =
+                getSaleMaterial(sale);
+
+            const recycler =
+                getSaleRecycler(sale);
+
+            const value =
+                getSaleValue(sale);
+
+            const weight =
+                getSaleWeight(sale);
+
+            const rate =
+                getSaleRate(sale);
+
+            const date =
+                getSaleDate(sale);
+
+            const saleId =
+                sale.saleId ||
+                sale.id ||
+                "SALE";
+
+            return `
+                <div style="
+                    padding:15px;
+                    border-radius:12px;
+                    border:1px solid rgba(0,0,0,0.08);
+                    margin-bottom:10px;
+                    background:rgba(0,0,0,0.015);
+                ">
+
+                    <div style="
+                        display:flex;
+                        justify-content:space-between;
+                        gap:12px;
+                        align-items:center;
+                    ">
+
+                        <div>
+
+                            <div style="
+                                font-weight:700;
+                            ">
+                                ♻️ ${escapeHTML(material)}
+                            </div>
+
+                            <div style="
+                                font-size:12px;
+                                opacity:0.65;
+                                margin-top:4px;
+                            ">
+                                ${escapeHTML(saleId)}
+                            </div>
+
+                        </div>
+
+                        <div style="
+                            font-size:18px;
+                            font-weight:800;
+                        ">
+                            ${formatCurrency(value)}
+                        </div>
+
+                    </div>
+
+                    <div style="
+                        display:flex;
+                        gap:15px;
+                        flex-wrap:wrap;
+                        margin-top:10px;
+                        font-size:12px;
+                        opacity:0.7;
+                    ">
+
+                        <span>
+                            ⚖️ ${formatWeight(weight)}
+                        </span>
+
+                        <span>
+                            💵 ${formatCurrency(rate)}/kg
+                        </span>
+
+                        <span>
+                            🏭 ${escapeHTML(recycler)}
+                        </span>
+
+                        <span>
+                            📅 ${date.toLocaleDateString("en-IN")}
+                        </span>
+
+                    </div>
+
+                </div>
+            `;
+        }).join("");
+    }
+
+    /* ---------------------------------------------------------
+       MAIN RENDER
+       --------------------------------------------------------- */
+
+    function renderCollectorEarningsDashboard() {
+
+        createCollectorEarningsSection();
+
+        const container =
+            document.getElementById(
+                "collectorEarningsContent"
+            );
+
+        if (!container) return;
+
+        const data =
+            calculateEarnings();
+
+        const highestMaterial =
+            data.materialBreakdown.length
+                ? data.materialBreakdown[0]
+                : null;
+
+        container.innerHTML = `
+
+            <!-- SUMMARY -->
+
+            <div style="
+                display:grid;
+                grid-template-columns:
+                    repeat(auto-fit,minmax(210px,1fr));
+                gap:16px;
+                margin-bottom:22px;
+            ">
+
+                ${summaryCard(
+                    "💰",
+                    "Total Earnings",
+                    formatCurrency(data.totalEarnings),
+                    "From completed recycler sales"
+                )}
+
+                ${summaryCard(
+                    "📅",
+                    "This Month",
+                    formatCurrency(data.monthlyEarnings),
+                    "Current month earnings"
+                )}
+
+                ${summaryCard(
+                    "⚖️",
+                    "Weight Sold",
+                    formatWeight(data.totalWeight),
+                    "Total material sold"
+                )}
+
+                ${summaryCard(
+                    "🧾",
+                    "Transactions",
+                    data.transactions,
+                    "Completed sales"
+                )}
+
+            </div>
+
+
+            <!-- EXTRA STATS -->
+
+            <div style="
+                display:grid;
+                grid-template-columns:
+                    repeat(auto-fit,minmax(210px,1fr));
+                gap:16px;
+                margin-bottom:22px;
+            ">
+
+                ${summaryCard(
+                    "📊",
+                    "Average Sale",
+                    formatCurrency(data.averageSale),
+                    "Average value per transaction"
+                )}
+
+                ${summaryCard(
+                    "🏆",
+                    "Top Material",
+                    highestMaterial
+                        ? highestMaterial.material
+                        : "—",
+                    highestMaterial
+                        ? formatCurrency(
+                            highestMaterial.earnings
+                        ) + " earned"
+                        : "No completed sales"
+                )}
+
+            </div>
+
+
+            <!-- MATERIAL + MONTHLY -->
+
+            <div style="
+                display:grid;
+                grid-template-columns:
+                    repeat(auto-fit,minmax(320px,1fr));
+                gap:20px;
+                margin-bottom:22px;
+            ">
+
+
+                <!-- MATERIAL EARNINGS -->
+
+                <div style="
+                    padding:22px;
+                    border-radius:16px;
+                    background:var(--card-bg,#fff);
+                    border:1px solid rgba(0,0,0,0.08);
+                    box-shadow:0 4px 16px rgba(0,0,0,0.05);
+                ">
+
+                    <h3 style="
+                        margin-top:0;
+                        margin-bottom:20px;
+                    ">
+                        ♻️ Earnings by Material
+                    </h3>
+
+                    ${renderMaterialBreakdown(data)}
+
+                </div>
+
+
+                <!-- MONTHLY EARNINGS -->
+
+                <div style="
+                    padding:22px;
+                    border-radius:16px;
+                    background:var(--card-bg,#fff);
+                    border:1px solid rgba(0,0,0,0.08);
+                    box-shadow:0 4px 16px rgba(0,0,0,0.05);
+                ">
+
+                    <h3 style="
+                        margin-top:0;
+                        margin-bottom:5px;
+                    ">
+                        📈 Monthly Earnings
+                    </h3>
+
+                    <p style="
+                        font-size:12px;
+                        opacity:0.6;
+                        margin-top:0;
+                    ">
+                        Last 6 months
+                    </p>
+
+                    ${renderMonthlyEarnings(data)}
+
+                </div>
+
+            </div>
+
+
+            <!-- RECENT EARNINGS -->
+
+            <div style="
+                padding:22px;
+                border-radius:16px;
+                background:var(--card-bg,#fff);
+                border:1px solid rgba(0,0,0,0.08);
+                box-shadow:0 4px 16px rgba(0,0,0,0.05);
+            ">
+
+                <div style="
+                    display:flex;
+                    justify-content:space-between;
+                    align-items:center;
+                    margin-bottom:18px;
+                ">
+
+                    <h3 style="
+                        margin:0;
+                    ">
+                        🧾 Recent Earnings
+                    </h3>
+
+                    <span style="
+                        font-size:12px;
+                        opacity:0.6;
+                    ">
+                        Latest 5
+                    </span>
+
+                </div>
+
+                ${renderRecentEarnings(data)}
+
+            </div>
+
+        `;
+    }
+
+    /* ---------------------------------------------------------
+       COLLECTOR NAVIGATION
+       --------------------------------------------------------- */
+
+    function createCollectorEarningsNav() {
+
+        if (
+            document.getElementById(
+                "collectorEarningsNav"
+            )
+        ) {
+            return;
+        }
+
+        const navItems =
+            document.querySelectorAll(".nav-item");
+
+        let target = null;
+
+        navItems.forEach(function (item) {
+
+            const text =
+                item.innerText
+                    .toLowerCase();
+
+            if (
+                text.includes("earnings") &&
+                !text.includes("collector")
+            ) {
+                target = item;
+            }
+
+        });
+
+        if (target) {
+
+            target.id =
+                "genericEarningsNav";
+
+            const collectorNav =
+                document.createElement("div");
+
+            collectorNav.id =
+                "collectorEarningsNav";
+
+            collectorNav.className =
+                target.className;
+
+            collectorNav.innerHTML = `
+                <span>💰</span>
+                <span>Collector Earnings</span>
+            `;
+
+            collectorNav.style.display =
+                "none";
+
+            collectorNav.addEventListener(
+                "click",
+                function () {
+
+                    if (
+                        typeof window.showSection ===
+                        "function"
+                    ) {
+                        window.showSection(
+                            "collectorEarnings"
+                        );
+                    }
+
+                    renderCollectorEarningsDashboard();
+                }
+            );
+
+            target.parentNode.insertBefore(
+                collectorNav,
+                target.nextSibling
+            );
+        }
+    }
+
+    /* ---------------------------------------------------------
+       ROLE HANDLING
+       --------------------------------------------------------- */
+
+    function updateCollectorEarningsNav() {
+
+        const collectorNav =
+            document.getElementById(
+                "collectorEarningsNav"
+            );
+
+        const genericNav =
+            document.getElementById(
+                "genericEarningsNav"
+            );
+
+        const role =
+            String(
+                window.currentRole ||
+                window.userRole ||
+                localStorage.getItem(
+                    "kabadiSetuRole"
+                ) ||
+                ""
+            ).toLowerCase();
+
+        const isCollector =
+            role.includes("collector");
+
+        if (collectorNav) {
+            collectorNav.style.display =
+                isCollector
+                    ? ""
+                    : "none";
+        }
+
+        if (genericNav && isCollector) {
+            genericNav.style.display = "none";
+        }
+
+        if (
+            isCollector &&
+            document.getElementById(
+                "collectorEarnings"
+            )
+        ) {
+            renderCollectorEarningsDashboard();
+        }
+    }
+
+    /* ---------------------------------------------------------
+       WRAP ROLE SWITCH
+       --------------------------------------------------------- */
+
+    const originalSwitchRole =
+        window.switchRole;
+
+    if (
+        typeof originalSwitchRole ===
+        "function"
+    ) {
+
+        window.switchRole =
+            function () {
+
+                const result =
+                    originalSwitchRole.apply(
+                        this,
+                        arguments
+                    );
+
+                setTimeout(function () {
+
+                    createCollectorEarningsSection();
+                    createCollectorEarningsNav();
+                    updateCollectorEarningsNav();
+
+                }, 300);
+
+                return result;
+            };
+    }
+
+    /* ---------------------------------------------------------
+       WRAP SHOW SECTION
+       --------------------------------------------------------- */
+
+    const originalShowSection =
+        window.showSection;
+
+    if (
+        typeof originalShowSection ===
+        "function"
+    ) {
+
+        window.showSection =
+            function (sectionId) {
+
+                const result =
+                    originalShowSection.apply(
+                        this,
+                        arguments
+                    );
+
+                if (
+                    sectionId ===
+                    "collectorEarnings"
+                ) {
+
+                    setTimeout(
+                        renderCollectorEarningsDashboard,
+                        50
+                    );
+                }
+
+                return result;
+            };
+    }
+
+    /* ---------------------------------------------------------
+       AUTO REFRESH
+       --------------------------------------------------------- */
+
+    window.renderCollectorEarningsDashboard =
+        renderCollectorEarningsDashboard;
+
+    window.getCollectorEarnings =
+        calculateEarnings;
+
+    setTimeout(function () {
+
+        createCollectorEarningsSection();
+        createCollectorEarningsNav();
+        updateCollectorEarningsNav();
+
+        console.log(
+            "✅ Step 5P - Collector Earnings Dashboard ready."
+        );
+
+    }, 700);
+
+
+    setInterval(function () {
+
+        updateCollectorEarningsNav();
+
+        const section =
+            document.getElementById(
+                "collectorEarnings"
+            );
+
+        if (
+            section &&
+            section.classList.contains(
+                "active-section"
+            )
+        ) {
+            renderCollectorEarningsDashboard();
+        }
+
+    }, 2500);
+
+
+})();
+
+/* =========================================================
+   STEP 5Q — COLLECTOR PROFILE + VERIFICATION
+   ========================================================= */
+
+(function () {
+
+    console.log("🚀 Step 5Q - Collector Profile loaded.");
+
+    const PROFILE_KEY = "kabadiSetuCollectorProfile";
+
+    /* ---------------------------------------------------------
+       DEFAULT PROFILE
+       --------------------------------------------------------- */
+
+    function getCollectorProfile() {
+
+        try {
+
+            const saved =
+                JSON.parse(
+                    localStorage.getItem(PROFILE_KEY) || "null"
+                );
+
+            if (saved && typeof saved === "object") {
+                return saved;
+            }
+
+        } catch (error) {
+            console.error(
+                "Error loading collector profile:",
+                error
+            );
+        }
+
+        return {
+            name: "",
+            phone: "",
+            city: "",
+            area: "",
+            collectorId: "",
+            experience: "",
+            materials: [],
+            verified: false,
+            joinedAt: new Date().toISOString()
+        };
+    }
+
+
+    function saveCollectorProfile(profile) {
+
+        localStorage.setItem(
+            PROFILE_KEY,
+            JSON.stringify(profile)
+        );
+
+        console.log(
+            "✅ Collector profile saved."
+        );
+    }
+
+
+    /* ---------------------------------------------------------
+       HELPERS
+       --------------------------------------------------------- */
+
+    function escapeHTML(value) {
+
+        return String(value ?? "")
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#039;");
+    }
+
+
+    function generateCollectorId() {
+
+        const random =
+            Math.floor(
+                100000 +
+                Math.random() * 900000
+            );
+
+        return "KS-COL-" + random;
+    }
+
+
+    function getRole() {
+
+        return String(
+            window.currentRole ||
+            window.userRole ||
+            localStorage.getItem(
+                "kabadiSetuRole"
+            ) ||
+            ""
+        ).toLowerCase();
+    }
+
+
+    /* ---------------------------------------------------------
+       CREATE PROFILE SECTION
+       --------------------------------------------------------- */
+
+    function createCollectorProfileSection() {
+
+        if (
+            document.getElementById(
+                "collectorProfile"
+            )
+        ) {
+            return;
+        }
+
+        const section =
+            document.createElement("section");
+
+        section.id =
+            "collectorProfile";
+
+        section.className =
+            "page-section";
+
+        section.innerHTML = `
+
+            <div style="
+                max-width:1100px;
+                margin:0 auto;
+                padding:20px;
+            ">
+
+                <div style="
+                    margin-bottom:25px;
+                ">
+
+                    <h2 style="
+                        margin:0;
+                        font-size:28px;
+                    ">
+                        👤 Collector Profile
+                    </h2>
+
+                    <p style="
+                        margin-top:7px;
+                        opacity:0.65;
+                    ">
+                        Manage your collector information
+                        and verification status.
+                    </p>
+
+                </div>
+
+
+                <div id="collectorProfileContent"></div>
+
+            </div>
+        `;
+
+        document.body.appendChild(section);
+    }
+
+
+    /* ---------------------------------------------------------
+       RENDER PROFILE
+       --------------------------------------------------------- */
+
+    function renderCollectorProfile() {
+
+        createCollectorProfileSection();
+
+        const container =
+            document.getElementById(
+                "collectorProfileContent"
+            );
+
+        if (!container) return;
+
+        const profile =
+            getCollectorProfile();
+
+        if (!profile.collectorId) {
+
+            profile.collectorId =
+                generateCollectorId();
+
+            saveCollectorProfile(profile);
+        }
+
+
+        const materials =
+            Array.isArray(profile.materials)
+                ? profile.materials
+                : [];
+
+
+        const materialOptions = [
+            "Iron",
+            "Steel",
+            "Aluminium",
+            "Copper",
+            "Plastic",
+            "Glass",
+            "Books & Newspapers",
+            "E-Waste",
+            "Mixed Waste"
+        ];
+
+
+        container.innerHTML = `
+
+            <!-- PROFILE HEADER -->
+
+            <div style="
+                padding:24px;
+                border-radius:18px;
+                background:var(--card-bg,#fff);
+                border:1px solid rgba(0,0,0,0.08);
+                box-shadow:0 5px 20px rgba(0,0,0,0.05);
+                margin-bottom:20px;
+            ">
+
+                <div style="
+                    display:flex;
+                    align-items:center;
+                    gap:18px;
+                    flex-wrap:wrap;
+                ">
+
+                    <div style="
+                        width:70px;
+                        height:70px;
+                        border-radius:50%;
+                        display:flex;
+                        align-items:center;
+                        justify-content:center;
+                        font-size:34px;
+                        background:rgba(0,0,0,0.06);
+                    ">
+                        ♻️
+                    </div>
+
+
+                    <div style="
+                        flex:1;
+                    ">
+
+                        <h3 style="
+                            margin:0;
+                            font-size:23px;
+                        ">
+                            ${escapeHTML(
+                                profile.name ||
+                                "Collector"
+                            )}
+                        </h3>
+
+                        <div style="
+                            margin-top:5px;
+                            font-size:13px;
+                            opacity:0.65;
+                        ">
+                            Collector ID:
+                            <strong>
+                                ${escapeHTML(
+                                    profile.collectorId
+                                )}
+                            </strong>
+                        </div>
+
+                    </div>
+
+
+                    <div style="
+                        padding:8px 14px;
+                        border-radius:20px;
+                        font-size:13px;
+                        font-weight:700;
+                    ">
+
+                        ${
+                            profile.verified
+                                ? "✅ Verified Collector"
+                                : "⏳ Verification Pending"
+                        }
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- PROFILE FORM -->
+
+            <div style="
+                padding:24px;
+                border-radius:18px;
+                background:var(--card-bg,#fff);
+                border:1px solid rgba(0,0,0,0.08);
+                box-shadow:0 5px 20px rgba(0,0,0,0.05);
+                margin-bottom:20px;
+            ">
+
+                <h3 style="
+                    margin-top:0;
+                    margin-bottom:20px;
+                ">
+                    📝 Personal Information
+                </h3>
+
+
+                <div style="
+                    display:grid;
+                    grid-template-columns:
+                        repeat(auto-fit,minmax(250px,1fr));
+                    gap:16px;
+                ">
+
+
+                    <!-- NAME -->
+
+                    <div>
+
+                        <label style="
+                            display:block;
+                            margin-bottom:6px;
+                            font-size:13px;
+                            font-weight:600;
+                        ">
+                            Full Name
+                        </label>
+
+                        <input
+                            id="collectorNameInput"
+                            type="text"
+                            value="${escapeHTML(
+                                profile.name
+                            )}"
+                            placeholder="Enter your name"
+                            style="
+                                width:100%;
+                                box-sizing:border-box;
+                                padding:12px;
+                                border-radius:10px;
+                                border:1px solid #ccc;
+                            "
+                        >
+
+                    </div>
+
+
+                    <!-- PHONE -->
+
+                    <div>
+
+                        <label style="
+                            display:block;
+                            margin-bottom:6px;
+                            font-size:13px;
+                            font-weight:600;
+                        ">
+                            Phone Number
+                        </label>
+
+                        <input
+                            id="collectorPhoneInput"
+                            type="tel"
+                            value="${escapeHTML(
+                                profile.phone
+                            )}"
+                            placeholder="Enter phone number"
+                            style="
+                                width:100%;
+                                box-sizing:border-box;
+                                padding:12px;
+                                border-radius:10px;
+                                border:1px solid #ccc;
+                            "
+                        >
+
+                    </div>
+
+
+                    <!-- CITY -->
+
+                    <div>
+
+                        <label style="
+                            display:block;
+                            margin-bottom:6px;
+                            font-size:13px;
+                            font-weight:600;
+                        ">
+                            City
+                        </label>
+
+                        <input
+                            id="collectorCityInput"
+                            type="text"
+                            value="${escapeHTML(
+                                profile.city
+                            )}"
+                            placeholder="Enter city"
+                            style="
+                                width:100%;
+                                box-sizing:border-box;
+                                padding:12px;
+                                border-radius:10px;
+                                border:1px solid #ccc;
+                            "
+                        >
+
+                    </div>
+
+
+                    <!-- AREA -->
+
+                    <div>
+
+                        <label style="
+                            display:block;
+                            margin-bottom:6px;
+                            font-size:13px;
+                            font-weight:600;
+                        ">
+                            Operating Area
+                        </label>
+
+                        <input
+                            id="collectorAreaInput"
+                            type="text"
+                            value="${escapeHTML(
+                                profile.area
+                            )}"
+                            placeholder="Locality / Area"
+                            style="
+                                width:100%;
+                                box-sizing:border-box;
+                                padding:12px;
+                                border-radius:10px;
+                                border:1px solid #ccc;
+                            "
+                        >
+
+                    </div>
+
+
+                    <!-- EXPERIENCE -->
+
+                    <div>
+
+                        <label style="
+                            display:block;
+                            margin-bottom:6px;
+                            font-size:13px;
+                            font-weight:600;
+                        ">
+                            Experience
+                        </label>
+
+                        <select
+                            id="collectorExperienceInput"
+                            style="
+                                width:100%;
+                                box-sizing:border-box;
+                                padding:12px;
+                                border-radius:10px;
+                                border:1px solid #ccc;
+                            "
+                        >
+
+                            <option value="">
+                                Select experience
+                            </option>
+
+                            <option value="Less than 1 year">
+                                Less than 1 year
+                            </option>
+
+                            <option value="1-3 years">
+                                1-3 years
+                            </option>
+
+                            <option value="3-5 years">
+                                3-5 years
+                            </option>
+
+                            <option value="5+ years">
+                                5+ years
+                            </option>
+
+                        </select>
+
+                    </div>
+
+                </div>
+
+
+                <!-- MATERIALS -->
+
+                <div style="
+                    margin-top:20px;
+                ">
+
+                    <label style="
+                        display:block;
+                        margin-bottom:10px;
+                        font-size:13px;
+                        font-weight:600;
+                    ">
+                        Materials You Collect
+                    </label>
+
+                    <div style="
+                        display:flex;
+                        gap:8px;
+                        flex-wrap:wrap;
+                    ">
+
+                        ${
+                            materialOptions
+                                .map(function(material) {
+
+                                    const checked =
+                                        materials.includes(
+                                            material
+                                        );
+
+                                    return `
+                                        <label style="
+                                            display:flex;
+                                            align-items:center;
+                                            gap:6px;
+                                            padding:8px 12px;
+                                            border-radius:10px;
+                                            border:1px solid rgba(0,0,0,0.1);
+                                            cursor:pointer;
+                                            font-size:13px;
+                                        ">
+
+                                            <input
+                                                type="checkbox"
+                                                class="collectorMaterialCheckbox"
+                                                value="${escapeHTML(
+                                                    material
+                                                )}"
+                                                ${
+                                                    checked
+                                                        ? "checked"
+                                                        : ""
+                                                }
+                                            >
+
+                                            ${escapeHTML(
+                                                material
+                                            )}
+
+                                        </label>
+                                    `;
+
+                                })
+                                .join("")
+                        }
+
+                    </div>
+
+                </div>
+
+
+                <!-- SAVE -->
+
+                <button
+                    id="saveCollectorProfileButton"
+                    style="
+                        margin-top:22px;
+                        padding:12px 20px;
+                        border:none;
+                        border-radius:10px;
+                        cursor:pointer;
+                        font-weight:700;
+                    "
+                >
+                    💾 Save Profile
+                </button>
+
+            </div>
+
+
+            <!-- VERIFICATION -->
+
+            <div style="
+                padding:24px;
+                border-radius:18px;
+                background:var(--card-bg,#fff);
+                border:1px solid rgba(0,0,0,0.08);
+                box-shadow:0 5px 20px rgba(0,0,0,0.05);
+                margin-bottom:20px;
+            ">
+
+                <h3 style="
+                    margin-top:0;
+                ">
+                    🛡️ Collector Verification
+                </h3>
+
+                ${
+                    profile.verified
+                        ? `
+                            <div style="
+                                padding:18px;
+                                border-radius:12px;
+                                border:1px solid rgba(0,0,0,0.08);
+                            ">
+
+                                <strong>
+                                    ✅ Your collector profile is verified.
+                                </strong>
+
+                                <p style="
+                                    margin-bottom:0;
+                                    opacity:0.7;
+                                ">
+                                    You can use Kabadi Setu
+                                    to connect with households
+                                    and authorized recyclers.
+                                </p>
+
+                            </div>
+                        `
+                        : `
+                            <div style="
+                                padding:18px;
+                                border-radius:12px;
+                                border:1px solid rgba(0,0,0,0.08);
+                            ">
+
+                                <strong>
+                                    ⏳ Verification Pending
+                                </strong>
+
+                                <p style="
+                                    margin-bottom:12px;
+                                    opacity:0.7;
+                                ">
+                                    Your profile information is saved
+                                    locally in this prototype.
+                                    Verification can be connected
+                                    to an admin/KYC workflow in the
+                                    production version.
+                                </p>
+
+                                <button
+                                    id="requestCollectorVerification"
+                                    style="
+                                        padding:11px 16px;
+                                        border:none;
+                                        border-radius:10px;
+                                        cursor:pointer;
+                                        font-weight:700;
+                                    "
+                                >
+                                    🛡️ Request Verification
+                                </button>
+
+                            </div>
+                        `
+                }
+
+            </div>
+
+
+            <!-- COLLECTOR ID CARD -->
+
+            <div style="
+                padding:24px;
+                border-radius:18px;
+                background:var(--card-bg,#fff);
+                border:1px solid rgba(0,0,0,0.08);
+                box-shadow:0 5px 20px rgba(0,0,0,0.05);
+            ">
+
+                <h3 style="
+                    margin-top:0;
+                ">
+                    🪪 Collector Identity
+                </h3>
+
+                <div style="
+                    display:grid;
+                    grid-template-columns:
+                        repeat(auto-fit,minmax(200px,1fr));
+                    gap:15px;
+                ">
+
+                    <div>
+                        <div style="
+                            font-size:12px;
+                            opacity:0.6;
+                        ">
+                            Collector ID
+                        </div>
+
+                        <strong>
+                            ${escapeHTML(
+                                profile.collectorId
+                            )}
+                        </strong>
+                    </div>
+
+
+                    <div>
+                        <div style="
+                            font-size:12px;
+                            opacity:0.6;
+                        ">
+                            City
+                        </div>
+
+                        <strong>
+                            ${
+                                escapeHTML(
+                                    profile.city ||
+                                    "Not provided"
+                                )
+                            }
+                        </strong>
+                    </div>
+
+
+                    <div>
+                        <div style="
+                            font-size:12px;
+                            opacity:0.6;
+                        ">
+                            Area
+                        </div>
+
+                        <strong>
+                            ${
+                                escapeHTML(
+                                    profile.area ||
+                                    "Not provided"
+                                )
+                            }
+                        </strong>
+                    </div>
+
+
+                    <div>
+                        <div style="
+                            font-size:12px;
+                            opacity:0.6;
+                        ">
+                            Status
+                        </div>
+
+                        <strong>
+                            ${
+                                profile.verified
+                                    ? "Verified"
+                                    : "Pending"
+                            }
+                        </strong>
+                    </div>
+
+                </div>
+
+            </div>
+
+        `;
+
+
+        /* -----------------------------------------------------
+           EXPERIENCE VALUE
+           ----------------------------------------------------- */
+
+        const experienceInput =
+            document.getElementById(
+                "collectorExperienceInput"
+            );
+
+        if (experienceInput) {
+            experienceInput.value =
+                profile.experience || "";
+        }
+
+
+        /* -----------------------------------------------------
+           SAVE PROFILE
+           ----------------------------------------------------- */
+
+        const saveButton =
+            document.getElementById(
+                "saveCollectorProfileButton"
+            );
+
+        if (saveButton) {
+
+            saveButton.addEventListener(
+                "click",
+                function () {
+
+                    const name =
+                        document.getElementById(
+                            "collectorNameInput"
+                        )?.value.trim() || "";
+
+                    const phone =
+                        document.getElementById(
+                            "collectorPhoneInput"
+                        )?.value.trim() || "";
+
+                    const city =
+                        document.getElementById(
+                            "collectorCityInput"
+                        )?.value.trim() || "";
+
+                    const area =
+                        document.getElementById(
+                            "collectorAreaInput"
+                        )?.value.trim() || "";
+
+                    const experience =
+                        document.getElementById(
+                            "collectorExperienceInput"
+                        )?.value || "";
+
+
+                    const selectedMaterials =
+                        Array.from(
+                            document.querySelectorAll(
+                                ".collectorMaterialCheckbox:checked"
+                            )
+                        ).map(
+                            checkbox =>
+                                checkbox.value
+                        );
+
+
+                    const updatedProfile = {
+
+                        ...profile,
+
+                        name,
+                        phone,
+                        city,
+                        area,
+                        experience,
+
+                        materials:
+                            selectedMaterials
+
+                    };
+
+
+                    saveCollectorProfile(
+                        updatedProfile
+                    );
+
+
+                    alert(
+                        "✅ Collector profile saved successfully!"
+                    );
+
+
+                    renderCollectorProfile();
+
+                }
+            );
+
+        }
+
+
+        /* -----------------------------------------------------
+           VERIFICATION REQUEST
+           ----------------------------------------------------- */
+
+        const verificationButton =
+            document.getElementById(
+                "requestCollectorVerification"
+            );
+
+        if (verificationButton) {
+
+            verificationButton.addEventListener(
+                "click",
+                function () {
+
+                    const currentProfile =
+                        getCollectorProfile();
+
+                    if (
+                        !currentProfile.name ||
+                        !currentProfile.phone ||
+                        !currentProfile.city
+                    ) {
+
+                        alert(
+                            "Please complete your name, phone number and city before requesting verification."
+                        );
+
+                        return;
+                    }
+
+
+                    currentProfile.verificationRequested =
+                        true;
+
+                    currentProfile.verificationRequestedAt =
+                        new Date().toISOString();
+
+                    saveCollectorProfile(
+                        currentProfile
+                    );
+
+
+                    alert(
+                        "🛡️ Verification request submitted successfully!"
+                    );
+
+
+                    renderCollectorProfile();
+
+                }
+            );
+
+        }
+
+    }
+
+
+    /* ---------------------------------------------------------
+       NAV ITEM
+       --------------------------------------------------------- */
+
+    function createCollectorProfileNav() {
+
+        if (
+            document.getElementById(
+                "collectorProfileNav"
+            )
+        ) {
+            return;
+        }
+
+
+        const navItems =
+            document.querySelectorAll(
+                ".nav-item"
+            );
+
+
+        const collectorNav =
+            document.createElement("div");
+
+        collectorNav.id =
+            "collectorProfileNav";
+
+        collectorNav.className =
+            "nav-item";
+
+        collectorNav.style.display =
+            "none";
+
+        collectorNav.innerHTML = `
+            <span>👤</span>
+            <span>Collector Profile</span>
+        `;
+
+
+        collectorNav.addEventListener(
+            "click",
+            function () {
+
+                if (
+                    typeof window.showSection ===
+                    "function"
+                ) {
+
+                    window.showSection(
+                        "collectorProfile"
+                    );
+
+                }
+
+                renderCollectorProfile();
+
+            }
+        );
+
+
+        let insertTarget = null;
+
+        navItems.forEach(function(item) {
+
+            const text =
+                item.innerText
+                    .toLowerCase();
+
+            if (
+                text.includes("earnings") ||
+                text.includes("transaction")
+            ) {
+
+                insertTarget = item;
+
+            }
+
+        });
+
+
+        if (insertTarget &&
+            insertTarget.parentNode) {
+
+            insertTarget.parentNode.insertBefore(
+                collectorNav,
+                insertTarget.nextSibling
+            );
+
+        } else {
+
+            const navContainer =
+                document.querySelector(
+                    ".sidebar, .nav-menu, .navigation"
+                );
+
+            if (navContainer) {
+                navContainer.appendChild(
+                    collectorNav
+                );
+            }
+
+        }
+
+    }
+
+
+    /* ---------------------------------------------------------
+       UPDATE ROLE VISIBILITY
+       --------------------------------------------------------- */
+
+    function updateCollectorProfileNav() {
+
+        const nav =
+            document.getElementById(
+                "collectorProfileNav"
+            );
+
+        if (!nav) return;
+
+
+        const role =
+            getRole();
+
+        const isCollector =
+            role.includes("collector");
+
+
+        nav.style.display =
+            isCollector
+                ? ""
+                : "none";
+
+    }
+
+
+    /* ---------------------------------------------------------
+       WRAP SWITCH ROLE
+       --------------------------------------------------------- */
+
+    const previousSwitchRole =
+        window.switchRole;
+
+
+    if (
+        typeof previousSwitchRole ===
+        "function"
+    ) {
+
+        window.switchRole =
+            function () {
+
+                const result =
+                    previousSwitchRole.apply(
+                        this,
+                        arguments
+                    );
+
+
+                setTimeout(function () {
+
+                    createCollectorProfileSection();
+                    createCollectorProfileNav();
+                    updateCollectorProfileNav();
+
+                }, 350);
+
+
+                return result;
+            };
+
+    }
+
+
+    /* ---------------------------------------------------------
+       WRAP SHOW SECTION
+       --------------------------------------------------------- */
+
+    const previousShowSection =
+        window.showSection;
+
+
+    if (
+        typeof previousShowSection ===
+        "function"
+    ) {
+
+        window.showSection =
+            function (sectionId) {
+
+                const result =
+                    previousShowSection.apply(
+                        this,
+                        arguments
+                    );
+
+
+                if (
+                    sectionId ===
+                    "collectorProfile"
+                ) {
+
+                    setTimeout(
+                        renderCollectorProfile,
+                        50
+                    );
+
+                }
+
+
+                return result;
+
+            };
+
+    }
+
+
+    /* ---------------------------------------------------------
+       INITIALIZE
+       --------------------------------------------------------- */
+
+    window.renderCollectorProfile =
+        renderCollectorProfile;
+
+    window.getCollectorProfile =
+        getCollectorProfile;
+
+    window.saveCollectorProfile =
+        saveCollectorProfile;
+
+
+    setTimeout(function () {
+
+        createCollectorProfileSection();
+        createCollectorProfileNav();
+        updateCollectorProfileNav();
+
+        console.log(
+            "✅ Step 5Q - Collector Profile ready."
+        );
+
+    }, 800);
+
+
+})();
+
+/* =========================================================
+   STEP 5R — COLLECTOR PICKUP REQUEST MANAGEMENT
+   ========================================================= */
+
+(function () {
+
+    console.log("🚀 Step 5R - Collector Pickup Management loaded.");
+
+    const PICKUP_KEY = "kabadiSetuPickupRequests";
+
+    /* ---------------------------------------------------------
+       STORAGE
+       --------------------------------------------------------- */
+
+    function getPickupRequests() {
+
+        try {
+
+            const data =
+                JSON.parse(
+                    localStorage.getItem(PICKUP_KEY) || "[]"
+                );
+
+            return Array.isArray(data) ? data : [];
+
+        } catch (error) {
+
+            console.error(
+                "Error reading pickup requests:",
+                error
+            );
+
+            return [];
+        }
+    }
+
+
+    function savePickupRequests(requests) {
+
+        localStorage.setItem(
+            PICKUP_KEY,
+            JSON.stringify(requests)
+        );
+
+    }
+
+
+    /* ---------------------------------------------------------
+       HELPERS
+       --------------------------------------------------------- */
+
+    function escapeHTML(value) {
+
+        return String(value ?? "")
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#039;");
+    }
+
+
+    function getStatus(request) {
+
+        return String(
+            request.status ||
+            request.pickupStatus ||
+            "pending"
+        ).toLowerCase();
+
+    }
+
+
+    function getMaterial(request) {
+
+        return (
+            request.material ||
+            request.category ||
+            "Unknown Material"
+        );
+
+    }
+
+
+    function getWeight(request) {
+
+        return Number(
+            request.weight ||
+            request.estimatedWeight ||
+            request.actualWeight ||
+            0
+        ) || 0;
+
+    }
+
+
+    function getAddress(request) {
+
+        return (
+            request.address ||
+            request.pickupAddress ||
+            request.location ||
+            "Address not provided"
+        );
+
+    }
+
+
+    function getRequestId(request) {
+
+        return (
+            request.request_id ||
+            request.requestId ||
+            request.id ||
+            "KS-PICKUP"
+        );
+
+    }
+
+
+    function getDate(request) {
+
+        const value =
+            request.createdAt ||
+            request.requestedAt ||
+            request.date ||
+            request.timestamp;
+
+        if (!value) {
+            return new Date();
+        }
+
+        const date = new Date(value);
+
+        return isNaN(date.getTime())
+            ? new Date()
+            : date;
+
+    }
+
+
+    function formatDate(request) {
+
+        return getDate(request)
+            .toLocaleString("en-IN", {
+                dateStyle: "medium",
+                timeStyle: "short"
+            });
+
+    }
+
+
+    /* ---------------------------------------------------------
+       STATUS CONFIG
+       --------------------------------------------------------- */
+
+    function getStatusConfig(status) {
+
+        const configs = {
+
+            pending: {
+                label: "New Request",
+                icon: "🆕"
+            },
+
+            accepted: {
+                label: "Accepted",
+                icon: "✅"
+            },
+
+            on_the_way: {
+                label: "On the Way",
+                icon: "🚚"
+            },
+
+            collected: {
+                label: "Collected",
+                icon: "📦"
+            },
+
+            completed: {
+                label: "Completed",
+                icon: "♻️"
+            },
+
+            cancelled: {
+                label: "Cancelled",
+                icon: "❌"
+            }
+
+        };
+
+
+        return (
+            configs[status] ||
+            configs.pending
+        );
+
+    }
+
+
+    /* ---------------------------------------------------------
+       UPDATE REQUEST STATUS
+       --------------------------------------------------------- */
+
+    function updatePickupStatus(
+        requestId,
+        newStatus
+    ) {
+
+        const requests =
+            getPickupRequests();
+
+        const index =
+            requests.findIndex(function (request) {
+
+                return String(
+                    getRequestId(request)
+                ) === String(requestId);
+
+            });
+
+
+        if (index === -1) {
+
+            alert(
+                "Pickup request not found."
+            );
+
+            return false;
+        }
+
+
+        const request =
+            requests[index];
+
+
+        request.status =
+            newStatus;
+
+
+        request.pickupStatus =
+            newStatus;
+
+
+        const now =
+            new Date().toISOString();
+
+
+        if (newStatus === "accepted") {
+
+            request.acceptedAt = now;
+
+        }
+
+
+        if (newStatus === "on_the_way") {
+
+            request.onTheWayAt = now;
+
+        }
+
+
+        if (newStatus === "collected") {
+
+            request.collectedAt = now;
+
+        }
+
+
+        if (newStatus === "completed") {
+
+            request.completedAt = now;
+
+        }
+
+
+        request.updatedAt = now;
+
+
+        savePickupRequests(requests);
+
+
+        console.log(
+            "✅ Pickup status updated:",
+            requestId,
+            newStatus
+        );
+
+
+        renderCollectorPickupRequests();
+
+
+        return true;
+
+    }
+
+
+    /* ---------------------------------------------------------
+       NEXT STATUS
+       --------------------------------------------------------- */
+
+    function getNextStatus(status) {
+
+        const flow = {
+
+            pending: "accepted",
+
+            accepted: "on_the_way",
+
+            on_the_way: "collected",
+
+            collected: "completed"
+
+        };
+
+
+        return flow[status] || null;
+
+    }
+
+
+    /* ---------------------------------------------------------
+       BUTTON LABEL
+       --------------------------------------------------------- */
+
+    function getNextButtonLabel(status) {
+
+        const labels = {
+
+            pending:
+                "✅ Accept Pickup",
+
+            accepted:
+                "🚚 Start Pickup",
+
+            on_the_way:
+                "📦 Mark Collected",
+
+            collected:
+                "♻️ Complete Pickup"
+
+        };
+
+
+        return labels[status] || "";
+
+    }
+
+
+    /* ---------------------------------------------------------
+       CREATE SECTION
+       --------------------------------------------------------- */
+
+    function createCollectorPickupSection() {
+
+        if (
+            document.getElementById(
+                "collectorPickupRequests"
+            )
+        ) {
+
+            return;
+        }
+
+
+        const section =
+            document.createElement("section");
+
+
+        section.id =
+            "collectorPickupRequests";
+
+
+        section.className =
+            "page-section";
+
+
+        section.innerHTML = `
+
+            <div style="
+                max-width:1200px;
+                margin:0 auto;
+                padding:20px;
+            ">
+
+
+                <!-- HEADER -->
+
+                <div style="
+                    display:flex;
+                    justify-content:space-between;
+                    align-items:center;
+                    gap:15px;
+                    flex-wrap:wrap;
+                    margin-bottom:22px;
+                ">
+
+                    <div>
+
+                        <h2 style="
+                            margin:0;
+                            font-size:28px;
+                        ">
+                            🚚 Pickup Requests
+                        </h2>
+
+                        <p style="
+                            margin:7px 0 0;
+                            opacity:0.65;
+                        ">
+                            Manage household pickup requests
+                            from acceptance to collection.
+                        </p>
+
+                    </div>
+
+
+                    <button
+                        id="refreshCollectorPickup"
+                        style="
+                            padding:10px 16px;
+                            border:none;
+                            border-radius:10px;
+                            cursor:pointer;
+                            font-weight:700;
+                        "
+                    >
+                        🔄 Refresh
+                    </button>
+
+                </div>
+
+
+                <!-- SUMMARY -->
+
+                <div
+                    id="collectorPickupSummary"
+                    style="
+                        display:grid;
+                        grid-template-columns:
+                            repeat(auto-fit,minmax(180px,1fr));
+                        gap:15px;
+                        margin-bottom:22px;
+                    "
+                ></div>
+
+
+                <!-- FILTER -->
+
+                <div style="
+                    padding:15px;
+                    border-radius:14px;
+                    background:var(--card-bg,#fff);
+                    border:1px solid rgba(0,0,0,0.08);
+                    margin-bottom:20px;
+                ">
+
+                    <div style="
+                        display:flex;
+                        gap:8px;
+                        flex-wrap:wrap;
+                    ">
+
+                        <button
+                            class="collectorPickupFilter"
+                            data-filter="all"
+                        >
+                            All
+                        </button>
+
+                        <button
+                            class="collectorPickupFilter"
+                            data-filter="pending"
+                        >
+                            🆕 New
+                        </button>
+
+                        <button
+                            class="collectorPickupFilter"
+                            data-filter="accepted"
+                        >
+                            ✅ Accepted
+                        </button>
+
+                        <button
+                            class="collectorPickupFilter"
+                            data-filter="on_the_way"
+                        >
+                            🚚 On the Way
+                        </button>
+
+                        <button
+                            class="collectorPickupFilter"
+                            data-filter="collected"
+                        >
+                            📦 Collected
+                        </button>
+
+                        <button
+                            class="collectorPickupFilter"
+                            data-filter="completed"
+                        >
+                            ♻️ Completed
+                        </button>
+
+                    </div>
+
+                </div>
+
+
+                <!-- REQUESTS -->
+
+                <div
+                    id="collectorPickupList"
+                ></div>
+
+            </div>
+
+        `;
+
+
+        document.body.appendChild(section);
+
+
+        const refreshButton =
+            document.getElementById(
+                "refreshCollectorPickup"
+            );
+
+
+        if (refreshButton) {
+
+            refreshButton.addEventListener(
+                "click",
+                renderCollectorPickupRequests
+            );
+
+        }
+
+
+        document
+            .querySelectorAll(
+                ".collectorPickupFilter"
+            )
+            .forEach(function(button) {
+
+                button.addEventListener(
+                    "click",
+                    function() {
+
+                        window.collectorPickupFilter =
+                            this.dataset.filter;
+
+                        renderCollectorPickupRequests();
+
+                    }
+                );
+
+            });
+
+    }
+
+
+    /* ---------------------------------------------------------
+       SUMMARY
+       --------------------------------------------------------- */
+
+    function renderPickupSummary(requests) {
+
+        const summary =
+            document.getElementById(
+                "collectorPickupSummary"
+            );
+
+
+        if (!summary) return;
+
+
+        const counts = {
+
+            pending: 0,
+
+            accepted: 0,
+
+            on_the_way: 0,
+
+            collected: 0,
+
+            completed: 0
+
+        };
+
+
+        requests.forEach(function(request) {
+
+            const status =
+                getStatus(request);
+
+            if (
+                Object.prototype.hasOwnProperty
+                    .call(counts, status)
+            ) {
+
+                counts[status]++;
+
+            }
+
+        });
+
+
+        summary.innerHTML = `
+
+            <div style="
+                padding:18px;
+                border-radius:14px;
+                background:var(--card-bg,#fff);
+                border:1px solid rgba(0,0,0,0.08);
+            ">
+
+                <div style="
+                    font-size:25px;
+                ">
+                    🆕
+                </div>
+
+                <div style="
+                    font-size:12px;
+                    opacity:0.6;
+                    margin-top:5px;
+                ">
+                    New Requests
+                </div>
+
+                <strong style="
+                    font-size:24px;
+                ">
+                    ${counts.pending}
+                </strong>
+
+            </div>
+
+
+            <div style="
+                padding:18px;
+                border-radius:14px;
+                background:var(--card-bg,#fff);
+                border:1px solid rgba(0,0,0,0.08);
+            ">
+
+                <div style="
+                    font-size:25px;
+                ">
+                    🚚
+                </div>
+
+                <div style="
+                    font-size:12px;
+                    opacity:0.6;
+                    margin-top:5px;
+                ">
+                    Active Pickups
+                </div>
+
+                <strong style="
+                    font-size:24px;
+                ">
+                    ${
+                        counts.accepted +
+                        counts.on_the_way +
+                        counts.collected
+                    }
+                </strong>
+
+            </div>
+
+
+            <div style="
+                padding:18px;
+                border-radius:14px;
+                background:var(--card-bg,#fff);
+                border:1px solid rgba(0,0,0,0.08);
+            ">
+
+                <div style="
+                    font-size:25px;
+                ">
+                    📦
+                </div>
+
+                <div style="
+                    font-size:12px;
+                    opacity:0.6;
+                    margin-top:5px;
+                ">
+                    Collected
+                </div>
+
+                <strong style="
+                    font-size:24px;
+                ">
+                    ${counts.collected}
+                </strong>
+
+            </div>
+
+
+            <div style="
+                padding:18px;
+                border-radius:14px;
+                background:var(--card-bg,#fff);
+                border:1px solid rgba(0,0,0,0.08);
+            ">
+
+                <div style="
+                    font-size:25px;
+                ">
+                    ♻️
+                </div>
+
+                <div style="
+                    font-size:12px;
+                    opacity:0.6;
+                    margin-top:5px;
+                ">
+                    Completed
+                </div>
+
+                <strong style="
+                    font-size:24px;
+                ">
+                    ${counts.completed}
+                </strong>
+
+            </div>
+
+        `;
+
+    }
+
+
+    /* ---------------------------------------------------------
+       REQUEST CARD
+       --------------------------------------------------------- */
+
+    function renderRequestCard(request) {
+
+        const status =
+            getStatus(request);
+
+
+        const config =
+            getStatusConfig(status);
+
+
+        const requestId =
+            getRequestId(request);
+
+
+        const material =
+            getMaterial(request);
+
+
+        const weight =
+            getWeight(request);
+
+
+        const address =
+            getAddress(request);
+
+
+        const nextStatus =
+            getNextStatus(status);
+
+
+        return `
+
+            <div style="
+                padding:20px;
+                border-radius:17px;
+                background:var(--card-bg,#fff);
+                border:1px solid rgba(0,0,0,0.08);
+                box-shadow:0 4px 16px rgba(0,0,0,0.05);
+                margin-bottom:15px;
+            ">
+
+
+                <!-- TOP -->
+
+                <div style="
+                    display:flex;
+                    justify-content:space-between;
+                    gap:15px;
+                    flex-wrap:wrap;
+                ">
+
+
+                    <div>
+
+                        <div style="
+                            font-size:18px;
+                            font-weight:800;
+                        ">
+                            ♻️
+                            ${escapeHTML(material)}
+                        </div>
+
+                        <div style="
+                            font-size:12px;
+                            opacity:0.6;
+                            margin-top:5px;
+                        ">
+                            Request ID:
+                            <strong>
+                                ${escapeHTML(requestId)}
+                            </strong>
+                        </div>
+
+                    </div>
+
+
+                    <div style="
+                        padding:7px 12px;
+                        border-radius:20px;
+                        font-size:12px;
+                        font-weight:700;
+                        background:rgba(0,0,0,0.05);
+                    ">
+                        ${config.icon}
+                        ${config.label}
+                    </div>
+
+
+                </div>
+
+
+                <!-- DETAILS -->
+
+                <div style="
+                    display:grid;
+                    grid-template-columns:
+                        repeat(auto-fit,minmax(200px,1fr));
+                    gap:14px;
+                    margin-top:20px;
+                ">
+
+
+                    <div>
+
+                        <div style="
+                            font-size:11px;
+                            opacity:0.55;
+                        ">
+                            Estimated Weight
+                        </div>
+
+                        <strong>
+                            ${weight > 0
+                                ? escapeHTML(weight) + " kg"
+                                : "To be weighed"}
+                        </strong>
+
+                    </div>
+
+
+                    <div>
+
+                        <div style="
+                            font-size:11px;
+                            opacity:0.55;
+                        ">
+                            Pickup Address
+                        </div>
+
+                        <strong>
+                            ${escapeHTML(address)}
+                        </strong>
+
+                    </div>
+
+
+                    <div>
+
+                        <div style="
+                            font-size:11px;
+                            opacity:0.55;
+                        ">
+                            Requested
+                        </div>
+
+                        <strong>
+                            ${escapeHTML(
+                                formatDate(request)
+                            )}
+                        </strong>
+
+                    </div>
+
+
+                    <div>
+
+                        <div style="
+                            font-size:11px;
+                            opacity:0.55;
+                        ">
+                            Current Stage
+                        </div>
+
+                        <strong>
+                            ${config.label}
+                        </strong>
+
+                    </div>
+
+                </div>
+
+
+                <!-- PROGRESS -->
+
+                <div style="
+                    margin-top:22px;
+                ">
+
+                    <div style="
+                        display:flex;
+                        justify-content:space-between;
+                        font-size:11px;
+                        opacity:0.6;
+                        margin-bottom:7px;
+                    ">
+
+                        <span>
+                            Request
+                        </span>
+
+                        <span>
+                            Collection
+                        </span>
+
+                        <span>
+                            Complete
+                        </span>
+
+                    </div>
+
+
+                    <div style="
+                        height:7px;
+                        border-radius:20px;
+                        background:rgba(0,0,0,0.08);
+                        overflow:hidden;
+                    ">
+
+                        <div style="
+                            width:${
+                                status === "pending"
+                                    ? "10%"
+                                    : status === "accepted"
+                                        ? "35%"
+                                        : status === "on_the_way"
+                                            ? "60%"
+                                            : status === "collected"
+                                                ? "82%"
+                                                : status === "completed"
+                                                    ? "100%"
+                                                    : "0%"
+                            };
+                            height:100%;
+                            border-radius:20px;
+                            background:currentColor;
+                        "></div>
+
+                    </div>
+
+                </div>
+
+
+                <!-- ACTION -->
+
+                ${
+                    nextStatus
+                        ? `
+
+                            <div style="
+                                margin-top:20px;
+                                display:flex;
+                                gap:10px;
+                                flex-wrap:wrap;
+                            ">
+
+                                <button
+                                    class="collectorPickupAction"
+                                    data-request-id="${escapeHTML(
+                                        requestId
+                                    )}"
+                                    data-next-status="${nextStatus}"
+                                    style="
+                                        padding:11px 17px;
+                                        border:none;
+                                        border-radius:10px;
+                                        cursor:pointer;
+                                        font-weight:700;
+                                    "
+                                >
+                                    ${getNextButtonLabel(status)}
+                                </button>
+
+                            </div>
+
+                        `
+                        : `
+
+                            <div style="
+                                margin-top:20px;
+                                padding:12px;
+                                border-radius:10px;
+                                background:rgba(0,0,0,0.04);
+                                font-size:13px;
+                            ">
+                                ${
+                                    status === "completed"
+                                        ? "✅ Pickup completed successfully."
+                                        : "No further action required."
+                                }
+                            </div>
+
+                        `
+                }
+
+            </div>
+
+        `;
+
+    }
+
+
+    /* ---------------------------------------------------------
+       MAIN RENDER
+       --------------------------------------------------------- */
+
+    function renderCollectorPickupRequests() {
+
+        createCollectorPickupSection();
+
+
+        const requests =
+            getPickupRequests();
+
+
+        renderPickupSummary(
+            requests
+        );
+
+
+        const list =
+            document.getElementById(
+                "collectorPickupList"
+            );
+
+
+        if (!list) return;
+
+
+        const filter =
+            window.collectorPickupFilter ||
+            "all";
+
+
+        let filtered =
+            requests;
+
+
+        if (filter !== "all") {
+
+            filtered =
+                requests.filter(
+                    function(request) {
+
+                        return (
+                            getStatus(request) ===
+                            filter
+                        );
+
+                    }
+                );
+
+        }
+
+
+        filtered.sort(
+            function(a, b) {
+
+                return (
+                    getDate(b) -
+                    getDate(a)
+                );
+
+            }
+        );
+
+
+        if (!filtered.length) {
+
+            list.innerHTML = `
+
+                <div style="
+                    padding:50px 20px;
+                    text-align:center;
+                    border-radius:16px;
+                    border:1px dashed rgba(0,0,0,0.15);
+                    opacity:0.7;
+                ">
+
+                    <div style="
+                        font-size:45px;
+                        margin-bottom:12px;
+                    ">
+                        📭
+                    </div>
+
+                    <h3>
+                        No pickup requests
+                    </h3>
+
+                    <p>
+                        ${
+                            filter === "all"
+                                ? "New household pickup requests will appear here."
+                                : "There are no requests in this status."
+                        }
+                    </p>
+
+                </div>
+
+            `;
+
+            return;
+
+        }
+
+
+        list.innerHTML =
+            filtered
+                .map(renderRequestCard)
+                .join("");
+
+
+        /* -----------------------------------------------------
+           ACTION BUTTONS
+           ----------------------------------------------------- */
+
+        list
+            .querySelectorAll(
+                ".collectorPickupAction"
+            )
+            .forEach(function(button) {
+
+                button.addEventListener(
+                    "click",
+                    function() {
+
+                        const requestId =
+                            this.dataset.requestId;
+
+
+                        const nextStatus =
+                            this.dataset.nextStatus;
+
+
+                        updatePickupStatus(
+                            requestId,
+                            nextStatus
+                        );
+
+                    }
+                );
+
+            });
+
+    }
+
+
+    /* ---------------------------------------------------------
+       NAVIGATION
+       --------------------------------------------------------- */
+
+    function createCollectorPickupNav() {
+
+        if (
+            document.getElementById(
+                "collectorPickupNav"
+            )
+        ) {
+
+            return;
+
+        }
+
+
+        const nav =
+            document.createElement("div");
+
+
+        nav.id =
+            "collectorPickupNav";
+
+
+        nav.className =
+            "nav-item";
+
+
+        nav.style.display =
+            "none";
+
+
+        nav.innerHTML = `
+
+            <span>
+                🚚
+            </span>
+
+            <span>
+                Pickup Requests
+            </span>
+
+        `;
+
+
+        nav.addEventListener(
+            "click",
+            function() {
+
+                if (
+                    typeof window.showSection ===
+                    "function"
+                ) {
+
+                    window.showSection(
+                        "collectorPickupRequests"
+                    );
+
+                }
+
+
+                renderCollectorPickupRequests();
+
+            }
+        );
+
+
+        const navItems =
+            document.querySelectorAll(
+                ".nav-item"
+            );
+
+
+        let insertTarget =
+            null;
+
+
+        navItems.forEach(function(item) {
+
+            const text =
+                item.innerText
+                    .toLowerCase();
+
+
+            if (
+                text.includes("dashboard") ||
+                text.includes("inventory")
+            ) {
+
+                insertTarget =
+                    item;
+
+            }
+
+        });
+
+
+        if (
+            insertTarget &&
+            insertTarget.parentNode
+        ) {
+
+            insertTarget.parentNode.insertBefore(
+                nav,
+                insertTarget.nextSibling
+            );
+
+        }
+
+    }
+
+
+    /* ---------------------------------------------------------
+       ROLE VISIBILITY
+       --------------------------------------------------------- */
+
+    function updateCollectorPickupNav() {
+
+        const nav =
+            document.getElementById(
+                "collectorPickupNav"
+            );
+
+
+        if (!nav) return;
+
+
+        const role =
+            String(
+                window.currentRole ||
+                window.userRole ||
+                localStorage.getItem(
+                    "kabadiSetuRole"
+                ) ||
+                ""
+            ).toLowerCase();
+
+
+        nav.style.display =
+            role.includes("collector")
+                ? ""
+                : "none";
+
+    }
+
+
+    /* ---------------------------------------------------------
+       WRAP SWITCH ROLE
+       --------------------------------------------------------- */
+
+    const originalSwitchRole =
+        window.switchRole;
+
+
+    if (
+        typeof originalSwitchRole ===
+        "function"
+    ) {
+
+        window.switchRole =
+            function() {
+
+                const result =
+                    originalSwitchRole.apply(
+                        this,
+                        arguments
+                    );
+
+
+                setTimeout(function() {
+
+                    createCollectorPickupSection();
+                    createCollectorPickupNav();
+                    updateCollectorPickupNav();
+
+                }, 350);
+
+
+                return result;
+
+            };
+
+    }
+
+
+    /* ---------------------------------------------------------
+       WRAP SHOW SECTION
+       --------------------------------------------------------- */
+
+    const originalShowSection =
+        window.showSection;
+
+
+    if (
+        typeof originalShowSection ===
+        "function"
+    ) {
+
+        window.showSection =
+            function(sectionId) {
+
+                const result =
+                    originalShowSection.apply(
+                        this,
+                        arguments
+                    );
+
+
+                if (
+                    sectionId ===
+                    "collectorPickupRequests"
+                ) {
+
+                    setTimeout(
+                        renderCollectorPickupRequests,
+                        50
+                    );
+
+                }
+
+
+                return result;
+
+            };
+
+    }
+
+
+    /* ---------------------------------------------------------
+       PUBLIC FUNCTIONS
+       --------------------------------------------------------- */
+
+    window.renderCollectorPickupRequests =
+        renderCollectorPickupRequests;
+
+
+    window.updatePickupStatus =
+        updatePickupStatus;
+
+
+    window.getCollectorPickupRequests =
+        getPickupRequests;
+
+
+    /* ---------------------------------------------------------
+       INITIALIZE
+       --------------------------------------------------------- */
+
+    setTimeout(function() {
+
+        createCollectorPickupSection();
+        createCollectorPickupNav();
+        updateCollectorPickupNav();
+        renderCollectorPickupRequests();
+
+        console.log(
+            "✅ Step 5R - Collector Pickup Management ready."
+        );
+
+    }, 900);
+
+
+    /* ---------------------------------------------------------
+       AUTO REFRESH
+       --------------------------------------------------------- */
+
+    setInterval(function() {
+
+        updateCollectorPickupNav();
+
+
+        const section =
+            document.getElementById(
+                "collectorPickupRequests"
+            );
+
+
+        if (
+            section &&
+            section.classList.contains(
+                "active-section"
+            )
+        ) {
+
+            renderCollectorPickupRequests();
+
+        }
+
+    }, 3000);
+
+
+})();
+
+/* =========================================================
+   STEP 5S — HOUSEHOLD PICKUP TRACKING
+   ========================================================= */
+
+(function () {
+
+    console.log("🚀 Step 5S - Household Pickup Tracking loaded.");
+
+    const PICKUP_KEY = "kabadiSetuPickupRequests";
+
+    /* ---------------------------------------------------------
+       STORAGE
+       --------------------------------------------------------- */
+
+    function getPickupRequests() {
+
+        try {
+
+            const data = JSON.parse(
+                localStorage.getItem(PICKUP_KEY) || "[]"
+            );
+
+            return Array.isArray(data) ? data : [];
+
+        } catch (error) {
+
+            console.error(
+                "Error reading pickup requests:",
+                error
+            );
+
+            return [];
+
+        }
+
+    }
+
+
+    /* ---------------------------------------------------------
+       HELPERS
+       --------------------------------------------------------- */
+
+    function escapeHTML(value) {
+
+        return String(value ?? "")
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#039;");
+
+    }
+
+
+    function getStatus(request) {
+
+        return String(
+            request.status ||
+            request.pickupStatus ||
+            "pending"
+        ).toLowerCase();
+
+    }
+
+
+    function getRequestId(request) {
+
+        return (
+            request.request_id ||
+            request.requestId ||
+            request.id ||
+            "KS-PICKUP"
+        );
+
+    }
+
+
+    function getMaterial(request) {
+
+        return (
+            request.material ||
+            request.category ||
+            "Unknown Material"
+        );
+
+    }
+
+
+    function getWeight(request) {
+
+        return Number(
+            request.weight ||
+            request.estimatedWeight ||
+            request.actualWeight ||
+            0
+        ) || 0;
+
+    }
+
+
+    function getAddress(request) {
+
+        return (
+            request.address ||
+            request.pickupAddress ||
+            request.location ||
+            "Address not provided"
+        );
+
+    }
+
+
+    function getDate(request) {
+
+        const value =
+            request.createdAt ||
+            request.requestedAt ||
+            request.date ||
+            request.timestamp;
+
+        if (!value) {
+            return new Date();
+        }
+
+        const date = new Date(value);
+
+        return isNaN(date.getTime())
+            ? new Date()
+            : date;
+
+    }
+
+
+    function formatDate(request) {
+
+        return getDate(request)
+            .toLocaleString("en-IN", {
+                dateStyle: "medium",
+                timeStyle: "short"
+            });
+
+    }
+
+
+    /* ---------------------------------------------------------
+       STATUS CONFIG
+       --------------------------------------------------------- */
+
+    function statusConfig(status) {
+
+        const configs = {
+
+            pending: {
+                label: "Pickup Requested",
+                icon: "📝",
+                step: 1
+            },
+
+            accepted: {
+                label: "Collector Accepted",
+                icon: "✅",
+                step: 2
+            },
+
+            on_the_way: {
+                label: "Collector On The Way",
+                icon: "🚚",
+                step: 3
+            },
+
+            collected: {
+                label: "Waste Collected",
+                icon: "📦",
+                step: 4
+            },
+
+            completed: {
+                label: "Pickup Completed",
+                icon: "♻️",
+                step: 5
+            },
+
+            cancelled: {
+                label: "Pickup Cancelled",
+                icon: "❌",
+                step: 0
+            }
+
+        };
+
+        return (
+            configs[status] ||
+            configs.pending
+        );
+
+    }
+
+
+    /* ---------------------------------------------------------
+       FIND HOUSEHOLD REQUESTS
+       --------------------------------------------------------- */
+
+    function getHouseholdRequests() {
+
+        const requests =
+            getPickupRequests();
+
+        /*
+         * In the current prototype there is no real
+         * authenticated household account yet.
+         *
+         * Therefore all saved pickup requests are shown
+         * to the User dashboard.
+         */
+
+        return requests;
+
+    }
+
+
+    /* ---------------------------------------------------------
+       CREATE SECTION
+       --------------------------------------------------------- */
+
+    function createHouseholdTrackingSection() {
+
+        if (
+            document.getElementById(
+                "householdPickupTracking"
+            )
+        ) {
+
+            return;
+
+        }
+
+
+        const section =
+            document.createElement("section");
+
+
+        section.id =
+            "householdPickupTracking";
+
+
+        section.className =
+            "page-section";
+
+
+        section.innerHTML = `
+
+            <div style="
+                max-width:1100px;
+                margin:0 auto;
+                padding:20px;
+            ">
+
+
+                <!-- HEADER -->
+
+                <div style="
+                    display:flex;
+                    justify-content:space-between;
+                    align-items:center;
+                    gap:15px;
+                    flex-wrap:wrap;
+                    margin-bottom:24px;
+                ">
+
+                    <div>
+
+                        <h2 style="
+                            margin:0;
+                            font-size:28px;
+                        ">
+                            🚚 My Pickup Tracking
+                        </h2>
+
+                        <p style="
+                            margin:7px 0 0;
+                            opacity:0.65;
+                        ">
+                            Track your household waste pickup
+                            from request to collection.
+                        </p>
+
+                    </div>
+
+
+                    <button
+                        id="refreshHouseholdPickup"
+                        style="
+                            padding:10px 16px;
+                            border:none;
+                            border-radius:10px;
+                            cursor:pointer;
+                            font-weight:700;
+                        "
+                    >
+                        🔄 Refresh
+                    </button>
+
+                </div>
+
+
+                <!-- ACTIVE REQUEST -->
+
+                <div id="householdActivePickup"></div>
+
+
+                <!-- HISTORY -->
+
+                <div style="
+                    margin-top:25px;
+                ">
+
+                    <h3>
+                        📋 Pickup History
+                    </h3>
+
+                    <div
+                        id="householdPickupHistory"
+                    ></div>
+
+                </div>
+
+            </div>
+
+        `;
+
+
+        document.body.appendChild(section);
+
+
+        const refresh =
+            document.getElementById(
+                "refreshHouseholdPickup"
+            );
+
+
+        if (refresh) {
+
+            refresh.addEventListener(
+                "click",
+                renderHouseholdPickupTracking
+            );
+
+        }
+
+    }
+
+
+    /* ---------------------------------------------------------
+       PROGRESS TRACKER
+       --------------------------------------------------------- */
+
+    function renderProgress(status) {
+
+        const config =
+            statusConfig(status);
+
+        const currentStep =
+            config.step;
+
+
+        const steps = [
+
+            {
+                label: "Requested",
+                icon: "📝"
+            },
+
+            {
+                label: "Accepted",
+                icon: "✅"
+            },
+
+            {
+                label: "On the Way",
+                icon: "🚚"
+            },
+
+            {
+                label: "Collected",
+                icon: "📦"
+            },
+
+            {
+                label: "Completed",
+                icon: "♻️"
+            }
+
+        ];
+
+
+        return `
+
+            <div style="
+                display:flex;
+                justify-content:space-between;
+                align-items:flex-start;
+                gap:4px;
+                margin:25px 0 10px;
+            ">
+
+                ${
+                    steps.map(function(step, index) {
+
+                        const stepNumber =
+                            index + 1;
+
+                        const active =
+                            stepNumber <= currentStep;
+
+                        return `
+
+                            <div style="
+                                flex:1;
+                                text-align:center;
+                                position:relative;
+                            ">
+
+                                <div style="
+                                    width:40px;
+                                    height:40px;
+                                    margin:0 auto;
+                                    border-radius:50%;
+                                    display:flex;
+                                    align-items:center;
+                                    justify-content:center;
+                                    border:2px solid
+                                        ${
+                                            active
+                                                ? "currentColor"
+                                                : "rgba(0,0,0,0.15)"
+                                        };
+                                    opacity:
+                                        ${
+                                            active
+                                                ? "1"
+                                                : "0.45"
+                                        };
+                                    font-size:18px;
+                                    background:
+                                        ${
+                                            active
+                                                ? "rgba(0,0,0,0.05)"
+                                                : "transparent"
+                                        };
+                                ">
+                                    ${step.icon}
+                                </div>
+
+                                <div style="
+                                    font-size:10px;
+                                    margin-top:7px;
+                                    opacity:
+                                        ${
+                                            active
+                                                ? "1"
+                                                : "0.5"
+                                        };
+                                ">
+                                    ${step.label}
+                                </div>
+
+                            </div>
+
+                        `;
+
+                    }).join("")
+                }
+
+            </div>
+
+        `;
+
+    }
+
+
+    /* ---------------------------------------------------------
+       ACTIVE PICKUP CARD
+       --------------------------------------------------------- */
+
+    function renderActivePickup(request) {
+
+        const status =
+            getStatus(request);
+
+
+        const config =
+            statusConfig(status);
+
+
+        return `
+
+            <div style="
+                padding:24px;
+                border-radius:18px;
+                background:var(--card-bg,#fff);
+                border:1px solid rgba(0,0,0,0.08);
+                box-shadow:0 5px 20px rgba(0,0,0,0.05);
+            ">
+
+
+                <!-- STATUS -->
+
+                <div style="
+                    display:flex;
+                    justify-content:space-between;
+                    align-items:flex-start;
+                    gap:15px;
+                    flex-wrap:wrap;
+                ">
+
+                    <div>
+
+                        <div style="
+                            font-size:12px;
+                            opacity:0.6;
+                        ">
+                            Pickup Request
+                        </div>
+
+                        <h3 style="
+                            margin:5px 0 0;
+                        ">
+                            ${escapeHTML(
+                                getRequestId(request)
+                            )}
+                        </h3>
+
+                    </div>
+
+
+                    <div style="
+                        padding:9px 14px;
+                        border-radius:20px;
+                        background:rgba(0,0,0,0.05);
+                        font-size:13px;
+                        font-weight:700;
+                    ">
+
+                        ${config.icon}
+                        ${config.label}
+
+                    </div>
+
+                </div>
+
+
+                <!-- PROGRESS -->
+
+                ${renderProgress(status)}
+
+
+                <!-- DETAILS -->
+
+                <div style="
+                    display:grid;
+                    grid-template-columns:
+                        repeat(auto-fit,minmax(200px,1fr));
+                    gap:15px;
+                    margin-top:20px;
+                ">
+
+
+                    <div style="
+                        padding:14px;
+                        border-radius:12px;
+                        background:rgba(0,0,0,0.03);
+                    ">
+
+                        <div style="
+                            font-size:11px;
+                            opacity:0.55;
+                        ">
+                            Material
+                        </div>
+
+                        <strong>
+                            ♻️
+                            ${escapeHTML(
+                                getMaterial(request)
+                            )}
+                        </strong>
+
+                    </div>
+
+
+                    <div style="
+                        padding:14px;
+                        border-radius:12px;
+                        background:rgba(0,0,0,0.03);
+                    ">
+
+                        <div style="
+                            font-size:11px;
+                            opacity:0.55;
+                        ">
+                            Estimated Weight
+                        </div>
+
+                        <strong>
+                            ${
+                                getWeight(request) > 0
+                                    ? getWeight(request) + " kg"
+                                    : "To be weighed"
+                            }
+                        </strong>
+
+                    </div>
+
+
+                    <div style="
+                        padding:14px;
+                        border-radius:12px;
+                        background:rgba(0,0,0,0.03);
+                    ">
+
+                        <div style="
+                            font-size:11px;
+                            opacity:0.55;
+                        ">
+                            Pickup Address
+                        </div>
+
+                        <strong>
+                            ${escapeHTML(
+                                getAddress(request)
+                            )}
+                        </strong>
+
+                    </div>
+
+
+                    <div style="
+                        padding:14px;
+                        border-radius:12px;
+                        background:rgba(0,0,0,0.03);
+                    ">
+
+                        <div style="
+                            font-size:11px;
+                            opacity:0.55;
+                        ">
+                            Requested On
+                        </div>
+
+                        <strong>
+                            ${escapeHTML(
+                                formatDate(request)
+                            )}
+                        </strong>
+
+                    </div>
+
+                </div>
+
+
+                <!-- COLLECTOR INFORMATION -->
+
+                ${
+                    request.collectorName
+                        ? `
+
+                            <div style="
+                                margin-top:20px;
+                                padding:15px;
+                                border-radius:12px;
+                                border:1px solid rgba(0,0,0,0.08);
+                            ">
+
+                                <div style="
+                                    font-size:12px;
+                                    opacity:0.6;
+                                ">
+                                    Assigned Collector
+                                </div>
+
+                                <strong>
+                                    👤
+                                    ${escapeHTML(
+                                        request.collectorName
+                                    )}
+                                </strong>
+
+                            </div>
+
+                        `
+                        : ""
+                }
+
+
+                <!-- FINAL -->
+
+                ${
+                    status === "completed"
+                        ? `
+
+                            <div style="
+                                margin-top:20px;
+                                padding:16px;
+                                border-radius:12px;
+                                background:rgba(0,0,0,0.04);
+                            ">
+
+                                <strong>
+                                    ♻️ Pickup completed successfully.
+                                </strong>
+
+                                <p style="
+                                    margin-bottom:0;
+                                    opacity:0.65;
+                                    font-size:13px;
+                                ">
+                                    Your waste has been collected
+                                    and can now continue through
+                                    the Kabadi Setu recycling chain.
+                                </p>
+
+                            </div>
+
+                        `
+                        : ""
+                }
+
+            </div>
+
+        `;
+
+    }
+
+
+    /* ---------------------------------------------------------
+       HISTORY CARD
+       --------------------------------------------------------- */
+
+    function renderHistoryCard(request) {
+
+        const status =
+            getStatus(request);
+
+
+        const config =
+            statusConfig(status);
+
+
+        return `
+
+            <div style="
+                padding:16px;
+                border-radius:14px;
+                border:1px solid rgba(0,0,0,0.08);
+                background:var(--card-bg,#fff);
+                margin-bottom:10px;
+            ">
+
+                <div style="
+                    display:flex;
+                    justify-content:space-between;
+                    align-items:center;
+                    gap:15px;
+                    flex-wrap:wrap;
+                ">
+
+                    <div>
+
+                        <strong>
+                            ${config.icon}
+                            ${escapeHTML(
+                                getMaterial(request)
+                            )}
+                        </strong>
+
+                        <div style="
+                            font-size:11px;
+                            opacity:0.55;
+                            margin-top:4px;
+                        ">
+                            ${escapeHTML(
+                                getRequestId(request)
+                            )}
+                        </div>
+
+                    </div>
+
+
+                    <div style="
+                        text-align:right;
+                    ">
+
+                        <div style="
+                            font-weight:700;
+                            font-size:13px;
+                        ">
+                            ${config.label}
+                        </div>
+
+                        <div style="
+                            font-size:11px;
+                            opacity:0.55;
+                        ">
+                            ${escapeHTML(
+                                formatDate(request)
+                            )}
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        `;
+
+    }
+
+
+    /* ---------------------------------------------------------
+       MAIN RENDER
+       --------------------------------------------------------- */
+
+    function renderHouseholdPickupTracking() {
+
+        createHouseholdTrackingSection();
+
+
+        const activeContainer =
+            document.getElementById(
+                "householdActivePickup"
+            );
+
+
+        const historyContainer =
+            document.getElementById(
+                "householdPickupHistory"
+            );
+
+
+        if (!activeContainer ||
+            !historyContainer) {
+
+            return;
+
+        }
+
+
+        const requests =
+            getHouseholdRequests();
+
+
+        /*
+         * Latest request is treated as the active
+         * household pickup request.
+         */
+
+        const sorted =
+            [...requests].sort(
+                function(a, b) {
+
+                    return (
+                        getDate(b) -
+                        getDate(a)
+                    );
+
+                }
+            );
+
+
+        const activeRequest =
+            sorted.find(function(request) {
+
+                const status =
+                    getStatus(request);
+
+                return (
+                    status !== "completed" &&
+                    status !== "cancelled"
+                );
+
+            });
+
+
+        if (activeRequest) {
+
+            activeContainer.innerHTML =
+                renderActivePickup(
+                    activeRequest
+                );
+
+        } else {
+
+            activeContainer.innerHTML = `
+
+                <div style="
+                    padding:45px 20px;
+                    text-align:center;
+                    border-radius:18px;
+                    border:1px dashed rgba(0,0,0,0.15);
+                ">
+
+                    <div style="
+                        font-size:45px;
+                        margin-bottom:10px;
+                    ">
+                        📭
+                    </div>
+
+                    <h3>
+                        No Active Pickup
+                    </h3>
+
+                    <p style="
+                        opacity:0.6;
+                    ">
+                        Create a pickup request and
+                        track it here.
+                    </p>
+
+                </div>
+
+            `;
+
+        }
+
+
+        const history =
+            sorted
+                .filter(function(request) {
+
+                    return (
+                        request !==
+                        activeRequest
+                    );
+
+                })
+                .slice(0, 10);
+
+
+        if (!history.length) {
+
+            historyContainer.innerHTML = `
+
+                <div style="
+                    padding:25px;
+                    text-align:center;
+                    opacity:0.6;
+                    border:1px dashed rgba(0,0,0,0.12);
+                    border-radius:14px;
+                ">
+                    No previous pickup requests.
+                </div>
+
+            `;
+
+        } else {
+
+            historyContainer.innerHTML =
+                history
+                    .map(renderHistoryCard)
+                    .join("");
+
+        }
+
+    }
+
+
+    /* ---------------------------------------------------------
+       NAVIGATION
+       --------------------------------------------------------- */
+
+    function createHouseholdTrackingNav() {
+
+        if (
+            document.getElementById(
+                "householdPickupTrackingNav"
+            )
+        ) {
+
+            return;
+
+        }
+
+
+        const nav =
+            document.createElement("div");
+
+
+        nav.id =
+            "householdPickupTrackingNav";
+
+
+        nav.className =
+            "nav-item";
+
+
+        nav.style.display =
+            "none";
+
+
+        nav.innerHTML = `
+
+            <span>
+                🚚
+            </span>
+
+            <span>
+                Track Pickup
+            </span>
+
+        `;
+
+
+        nav.addEventListener(
+            "click",
+            function() {
+
+                if (
+                    typeof window.showSection ===
+                    "function"
+                ) {
+
+                    window.showSection(
+                        "householdPickupTracking"
+                    );
+
+                }
+
+
+                renderHouseholdPickupTracking();
+
+            }
+        );
+
+
+        const navItems =
+            document.querySelectorAll(
+                ".nav-item"
+            );
+
+
+        let target = null;
+
+
+        navItems.forEach(function(item) {
+
+            const text =
+                item.innerText
+                    .toLowerCase();
+
+
+            if (
+                text.includes("scanner") ||
+                text.includes("dashboard")
+            ) {
+
+                target = item;
+
+            }
+
+        });
+
+
+        if (
+            target &&
+            target.parentNode
+        ) {
+
+            target.parentNode.insertBefore(
+                nav,
+                target.nextSibling
+            );
+
+        }
+
+    }
+
+
+    /* ---------------------------------------------------------
+       ROLE VISIBILITY
+       --------------------------------------------------------- */
+
+    function updateHouseholdTrackingNav() {
+
+        const nav =
+            document.getElementById(
+                "householdPickupTrackingNav"
+            );
+
+
+        if (!nav) return;
+
+
+        const role =
+            String(
+                window.currentRole ||
+                window.userRole ||
+                localStorage.getItem(
+                    "kabadiSetuRole"
+                ) ||
+                ""
+            ).toLowerCase();
+
+
+        const isCollector =
+            role.includes("collector");
+
+
+        nav.style.display =
+            isCollector
+                ? "none"
+                : "";
+
+    }
+
+
+    /* ---------------------------------------------------------
+       WRAP SWITCH ROLE
+       --------------------------------------------------------- */
+
+    const originalSwitchRole =
+        window.switchRole;
+
+
+    if (
+        typeof originalSwitchRole ===
+        "function"
+    ) {
+
+        window.switchRole =
+            function() {
+
+                const result =
+                    originalSwitchRole.apply(
+                        this,
+                        arguments
+                    );
+
+
+                setTimeout(function() {
+
+                    createHouseholdTrackingSection();
+                    createHouseholdTrackingNav();
+                    updateHouseholdTrackingNav();
+
+                }, 400);
+
+
+                return result;
+
+            };
+
+    }
+
+
+    /* ---------------------------------------------------------
+       WRAP SHOW SECTION
+       --------------------------------------------------------- */
+
+    const originalShowSection =
+        window.showSection;
+
+
+    if (
+        typeof originalShowSection ===
+        "function"
+    ) {
+
+        window.showSection =
+            function(sectionId) {
+
+                const result =
+                    originalShowSection.apply(
+                        this,
+                        arguments
+                    );
+
+
+                if (
+                    sectionId ===
+                    "householdPickupTracking"
+                ) {
+
+                    setTimeout(
+                        renderHouseholdPickupTracking,
+                        50
+                    );
+
+                }
+
+
+                return result;
+
+            };
+
+    }
+
+
+    /* ---------------------------------------------------------
+       PUBLIC FUNCTIONS
+       --------------------------------------------------------- */
+
+    window.renderHouseholdPickupTracking =
+        renderHouseholdPickupTracking;
+
+
+    window.getHouseholdPickupRequests =
+        getHouseholdRequests;
+
+
+    /* ---------------------------------------------------------
+       INITIALIZE
+       --------------------------------------------------------- */
+
+    setTimeout(function() {
+
+        createHouseholdTrackingSection();
+        createHouseholdTrackingNav();
+        updateHouseholdTrackingNav();
+
+        console.log(
+            "✅ Step 5S - Household Pickup Tracking ready."
+        );
+
+    }, 1000);
+
+
+    /* ---------------------------------------------------------
+       AUTO REFRESH
+       --------------------------------------------------------- */
+
+    setInterval(function() {
+
+        updateHouseholdTrackingNav();
+
+
+        const section =
+            document.getElementById(
+                "householdPickupTracking"
+            );
+
+
+        if (
+            section &&
+            section.classList.contains(
+                "active-section"
+            )
+        ) {
+
+            renderHouseholdPickupTracking();
+
+        }
+
+    }, 3000);
+
+
+})();
