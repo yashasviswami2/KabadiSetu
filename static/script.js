@@ -10553,3 +10553,17612 @@ console.log(
     );
 
 })();
+
+// ============================================================
+// STEP 4A - ACTIVE WASTE JOURNEY ON HOUSEHOLD DASHBOARD
+// ============================================================
+
+(function () {
+
+    function getDashboardJourneyWeight(journey) {
+
+        return Number(
+            journey.finalWeight ||
+            journey.actualWeight ||
+            journey.estimatedWeight ||
+            0
+        );
+    }
+
+
+    function getDashboardRecycler(journey) {
+
+        if (
+            journey.finalRecycler &&
+            typeof journey.finalRecycler === "object"
+        ) {
+            return (
+                journey.finalRecycler.name ||
+                "Verified Recycler"
+            );
+        }
+
+        if (
+            journey.recycler &&
+            typeof journey.recycler === "object"
+        ) {
+            return (
+                journey.recycler.name ||
+                "Verified Recycler"
+            );
+        }
+
+        return "Not selected yet";
+    }
+
+
+    function getDashboardRecyclerValue(journey) {
+
+        if (
+            Number(journey.finalRecyclerValue) > 0
+        ) {
+            return Number(
+                journey.finalRecyclerValue
+            );
+        }
+
+        if (
+            journey.recycler &&
+            typeof journey.recycler === "object"
+        ) {
+            return Number(
+                journey.recycler.estimated_value
+            ) || 0;
+        }
+
+        return 0;
+    }
+
+
+    function renderDashboardJourney() {
+
+        const dashboard =
+            document.getElementById(
+                "dashboard"
+            );
+
+        if (!dashboard) {
+            return;
+        }
+
+
+        let card =
+            document.getElementById(
+                "dashboardJourneyCard"
+            );
+
+
+        if (!card) {
+
+            card =
+                document.createElement(
+                    "div"
+                );
+
+            card.id =
+                "dashboardJourneyCard";
+
+            dashboard.appendChild(
+                card
+            );
+        }
+
+
+        const journeys =
+            Array.isArray(
+                wasteJourneyTransactions
+            )
+                ? wasteJourneyTransactions
+                : [];
+
+
+        if (journeys.length === 0) {
+
+            card.innerHTML = "";
+
+            return;
+        }
+
+
+        // Most recent journey
+
+        const journey =
+            journeys[0];
+
+
+        if (!journey) {
+            card.innerHTML = "";
+            return;
+        }
+
+
+        const timeline =
+            Array.isArray(
+                journey.timeline
+            )
+                ? journey.timeline
+                : [];
+
+
+        const completed =
+            timeline.filter(
+                step =>
+                    step &&
+                    step.completed === true
+            ).length;
+
+
+        const total =
+            timeline.length || 9;
+
+
+        const progress =
+            Math.round(
+                (
+                    completed /
+                    total
+                ) * 100
+            );
+
+
+        const weight =
+            getDashboardJourneyWeight(
+                journey
+            );
+
+
+        const recycler =
+            getDashboardRecycler(
+                journey
+            );
+
+
+        const recyclerValue =
+            getDashboardRecyclerValue(
+                journey
+            );
+
+
+        const completedJourney =
+            journey.status ===
+            "Recycling Completed";
+
+
+        const currentStep =
+            [...timeline]
+                .reverse()
+                .find(
+                    step =>
+                        step &&
+                        step.completed === true
+                );
+
+
+        const currentStatus =
+            journey.status ||
+            (
+                currentStep
+                    ? currentStep.title
+                    : "Pickup Requested"
+            );
+
+
+        card.innerHTML = `
+
+            <div style="
+                margin-top:28px;
+                background:white;
+                border:1px solid #e5e7eb;
+                border-radius:22px;
+                padding:24px;
+                box-shadow:0 8px 25px rgba(0,0,0,.06);
+            ">
+
+                <!-- HEADER -->
+
+                <div style="
+                    display:flex;
+                    justify-content:space-between;
+                    align-items:flex-start;
+                    gap:15px;
+                    flex-wrap:wrap;
+                ">
+
+                    <div>
+
+                        <div style="
+                            color:#159570;
+                            font-size:12px;
+                            font-weight:800;
+                            letter-spacing:1px;
+                        ">
+                            ${completedJourney
+                                ? "RECYCLING COMPLETED"
+                                : "ACTIVE RECYCLING JOURNEY"}
+                        </div>
+
+                        <h2 style="
+                            margin:5px 0 0;
+                        ">
+                            🔗 ${journey.material}
+                        </h2>
+
+                        <p style="
+                            margin:5px 0 0;
+                            color:#6b7280;
+                            font-size:13px;
+                        ">
+                            ${weight.toFixed(2)} kg
+                            •
+                            ${journey.id}
+                        </p>
+
+                    </div>
+
+
+                    <div style="
+                        background:${
+                            completedJourney
+                                ? "#ecfdf5"
+                                : "#fff7ed"
+                        };
+                        color:${
+                            completedJourney
+                                ? "#047857"
+                                : "#c2410c"
+                        };
+                        padding:9px 13px;
+                        border-radius:10px;
+                        font-size:12px;
+                        font-weight:800;
+                    ">
+                        ${currentStatus}
+                    </div>
+
+                </div>
+
+
+                <!-- PROGRESS -->
+
+                <div style="
+                    margin-top:22px;
+                ">
+
+                    <div style="
+                        display:flex;
+                        justify-content:space-between;
+                        margin-bottom:7px;
+                        font-size:13px;
+                    ">
+
+                        <strong>
+                            Journey Progress
+                        </strong>
+
+                        <strong>
+                            ${completed}/${total}
+                        </strong>
+
+                    </div>
+
+
+                    <div style="
+                        width:100%;
+                        height:9px;
+                        background:#e5e7eb;
+                        border-radius:20px;
+                        overflow:hidden;
+                    ">
+
+                        <div style="
+                            width:${progress}%;
+                            height:100%;
+                            background:#159570;
+                            border-radius:20px;
+                        "></div>
+
+                    </div>
+
+                </div>
+
+
+                <!-- CURRENT STATUS -->
+
+                <div style="
+                    margin-top:20px;
+                    padding:14px 16px;
+                    background:#f8fafc;
+                    border-radius:14px;
+                    display:flex;
+                    align-items:center;
+                    gap:12px;
+                ">
+
+                    <div style="
+                        width:38px;
+                        height:38px;
+                        border-radius:50%;
+                        background:#ecfdf5;
+                        display:flex;
+                        align-items:center;
+                        justify-content:center;
+                        font-size:19px;
+                    ">
+                        ${
+                            completedJourney
+                                ? "♻️"
+                                : "🚚"
+                        }
+                    </div>
+
+                    <div>
+
+                        <div style="
+                            font-size:11px;
+                            color:#6b7280;
+                            font-weight:700;
+                        ">
+                            CURRENT STATUS
+                        </div>
+
+                        <div style="
+                            font-size:15px;
+                            font-weight:800;
+                            margin-top:2px;
+                        ">
+                            ${currentStatus}
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <!-- DETAILS -->
+
+                <div style="
+                    margin-top:16px;
+                    display:grid;
+                    grid-template-columns:
+                        repeat(
+                            auto-fit,
+                            minmax(160px,1fr)
+                        );
+                    gap:12px;
+                ">
+
+                    <div style="
+                        padding:13px;
+                        background:#f8fafc;
+                        border-radius:12px;
+                    ">
+
+                        <div style="
+                            font-size:10px;
+                            color:#6b7280;
+                        ">
+                            COLLECTOR PAYMENT
+                        </div>
+
+                        <strong>
+                            ₹${Number(
+                                journey.householdPayment || 0
+                            ).toFixed(2)}
+                        </strong>
+
+                    </div>
+
+
+                    <div style="
+                        padding:13px;
+                        background:#f8fafc;
+                        border-radius:12px;
+                    ">
+
+                        <div style="
+                            font-size:10px;
+                            color:#6b7280;
+                        ">
+                            RECYCLER
+                        </div>
+
+                        <strong style="
+                            font-size:13px;
+                        ">
+                            ${recycler}
+                        </strong>
+
+                    </div>
+
+
+                    ${
+                        recyclerValue > 0
+                            ? `
+                                <div style="
+                                    padding:13px;
+                                    background:#f8fafc;
+                                    border-radius:12px;
+                                ">
+
+                                    <div style="
+                                        font-size:10px;
+                                        color:#6b7280;
+                                    ">
+                                        RECYCLER VALUE
+                                    </div>
+
+                                    <strong>
+                                        ₹${recyclerValue.toFixed(2)}
+                                    </strong>
+
+                                </div>
+                            `
+                            : ""
+                    }
+
+                </div>
+
+
+                <!-- VIEW TRANSACTION -->
+
+                <button
+                    type="button"
+                    onclick="showSection('transactions')"
+                    style="
+                        width:100%;
+                        margin-top:18px;
+                        padding:12px;
+                        border:none;
+                        border-radius:12px;
+                        background:#159570;
+                        color:white;
+                        font-size:14px;
+                        font-weight:800;
+                        cursor:pointer;
+                    "
+                >
+                    View Full Waste Journey →
+                </button>
+
+            </div>
+
+        `;
+
+    }
+
+
+    window.renderDashboardJourney =
+        renderDashboardJourney;
+
+
+    // --------------------------------------------------------
+    // INITIAL RENDER
+    // --------------------------------------------------------
+
+    setTimeout(
+        renderDashboardJourney,
+        700
+    );
+
+
+    // --------------------------------------------------------
+    // REFRESH WHEN DASHBOARD IS OPENED
+    // --------------------------------------------------------
+
+    document.addEventListener(
+        "click",
+        function (event) {
+
+            const button =
+                event.target.closest(
+                    ".nav-item"
+                );
+
+            if (!button) {
+                return;
+            }
+
+
+            if (
+                button.innerText
+                    .toLowerCase()
+                    .includes("dashboard")
+            ) {
+
+                setTimeout(
+                    renderDashboardJourney,
+                    200
+                );
+
+            }
+
+        }
+    );
+
+
+    // --------------------------------------------------------
+    // KEEP UI SYNCHRONIZED WITH JOURNEY DATA
+    // --------------------------------------------------------
+
+    setInterval(
+        function () {
+
+            if (
+                Array.isArray(
+                    wasteJourneyTransactions
+                ) &&
+                wasteJourneyTransactions.length
+            ) {
+
+                renderDashboardJourney();
+
+            }
+
+        },
+        1000
+    );
+
+
+    console.log(
+        "✅ Step 4A - Dashboard waste journey loaded."
+    );
+
+})();
+
+// ============================================================
+// STEP 4B - RECYCLER RATE + PRICE COMPARISON FIX
+// ============================================================
+
+(function () {
+
+    console.log("🚀 Step 4B - Recycler price comparison fix loaded.");
+
+    // ----------------------------------------------------------
+    // NORMALIZE RECYCLER DATA
+    // ----------------------------------------------------------
+
+    function normalizeRecycler(recycler, weight) {
+
+        if (!recycler) {
+            return null;
+        }
+
+        const safeWeight =
+            Number(weight) || 0;
+
+        const rate =
+            Number(
+                recycler.rate ??
+                recycler.recyclerRate ??
+                recycler.price ??
+                0
+            ) || 0;
+
+        let estimatedValue =
+            Number(
+                recycler.estimated_value ??
+                recycler.estimatedValue ??
+                recycler.value ??
+                0
+            ) || 0;
+
+        // If backend did not provide estimated value,
+        // calculate it from rate × physical weight.
+        if (estimatedValue <= 0 && rate > 0 && safeWeight > 0) {
+            estimatedValue =
+                rate * safeWeight;
+        }
+
+        return {
+            ...recycler,
+
+            name:
+                recycler.name ||
+                "Unknown Recycler",
+
+            rate:
+                rate,
+
+            estimated_value:
+                estimatedValue,
+
+            estimatedValue:
+                estimatedValue,
+
+            distance:
+                recycler.distance ||
+                "Distance unavailable",
+
+            rating:
+                Number(recycler.rating) || 0,
+
+            authorization:
+                recycler.authorization ||
+                "Verified",
+
+            pickup:
+                Boolean(recycler.pickup)
+        };
+    }
+
+
+    // ----------------------------------------------------------
+    // FIX JOURNEY RECYCLER DATA
+    // ----------------------------------------------------------
+
+    function fixJourneyRecyclerData() {
+
+        if (
+            typeof wasteJourneyTransactions ===
+            "undefined"
+        ) {
+            return;
+        }
+
+        wasteJourneyTransactions.forEach(
+            function (journey) {
+
+                if (!journey) {
+                    return;
+                }
+
+                const weight =
+                    Number(
+                        journey.finalWeight ||
+                        journey.actualWeight ||
+                        journey.estimatedWeight
+                    ) || 0;
+
+
+                // ------------------------------------------------
+                // CASE 1:
+                // Recycler is already an object
+                // ------------------------------------------------
+
+                if (
+                    journey.recycler &&
+                    typeof journey.recycler === "object"
+                ) {
+
+                    const recycler =
+                        normalizeRecycler(
+                            journey.recycler,
+                            weight
+                        );
+
+                    journey.recycler =
+                        recycler;
+
+                    journey.recyclerRate =
+                        recycler.rate;
+
+                    if (
+                        !journey.finalRecyclerValue &&
+                        recycler.estimated_value > 0
+                    ) {
+
+                        journey.finalRecyclerValue =
+                            recycler.estimated_value;
+                    }
+                }
+
+
+                // ------------------------------------------------
+                // CASE 2:
+                // Recycler was saved as a string
+                // ------------------------------------------------
+
+                else if (
+                    journey.recycler &&
+                    typeof journey.recycler === "string"
+                ) {
+
+                    const rate =
+                        Number(
+                            journey.recyclerRate
+                        ) || 0;
+
+                    const value =
+                        Number(
+                            journey.finalRecyclerValue
+                        ) ||
+                        Number(
+                            journey.recyclerValue
+                        ) ||
+                        (rate * weight);
+
+                    journey.recycler = {
+                        name:
+                            journey.recycler,
+
+                        rate:
+                            rate,
+
+                        estimated_value:
+                            value,
+
+                        estimatedValue:
+                            value,
+
+                        distance:
+                            journey.recyclerDistance ||
+                            "Distance unavailable",
+
+                        rating:
+                            Number(
+                                journey.recyclerRating
+                            ) || 0,
+
+                        authorization:
+                            "Verified",
+
+                        pickup:
+                            false
+                    };
+
+                    journey.recyclerRate =
+                        rate;
+                }
+
+            }
+        );
+    }
+
+
+    // ----------------------------------------------------------
+    // PATCH RECYCLER SELECTION
+    // ----------------------------------------------------------
+
+    const originalSelectRecycler =
+        window.selectRecyclerForHandover;
+
+
+    if (
+        typeof originalSelectRecycler ===
+        "function"
+    ) {
+
+        window.selectRecyclerForHandover =
+            async function (index) {
+
+                await originalSelectRecycler(index);
+
+
+                // Fix the active handover immediately
+                if (
+                    typeof activeHandover !==
+                    "undefined" &&
+                    activeHandover &&
+                    activeHandover.recycler
+                ) {
+
+                    const weight =
+                        Number(
+                            activeHandover.weight
+                        ) || 0;
+
+                    const normalized =
+                        normalizeRecycler(
+                            activeHandover.recycler,
+                            weight
+                        );
+
+                    activeHandover.recycler =
+                        normalized;
+
+                    activeHandover.recyclerRate =
+                        normalized.rate;
+
+                    activeHandover.value =
+                        normalized.estimated_value;
+
+                    console.log(
+                        "✅ Step 4B: Active recycler normalized"
+                    );
+
+                    console.log(
+                        "Recycler:",
+                        normalized.name
+                    );
+
+                    console.log(
+                        "Rate:",
+                        normalized.rate
+                    );
+
+                    console.log(
+                        "Value:",
+                        normalized.estimated_value
+                    );
+                }
+
+
+                // Fix journey immediately if it already exists
+                fixJourneyRecyclerData();
+
+            };
+
+    } else {
+
+        console.warn(
+            "Step 4B: selectRecyclerForHandover() not found."
+        );
+
+    }
+
+
+    // ----------------------------------------------------------
+    // PATCH STEP 1E DATA
+    // ----------------------------------------------------------
+
+    function repairCurrentJourney() {
+
+        if (
+            typeof activeHandover ===
+            "undefined" ||
+            !activeHandover
+        ) {
+            return;
+        }
+
+        if (
+            typeof wasteJourneyTransactions ===
+            "undefined"
+        ) {
+            return;
+        }
+
+
+        const weight =
+            Number(
+                activeHandover.weight
+            ) || 0;
+
+
+        const handoverId =
+            activeHandover.id ||
+            activeHandover.handoverId;
+
+
+        let journey =
+            wasteJourneyTransactions.find(
+                function (item) {
+
+                    if (!item) {
+                        return false;
+                    }
+
+                    if (
+                        handoverId &&
+                        (
+                            item.handoverId ===
+                            handoverId
+                        )
+                    ) {
+                        return true;
+                    }
+
+                    return (
+                        item.material ===
+                            activeHandover.material &&
+                        Number(
+                            item.actualWeight
+                        ) === weight
+                    );
+                }
+            );
+
+
+        if (!journey) {
+            return;
+        }
+
+
+        // Normalize recycler
+        if (
+            activeHandover.recycler
+        ) {
+
+            const normalized =
+                normalizeRecycler(
+                    activeHandover.recycler,
+                    weight
+                );
+
+            journey.recycler =
+                normalized;
+
+            journey.recyclerRate =
+                normalized.rate;
+
+
+            if (
+                normalized.estimated_value >
+                0
+            ) {
+
+                journey.finalRecyclerValue =
+                    normalized.estimated_value;
+            }
+
+
+            console.log(
+                "✅ Step 4B: Journey recycler data repaired"
+            );
+
+            console.log(
+                "Transaction:",
+                journey.id
+            );
+
+            console.log(
+                "Recycler:",
+                normalized.name
+            );
+
+            console.log(
+                "Recycler Rate:",
+                normalized.rate
+            );
+
+            console.log(
+                "Recycler Value:",
+                normalized.estimated_value
+            );
+        }
+
+    }
+
+
+    // ----------------------------------------------------------
+    // PATCH EXISTING RECYCLER RATE HELPER
+    // ----------------------------------------------------------
+
+    window.getFixedRecyclerRate =
+        function (journey) {
+
+            if (!journey) {
+                return 0;
+            }
+
+
+            // Recycler object
+            if (
+                journey.recycler &&
+                typeof journey.recycler ===
+                    "object"
+            ) {
+
+                const objectRate =
+                    Number(
+                        journey.recycler.rate
+                    ) || 0;
+
+                if (objectRate > 0) {
+                    return objectRate;
+                }
+            }
+
+
+            // Stored journey rate
+            const journeyRate =
+                Number(
+                    journey.recyclerRate
+                ) || 0;
+
+            if (journeyRate > 0) {
+                return journeyRate;
+            }
+
+
+            return 0;
+        };
+
+
+    // ----------------------------------------------------------
+    // PATCH EXISTING RECYCLER VALUE HELPER
+    // ----------------------------------------------------------
+
+    window.getFixedRecyclerValue =
+        function (journey) {
+
+            if (!journey) {
+                return 0;
+            }
+
+
+            // Final saved value
+            const finalValue =
+                Number(
+                    journey.finalRecyclerValue
+                ) || 0;
+
+            if (finalValue > 0) {
+                return finalValue;
+            }
+
+
+            // Recycler object value
+            if (
+                journey.recycler &&
+                typeof journey.recycler ===
+                    "object"
+            ) {
+
+                const objectValue =
+                    Number(
+                        journey.recycler
+                            .estimated_value
+                    ) || 0;
+
+                if (objectValue > 0) {
+                    return objectValue;
+                }
+            }
+
+
+            // Calculate rate × weight
+            const rate =
+                window.getFixedRecyclerRate(
+                    journey
+                );
+
+            const weight =
+                Number(
+                    journey.finalWeight ||
+                    journey.actualWeight ||
+                    journey.estimatedWeight
+                ) || 0;
+
+
+            return (
+                rate * weight
+            );
+        };
+
+
+    // ----------------------------------------------------------
+    // REPAIR WHEN JOURNEY PANEL IS RENDERED
+    // ----------------------------------------------------------
+
+    const originalRenderJourney =
+        window.renderWasteJourneyTracking;
+
+
+    if (
+        typeof originalRenderJourney ===
+        "function"
+    ) {
+
+        window.renderWasteJourneyTracking =
+            function () {
+
+                fixJourneyRecyclerData();
+
+                repairCurrentJourney();
+
+                originalRenderJourney();
+
+            };
+
+    }
+
+
+    // ----------------------------------------------------------
+    // INITIAL REPAIR
+    // ----------------------------------------------------------
+
+    setTimeout(
+        function () {
+
+            fixJourneyRecyclerData();
+
+            repairCurrentJourney();
+
+            if (
+                typeof window.renderWasteJourneyTracking ===
+                "function"
+            ) {
+
+                window.renderWasteJourneyTracking();
+
+            }
+
+            console.log(
+                "✅ Step 4B - Recycler rate/value synchronization complete."
+            );
+
+        },
+        700
+    );
+
+
+})();
+
+// ============================================================
+// STEP 5A - LIVE DASHBOARD STATISTICS
+// ============================================================
+
+(function () {
+
+    console.log("🚀 Step 5A - Live dashboard statistics loaded.");
+
+    function getTransactions() {
+        if (typeof wasteJourneyTransactions !== "undefined" &&
+            Array.isArray(wasteJourneyTransactions)) {
+            return wasteJourneyTransactions;
+        }
+
+        return [];
+    }
+
+    function getWeight(journey) {
+        return Number(
+            journey.finalWeight ||
+            journey.actualWeight ||
+            journey.collectedWeight ||
+            journey.weight ||
+            0
+        ) || 0;
+    }
+
+    function getRecyclerValue(journey) {
+
+        if (typeof window.getFixedRecyclerValue === "function") {
+            const fixedValue = Number(
+                window.getFixedRecyclerValue(journey)
+            ) || 0;
+
+            if (fixedValue > 0) {
+                return fixedValue;
+            }
+        }
+
+        const finalValue = Number(journey.finalRecyclerValue) || 0;
+
+        if (finalValue > 0) {
+            return finalValue;
+        }
+
+        if (journey.recycler &&
+            typeof journey.recycler === "object") {
+
+            const objectValue = Number(
+                journey.recycler.estimated_value ||
+                journey.recycler.estimatedValue ||
+                journey.recycler.value ||
+                0
+            ) || 0;
+
+            if (objectValue > 0) {
+                return objectValue;
+            }
+        }
+
+        const rate = Number(
+            journey.recyclerRate ||
+            0
+        ) || 0;
+
+        return rate * getWeight(journey);
+    }
+
+    function isCompleted(journey) {
+
+        if (!journey) return false;
+
+        const status = String(
+            journey.status ||
+            journey.journeyStatus ||
+            ""
+        ).toLowerCase();
+
+        return (
+            status.includes("completed") ||
+            status.includes("recycling completed") ||
+            journey.recyclingCompleted === true ||
+            journey.recyclerConfirmed === true ||
+            journey.status === "recycler_confirmed"
+        );
+    }
+
+    function findDashboardNumber(labels) {
+
+        const elements = document.querySelectorAll(
+            "h1, h2, h3, h4, h5, h6, p, span, div, strong"
+        );
+
+        for (const element of elements) {
+
+            const text = String(
+                element.textContent || ""
+            ).trim().toLowerCase();
+
+            for (const label of labels) {
+
+                if (text === label.toLowerCase()) {
+
+                    const parent = element.parentElement;
+
+                    if (parent) {
+
+                        const numberElement =
+                            parent.querySelector(
+                                ".stat-number, .stat-value, .dashboard-number, .value, strong"
+                            );
+
+                        if (numberElement &&
+                            numberElement !== element) {
+
+                            return numberElement;
+                        }
+                    }
+                }
+            }
+        }
+
+        return null;
+    }
+
+    function updateElementByIdOrLabel(
+        ids,
+        labels,
+        value
+    ) {
+
+        for (const id of ids) {
+
+            const element = document.getElementById(id);
+
+            if (element) {
+                element.textContent = value;
+                return true;
+            }
+        }
+
+        const labelElement =
+            findDashboardNumber(labels);
+
+        if (labelElement) {
+            labelElement.textContent = value;
+            return true;
+        }
+
+        return false;
+    }
+
+    function calculateDashboardStats() {
+
+        const transactions = getTransactions();
+
+        let totalCollectedWeight = 0;
+        let totalRecycledWeight = 0;
+        let totalValue = 0;
+        let completedTransactions = 0;
+
+        transactions.forEach(function (journey) {
+
+            if (!journey) return;
+
+            const weight = getWeight(journey);
+
+            totalCollectedWeight += weight;
+
+            if (isCompleted(journey)) {
+
+                totalRecycledWeight += weight;
+
+                totalValue += getRecyclerValue(journey);
+
+                completedTransactions++;
+            }
+        });
+
+        return {
+            totalCollectedWeight,
+            totalRecycledWeight,
+            completedTransactions,
+            totalValue
+        };
+    }
+
+    function formatWeight(weight) {
+
+        const number = Number(weight) || 0;
+
+        if (Number.isInteger(number)) {
+            return `${number} kg`;
+        }
+
+        return `${number.toFixed(2)} kg`;
+    }
+
+    function formatCurrency(value) {
+
+        const number = Number(value) || 0;
+
+        return "₹" + number.toLocaleString("en-IN", {
+            maximumFractionDigits: 0
+        });
+    }
+
+    function updateDashboardStats() {
+
+        const stats = calculateDashboardStats();
+
+        // Try common IDs first.
+        updateElementByIdOrLabel(
+            [
+                "totalWasteCollected",
+                "totalCollected",
+                "dashboardTotalCollected"
+            ],
+            [
+                "total waste collected",
+                "waste collected",
+                "total collected"
+            ],
+            formatWeight(stats.totalCollectedWeight)
+        );
+
+        updateElementByIdOrLabel(
+            [
+                "totalWasteRecycled",
+                "totalRecycled",
+                "dashboardTotalRecycled"
+            ],
+            [
+                "total waste recycled",
+                "waste recycled",
+                "total recycled"
+            ],
+            formatWeight(stats.totalRecycledWeight)
+        );
+
+        updateElementByIdOrLabel(
+            [
+                "totalTransactions",
+                "dashboardTotalTransactions"
+            ],
+            [
+                "total transactions",
+                "transactions"
+            ],
+            String(stats.completedTransactions)
+        );
+
+        updateElementByIdOrLabel(
+            [
+                "totalValueGenerated",
+                "totalValue",
+                "dashboardTotalValue"
+            ],
+            [
+                "total value generated",
+                "value generated",
+                "total value"
+            ],
+            formatCurrency(stats.totalValue)
+        );
+
+        console.log("📊 STEP 5A DASHBOARD STATS");
+        console.log("Total collected:", formatWeight(stats.totalCollectedWeight));
+        console.log("Total recycled:", formatWeight(stats.totalRecycledWeight));
+        console.log("Completed transactions:", stats.completedTransactions);
+        console.log("Total value:", formatCurrency(stats.totalValue));
+    }
+
+    // Expose for debugging and future dashboard modules.
+    window.updateKabadiSetuDashboardStats =
+        updateDashboardStats;
+
+    window.getKabadiSetuDashboardStats =
+        calculateDashboardStats;
+
+    // Initial update.
+    setTimeout(function () {
+        updateDashboardStats();
+    }, 1000);
+
+    // Keep dashboard synchronized with journey changes.
+    setInterval(function () {
+        updateDashboardStats();
+    }, 1500);
+
+    console.log(
+        "✅ Step 5A - Dashboard statistics synchronization active."
+    );
+
+})();
+
+// ============================================================
+// STEP 5B - WASTE CATEGORY ANALYTICS
+// ============================================================
+
+(function () {
+
+    console.log("🚀 Step 5B - Waste category analytics loaded.");
+
+    // --------------------------------------------------------
+    // GET ALL JOURNEYS
+    // --------------------------------------------------------
+
+    function getWasteJourneys() {
+
+        if (
+            typeof wasteJourneyTransactions !== "undefined" &&
+            Array.isArray(wasteJourneyTransactions)
+        ) {
+            return wasteJourneyTransactions;
+        }
+
+        try {
+
+            const saved =
+                localStorage.getItem(
+                    "kabadiSetuWasteJourneyTransactions"
+                );
+
+            if (saved) {
+
+                const parsed =
+                    JSON.parse(saved);
+
+                if (Array.isArray(parsed)) {
+                    return parsed;
+                }
+
+            }
+
+        } catch (error) {
+
+            console.warn(
+                "Step 5B: Could not read saved journeys.",
+                error
+            );
+
+        }
+
+        return [];
+    }
+
+
+    // --------------------------------------------------------
+    // GET WEIGHT
+    // --------------------------------------------------------
+
+    function getJourneyWeight(journey) {
+
+        if (!journey) {
+            return 0;
+        }
+
+        const possibleWeights = [
+
+            journey.finalWeight,
+
+            journey.actualWeight,
+
+            journey.estimatedWeight,
+
+            journey.weight
+
+        ];
+
+        for (
+            let i = 0;
+            i < possibleWeights.length;
+            i++
+        ) {
+
+            const weight =
+                Number(
+                    possibleWeights[i]
+                );
+
+            if (
+                Number.isFinite(weight) &&
+                weight > 0
+            ) {
+
+                return weight;
+
+            }
+
+        }
+
+        return 0;
+    }
+
+
+    // --------------------------------------------------------
+    // GET MATERIAL / CATEGORY
+    // --------------------------------------------------------
+
+    function getJourneyMaterial(journey) {
+
+        if (!journey) {
+            return "Other";
+        }
+
+        const material =
+            journey.material ||
+            journey.category ||
+            journey.wasteCategory ||
+            "Other";
+
+        return String(material).trim() || "Other";
+    }
+
+
+    // --------------------------------------------------------
+    // CALCULATE CATEGORY DATA
+    // --------------------------------------------------------
+
+    function calculateWasteCategoryAnalytics() {
+
+        const journeys =
+            getWasteJourneys();
+
+        const categories = {};
+
+        journeys.forEach(
+            function (journey) {
+
+                if (!journey) {
+                    return;
+                }
+
+                const material =
+                    getJourneyMaterial(
+                        journey
+                    );
+
+                const weight =
+                    getJourneyWeight(
+                        journey
+                    );
+
+                if (!categories[material]) {
+
+                    categories[material] = {
+
+                        material: material,
+
+                        weight: 0,
+
+                        transactions: 0
+
+                    };
+
+                }
+
+                categories[material].weight +=
+                    weight;
+
+                categories[material].transactions +=
+                    1;
+
+            }
+        );
+
+
+        const result =
+            Object.values(categories)
+                .sort(
+                    function (a, b) {
+
+                        return (
+                            b.weight -
+                            a.weight
+                        );
+
+                    }
+                );
+
+
+        return result;
+    }
+
+
+    // --------------------------------------------------------
+    // FORMAT WEIGHT
+    // --------------------------------------------------------
+
+    function formatAnalyticsWeight(weight) {
+
+        const number =
+            Number(weight) || 0;
+
+        if (
+            Number.isInteger(number)
+        ) {
+
+            return number + " kg";
+
+        }
+
+        return (
+            number.toFixed(2) +
+            " kg"
+        );
+
+    }
+
+
+    // --------------------------------------------------------
+    // CATEGORY ICON
+    // --------------------------------------------------------
+
+    function getCategoryIcon(material) {
+
+        const value =
+            String(material)
+                .toLowerCase();
+
+        if (
+            value.includes("plastic")
+        ) {
+            return "🧴";
+        }
+
+        if (
+            value.includes("copper")
+        ) {
+            return "🔶";
+        }
+
+        if (
+            value.includes("aluminium") ||
+            value.includes("aluminum")
+        ) {
+            return "🥫";
+        }
+
+        if (
+            value.includes("iron")
+        ) {
+            return "🔩";
+        }
+
+        if (
+            value.includes("steel")
+        ) {
+            return "⚙️";
+        }
+
+        if (
+            value.includes("glass")
+        ) {
+            return "🫙";
+        }
+
+        if (
+            value.includes("paper") ||
+            value.includes("book") ||
+            value.includes("newspaper")
+        ) {
+            return "📚";
+        }
+
+        if (
+            value.includes("battery") ||
+            value.includes("lithium")
+        ) {
+            return "🔋";
+        }
+
+        if (
+            value.includes("pcb") ||
+            value.includes("circuit")
+        ) {
+            return "💻";
+        }
+
+        if (
+            value.includes("mobile") ||
+            value.includes("phone")
+        ) {
+            return "📱";
+        }
+
+        if (
+            value.includes("laptop")
+        ) {
+            return "💻";
+        }
+
+        if (
+            value.includes("display") ||
+            value.includes("lcd")
+        ) {
+            return "🖥️";
+        }
+
+        if (
+            value.includes("motor")
+        ) {
+            return "⚙️";
+        }
+
+        if (
+            value.includes("e-waste") ||
+            value.includes("ewaste")
+        ) {
+            return "♻️";
+        }
+
+        return "♻️";
+    }
+
+
+    // --------------------------------------------------------
+    // RENDER CATEGORY ANALYTICS
+    // --------------------------------------------------------
+
+    function renderWasteCategoryAnalytics() {
+
+        const dashboard =
+            document.getElementById(
+                "dashboard"
+            );
+
+        if (!dashboard) {
+            return;
+        }
+
+
+        let card =
+            document.getElementById(
+                "wasteCategoryAnalyticsCard"
+            );
+
+
+        if (!card) {
+
+            card =
+                document.createElement(
+                    "div"
+                );
+
+            card.id =
+                "wasteCategoryAnalyticsCard";
+
+            dashboard.appendChild(
+                card
+            );
+
+        }
+
+
+        const analytics =
+            calculateWasteCategoryAnalytics();
+
+
+        // ----------------------------------------------------
+        // EMPTY STATE
+        // ----------------------------------------------------
+
+        if (
+            analytics.length === 0
+        ) {
+
+            card.innerHTML = "";
+
+            return;
+
+        }
+
+
+        // ----------------------------------------------------
+        // TOTAL WEIGHT
+        // ----------------------------------------------------
+
+        const totalWeight =
+            analytics.reduce(
+                function (total, item) {
+
+                    return (
+                        total +
+                        Number(item.weight || 0)
+                    );
+
+                },
+                0
+            );
+
+
+        const maxWeight =
+            analytics.length > 0
+                ? Math.max(
+                    ...analytics.map(
+                        function (item) {
+                            return Number(
+                                item.weight
+                            ) || 0;
+                        }
+                    )
+                )
+                : 0;
+
+
+        // ----------------------------------------------------
+        // CATEGORY ROWS
+        // ----------------------------------------------------
+
+        const rows =
+            analytics.map(
+                function (item) {
+
+                    const percentage =
+                        totalWeight > 0
+                            ? (
+                                Number(
+                                    item.weight
+                                ) /
+                                totalWeight
+                            ) * 100
+                            : 0;
+
+
+                    const barWidth =
+                        maxWeight > 0
+                            ? (
+                                Number(
+                                    item.weight
+                                ) /
+                                maxWeight
+                            ) * 100
+                            : 0;
+
+
+                    return `
+
+                        <div
+                            style="
+                                padding:14px;
+                                border:1px solid #e5e7eb;
+                                border-radius:14px;
+                                background:#ffffff;
+                                margin-bottom:10px;
+                            "
+                        >
+
+                            <div
+                                style="
+                                    display:flex;
+                                    justify-content:space-between;
+                                    align-items:center;
+                                    gap:12px;
+                                    margin-bottom:8px;
+                                "
+                            >
+
+                                <div
+                                    style="
+                                        display:flex;
+                                        align-items:center;
+                                        gap:9px;
+                                        min-width:0;
+                                    "
+                                >
+
+                                    <span
+                                        style="
+                                            font-size:21px;
+                                        "
+                                    >
+                                        ${getCategoryIcon(
+                                            item.material
+                                        )}
+                                    </span>
+
+                                    <strong
+                                        style="
+                                            font-size:14px;
+                                            color:#111827;
+                                        "
+                                    >
+                                        ${item.material}
+                                    </strong>
+
+                                </div>
+
+
+                                <div
+                                    style="
+                                        text-align:right;
+                                        white-space:nowrap;
+                                    "
+                                >
+
+                                    <strong
+                                        style="
+                                            font-size:15px;
+                                            color:#159570;
+                                        "
+                                    >
+                                        ${formatAnalyticsWeight(
+                                            item.weight
+                                        )}
+                                    </strong>
+
+                                    <div
+                                        style="
+                                            font-size:11px;
+                                            color:#6b7280;
+                                            margin-top:2px;
+                                        "
+                                    >
+                                        ${percentage.toFixed(1)}%
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+
+                            <div
+                                style="
+                                    width:100%;
+                                    height:8px;
+                                    background:#e5e7eb;
+                                    border-radius:999px;
+                                    overflow:hidden;
+                                "
+                            >
+
+                                <div
+                                    style="
+                                        width:${Math.max(
+                                            2,
+                                            barWidth
+                                        )}%;
+                                        height:100%;
+                                        background:#159570;
+                                        border-radius:999px;
+                                        transition:width 0.4s ease;
+                                    "
+                                ></div>
+
+                            </div>
+
+
+                            <div
+                                style="
+                                    margin-top:7px;
+                                    font-size:11px;
+                                    color:#6b7280;
+                                "
+                            >
+                                ${item.transactions}
+                                ${item.transactions === 1
+                                    ? "transaction"
+                                    : "transactions"}
+                            </div>
+
+                        </div>
+
+                    `;
+
+                }
+            ).join("");
+
+
+        // ----------------------------------------------------
+        // FINAL CARD
+        // ----------------------------------------------------
+
+        card.innerHTML = `
+
+            <div
+                style="
+                    background:#ffffff;
+                    border:1px solid #e5e7eb;
+                    border-radius:18px;
+                    padding:22px;
+                    margin-top:22px;
+                    box-shadow:0 4px 14px rgba(0,0,0,0.05);
+                "
+            >
+
+                <!-- HEADER -->
+
+                <div
+                    style="
+                        display:flex;
+                        justify-content:space-between;
+                        align-items:flex-start;
+                        gap:15px;
+                        margin-bottom:18px;
+                    "
+                >
+
+                    <div>
+
+                        <div
+                            style="
+                                font-size:19px;
+                                font-weight:800;
+                                color:#111827;
+                            "
+                        >
+                            ♻️ Waste Category Breakdown
+                        </div>
+
+                        <div
+                            style="
+                                margin-top:5px;
+                                font-size:13px;
+                                color:#6b7280;
+                            "
+                        >
+                            Material collected across your waste journeys
+                        </div>
+
+                    </div>
+
+
+                    <div
+                        style="
+                            text-align:right;
+                            white-space:nowrap;
+                        "
+                    >
+
+                        <div
+                            style="
+                                font-size:11px;
+                                color:#6b7280;
+                                font-weight:700;
+                            "
+                        >
+                            TOTAL WASTE
+                        </div>
+
+                        <strong
+                            style="
+                                display:block;
+                                margin-top:2px;
+                                font-size:18px;
+                                color:#159570;
+                            "
+                        >
+                            ${formatAnalyticsWeight(
+                                totalWeight
+                            )}
+                        </strong>
+
+                    </div>
+
+                </div>
+
+
+                <!-- CATEGORY LIST -->
+
+                <div>
+                    ${rows}
+                </div>
+
+
+                <!-- FOOTER -->
+
+                <div
+                    style="
+                        margin-top:14px;
+                        padding-top:13px;
+                        border-top:1px solid #f1f5f9;
+                        font-size:11px;
+                        color:#6b7280;
+                    "
+                >
+                    Data is calculated from recorded waste journey transactions.
+                </div>
+
+            </div>
+
+        `;
+
+    }
+
+
+    // --------------------------------------------------------
+    // GLOBAL ACCESS
+    // --------------------------------------------------------
+
+    window.calculateWasteCategoryAnalytics =
+        calculateWasteCategoryAnalytics;
+
+
+    window.renderWasteCategoryAnalytics =
+        renderWasteCategoryAnalytics;
+
+
+    // --------------------------------------------------------
+    // INITIAL RENDER
+    // --------------------------------------------------------
+
+    setTimeout(
+        function () {
+
+            renderWasteCategoryAnalytics();
+
+        },
+        900
+    );
+
+
+    // --------------------------------------------------------
+    // REFRESH WHEN DASHBOARD OPENS
+    // --------------------------------------------------------
+
+    document.addEventListener(
+        "click",
+        function (event) {
+
+            const button =
+                event.target.closest(
+                    ".nav-item"
+                );
+
+            if (!button) {
+                return;
+            }
+
+
+            if (
+                button.innerText
+                    .toLowerCase()
+                    .includes("dashboard")
+            ) {
+
+                setTimeout(
+                    function () {
+
+                        renderWasteCategoryAnalytics();
+
+                    },
+                    250
+                );
+
+            }
+
+        }
+    );
+
+
+    // --------------------------------------------------------
+    // KEEP ANALYTICS LIVE
+    // --------------------------------------------------------
+
+    setInterval(
+        function () {
+
+            if (
+                Array.isArray(
+                    getWasteJourneys()
+                )
+            ) {
+
+                renderWasteCategoryAnalytics();
+
+            }
+
+        },
+        1500
+    );
+
+
+    console.log(
+        "✅ Step 5B - Waste category analytics active."
+    );
+
+})();
+
+// ============================================================
+// STEP 5C - RECENT TRANSACTIONS
+// ============================================================
+
+(function () {
+
+    console.log("🚀 Step 5C - Recent Transactions loaded.");
+
+    function getTransactions() {
+
+        if (
+            typeof wasteJourneyTransactions !== "undefined" &&
+            Array.isArray(wasteJourneyTransactions)
+        ) {
+            return wasteJourneyTransactions;
+        }
+
+        try {
+
+            const saved =
+                localStorage.getItem(
+                    "kabadiSetuWasteJourneyTransactions"
+                );
+
+            if (saved) {
+
+                const parsed =
+                    JSON.parse(saved);
+
+                if (Array.isArray(parsed)) {
+                    return parsed;
+                }
+
+            }
+
+        } catch (error) {
+
+            console.warn(
+                "Step 5C: Could not read transactions.",
+                error
+            );
+
+        }
+
+        return [];
+
+    }
+
+
+    function getTransactionWeight(transaction) {
+
+        if (!transaction) {
+            return 0;
+        }
+
+        const weights = [
+            transaction.finalWeight,
+            transaction.actualWeight,
+            transaction.estimatedWeight,
+            transaction.weight
+        ];
+
+        for (
+            let i = 0;
+            i < weights.length;
+            i++
+        ) {
+
+            const weight =
+                Number(weights[i]);
+
+            if (
+                Number.isFinite(weight) &&
+                weight > 0
+            ) {
+
+                return weight;
+
+            }
+
+        }
+
+        return 0;
+
+    }
+
+
+    function getTransactionValue(transaction) {
+
+        if (!transaction) {
+            return 0;
+        }
+
+        const possibleValues = [
+
+            transaction.finalRecyclerValue,
+
+            transaction.recyclerValue,
+
+            transaction.finalValue,
+
+            transaction.value,
+
+            transaction.estimatedValue
+
+        ];
+
+        for (
+            let i = 0;
+            i < possibleValues.length;
+            i++
+        ) {
+
+            const value =
+                Number(
+                    possibleValues[i]
+                );
+
+            if (
+                Number.isFinite(value) &&
+                value > 0
+            ) {
+
+                return value;
+
+            }
+
+        }
+
+
+        let rate = 0;
+
+        if (
+            transaction.recycler &&
+            typeof transaction.recycler === "object"
+        ) {
+
+            rate =
+                Number(
+                    transaction.recycler.rate
+                ) || 0;
+
+        }
+
+
+        if (!rate) {
+
+            rate =
+                Number(
+                    transaction.recyclerRate
+                ) || 0;
+
+        }
+
+
+        const weight =
+            getTransactionWeight(
+                transaction
+            );
+
+
+        return rate * weight;
+
+    }
+
+
+    function getTransactionMaterial(transaction) {
+
+        if (!transaction) {
+            return "Unknown Material";
+        }
+
+        return String(
+            transaction.material ||
+            transaction.category ||
+            transaction.wasteCategory ||
+            "Unknown Material"
+        ).trim();
+
+    }
+
+
+    function getTransactionRecycler(transaction) {
+
+        if (!transaction) {
+            return "Recycler not recorded";
+        }
+
+
+        if (
+            transaction.recycler &&
+            typeof transaction.recycler === "object"
+        ) {
+
+            return (
+                transaction.recycler.name ||
+                "Recycler not recorded"
+            );
+
+        }
+
+
+        if (transaction.recycler) {
+
+            return String(
+                transaction.recycler
+            );
+
+        }
+
+
+        return "Recycler not recorded";
+
+    }
+
+
+    function getTransactionId(transaction) {
+
+        if (!transaction) {
+            return "KS-TXN-UNKNOWN";
+        }
+
+        return (
+            transaction.id ||
+            transaction.transactionId ||
+            "KS-TXN-UNKNOWN"
+        );
+
+    }
+
+
+    function getTransactionStatus(transaction) {
+
+        if (!transaction) {
+            return "Transaction Recorded";
+        }
+
+
+        const status =
+            String(
+                transaction.status ||
+                transaction.journeyStatus ||
+                transaction.currentStep ||
+                ""
+            ).toLowerCase();
+
+
+        if (
+            status.includes("complete") ||
+            status.includes("recycl")
+        ) {
+
+            return "Recycling Completed";
+
+        }
+
+
+        if (
+            transaction.recyclerConfirmed ||
+            transaction.receiptConfirmed ||
+            transaction.recyclingCompleted
+        ) {
+
+            return "Recycling Completed";
+
+        }
+
+
+        if (
+            transaction.handoverId
+        ) {
+
+            return "Handover Prepared";
+
+        }
+
+
+        return "Transaction Recorded";
+
+    }
+
+
+    function getTransactionDate(transaction) {
+
+        if (!transaction) {
+            return "";
+        }
+
+
+        const possibleDates = [
+
+            transaction.completedAt,
+
+            transaction.confirmedAt,
+
+            transaction.createdAt,
+
+            transaction.timestamp,
+
+            transaction.date
+
+        ];
+
+
+        for (
+            let i = 0;
+            i < possibleDates.length;
+            i++
+        ) {
+
+            if (!possibleDates[i]) {
+                continue;
+            }
+
+
+            const date =
+                new Date(
+                    possibleDates[i]
+                );
+
+
+            if (
+                !Number.isNaN(
+                    date.getTime()
+                )
+            ) {
+
+                return date.toLocaleString(
+                    "en-IN",
+                    {
+                        day: "2-digit",
+                        month: "short",
+                        year: "numeric",
+                        hour: "2-digit",
+                        minute: "2-digit"
+                    }
+                );
+
+            }
+
+        }
+
+
+        return "";
+
+    }
+
+
+    function getStatusIcon(status) {
+
+        const value =
+            String(status)
+                .toLowerCase();
+
+
+        if (
+            value.includes("complete")
+        ) {
+
+            return "♻️";
+
+        }
+
+
+        if (
+            value.includes("handover")
+        ) {
+
+            return "📦";
+
+        }
+
+
+        return "🧾";
+
+    }
+
+
+    function getMaterialIcon(material) {
+
+        const value =
+            String(material)
+                .toLowerCase();
+
+
+        if (
+            value.includes("plastic")
+        ) {
+            return "🧴";
+        }
+
+
+        if (
+            value.includes("copper")
+        ) {
+            return "🔶";
+        }
+
+
+        if (
+            value.includes("aluminium") ||
+            value.includes("aluminum")
+        ) {
+            return "🥫";
+        }
+
+
+        if (
+            value.includes("iron")
+        ) {
+            return "🔩";
+        }
+
+
+        if (
+            value.includes("steel")
+        ) {
+            return "⚙️";
+        }
+
+
+        if (
+            value.includes("glass")
+        ) {
+            return "🫙";
+        }
+
+
+        if (
+            value.includes("book") ||
+            value.includes("paper") ||
+            value.includes("newspaper")
+        ) {
+            return "📚";
+        }
+
+
+        if (
+            value.includes("battery") ||
+            value.includes("lithium")
+        ) {
+            return "🔋";
+        }
+
+
+        if (
+            value.includes("pcb") ||
+            value.includes("circuit")
+        ) {
+            return "💻";
+        }
+
+
+        if (
+            value.includes("mobile") ||
+            value.includes("phone")
+        ) {
+            return "📱";
+        }
+
+
+        if (
+            value.includes("laptop")
+        ) {
+            return "💻";
+        }
+
+
+        if (
+            value.includes("display") ||
+            value.includes("lcd")
+        ) {
+            return "🖥️";
+        }
+
+
+        if (
+            value.includes("motor")
+        ) {
+            return "⚙️";
+        }
+
+
+        if (
+            value.includes("e-waste") ||
+            value.includes("ewaste")
+        ) {
+            return "♻️";
+        }
+
+
+        return "♻️";
+
+    }
+
+
+    function renderRecentTransactions() {
+
+        const dashboard =
+            document.getElementById(
+                "dashboard"
+            );
+
+
+        if (!dashboard) {
+            return;
+        }
+
+
+        let card =
+            document.getElementById(
+                "recentTransactionsCard"
+            );
+
+
+        if (!card) {
+
+            card =
+                document.createElement(
+                    "div"
+                );
+
+            card.id =
+                "recentTransactionsCard";
+
+            dashboard.appendChild(
+                card
+            );
+
+        }
+
+
+        const transactions =
+            getTransactions();
+
+
+        if (
+            transactions.length === 0
+        ) {
+
+            card.innerHTML = `
+
+                <div
+                    style="
+                        background:#ffffff;
+                        border:1px solid #e5e7eb;
+                        border-radius:18px;
+                        padding:22px;
+                        margin-top:22px;
+                        box-shadow:0 4px 14px rgba(0,0,0,0.05);
+                    "
+                >
+
+                    <div
+                        style="
+                            font-size:19px;
+                            font-weight:800;
+                            color:#111827;
+                        "
+                    >
+                        🧾 Recent Transactions
+                    </div>
+
+                    <div
+                        style="
+                            margin-top:8px;
+                            font-size:13px;
+                            color:#6b7280;
+                        "
+                    >
+                        Your completed waste transactions will appear here.
+                    </div>
+
+                </div>
+
+            `;
+
+            return;
+
+        }
+
+
+        const recentTransactions =
+            transactions
+                .slice()
+                .reverse()
+                .slice(0, 5);
+
+
+        const rows =
+            recentTransactions
+                .map(
+                    function (transaction) {
+
+                        const material =
+                            getTransactionMaterial(
+                                transaction
+                            );
+
+
+                        const weight =
+                            getTransactionWeight(
+                                transaction
+                            );
+
+
+                        const value =
+                            getTransactionValue(
+                                transaction
+                            );
+
+
+                        const recycler =
+                            getTransactionRecycler(
+                                transaction
+                            );
+
+
+                        const transactionId =
+                            getTransactionId(
+                                transaction
+                            );
+
+
+                        const status =
+                            getTransactionStatus(
+                                transaction
+                            );
+
+
+                        const date =
+                            getTransactionDate(
+                                transaction
+                            );
+
+
+                        const materialIcon =
+                            getMaterialIcon(
+                                material
+                            );
+
+
+                        const statusIcon =
+                            getStatusIcon(
+                                status
+                            );
+
+
+                        return `
+
+                            <div
+                                style="
+                                    display:flex;
+                                    justify-content:space-between;
+                                    align-items:center;
+                                    gap:18px;
+                                    padding:16px 0;
+                                    border-bottom:1px solid #f1f5f9;
+                                "
+                            >
+
+                                <div
+                                    style="
+                                        display:flex;
+                                        align-items:center;
+                                        gap:12px;
+                                        min-width:0;
+                                        flex:1;
+                                    "
+                                >
+
+                                    <div
+                                        style="
+                                            width:44px;
+                                            height:44px;
+                                            border-radius:12px;
+                                            display:flex;
+                                            align-items:center;
+                                            justify-content:center;
+                                            background:#f0fdf4;
+                                            font-size:22px;
+                                            flex-shrink:0;
+                                        "
+                                    >
+                                        ${materialIcon}
+                                    </div>
+
+
+                                    <div
+                                        style="
+                                            min-width:0;
+                                        "
+                                    >
+
+                                        <div
+                                            style="
+                                                font-size:14px;
+                                                font-weight:800;
+                                                color:#111827;
+                                                word-break:break-word;
+                                            "
+                                        >
+                                            ${material}
+                                        </div>
+
+
+                                        <div
+                                            style="
+                                                margin-top:4px;
+                                                font-size:11px;
+                                                color:#6b7280;
+                                            "
+                                        >
+                                            ${transactionId}
+                                        </div>
+
+
+                                        <div
+                                            style="
+                                                margin-top:4px;
+                                                font-size:12px;
+                                                color:#6b7280;
+                                            "
+                                        >
+                                            ${weight > 0
+                                                ? weight + " kg"
+                                                : "Weight not recorded"}
+                                            •
+                                            ${recycler}
+                                        </div>
+
+
+                                        ${
+                                            date
+                                                ? `
+                                                    <div
+                                                        style="
+                                                            margin-top:3px;
+                                                            font-size:11px;
+                                                            color:#9ca3af;
+                                                        "
+                                                    >
+                                                        ${date}
+                                                    </div>
+                                                `
+                                                : ""
+                                        }
+
+                                    </div>
+
+                                </div>
+
+
+                                <div
+                                    style="
+                                        text-align:right;
+                                        flex-shrink:0;
+                                    "
+                                >
+
+                                    <div
+                                        style="
+                                            font-size:17px;
+                                            font-weight:800;
+                                            color:#159570;
+                                            white-space:nowrap;
+                                        "
+                                    >
+                                        ₹${Math.round(
+                                            value
+                                        ).toLocaleString(
+                                            "en-IN"
+                                        )}
+                                    </div>
+
+
+                                    <div
+                                        style="
+                                            margin-top:5px;
+                                            font-size:11px;
+                                            font-weight:700;
+                                            color:#15803d;
+                                            white-space:nowrap;
+                                        "
+                                    >
+                                        ${statusIcon}
+                                        ${status}
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+                        `;
+
+                    }
+                )
+                .join("");
+
+
+        card.innerHTML = `
+
+            <div
+                style="
+                    background:#ffffff;
+                    border:1px solid #e5e7eb;
+                    border-radius:18px;
+                    padding:22px;
+                    margin-top:22px;
+                    box-shadow:0 4px 14px rgba(0,0,0,0.05);
+                "
+            >
+
+                <div
+                    style="
+                        display:flex;
+                        justify-content:space-between;
+                        align-items:flex-start;
+                        gap:15px;
+                        margin-bottom:5px;
+                    "
+                >
+
+                    <div>
+
+                        <div
+                            style="
+                                font-size:19px;
+                                font-weight:800;
+                                color:#111827;
+                            "
+                        >
+                            🧾 Recent Transactions
+                        </div>
+
+
+                        <div
+                            style="
+                                margin-top:5px;
+                                font-size:13px;
+                                color:#6b7280;
+                            "
+                        >
+                            Latest waste transactions recorded on Kabadi Setu
+                        </div>
+
+                    </div>
+
+
+                    <div
+                        style="
+                            padding:6px 10px;
+                            border-radius:999px;
+                            background:#f0fdf4;
+                            color:#15803d;
+                            font-size:11px;
+                            font-weight:800;
+                            white-space:nowrap;
+                        "
+                    >
+                        ${transactions.length}
+                        ${
+                            transactions.length === 1
+                                ? " TRANSACTION"
+                                : " TRANSACTIONS"
+                        }
+                    </div>
+
+                </div>
+
+
+                <div>
+                    ${rows}
+                </div>
+
+
+                <div
+                    style="
+                        margin-top:14px;
+                        padding-top:13px;
+                        border-top:1px solid #f1f5f9;
+                        font-size:11px;
+                        color:#6b7280;
+                    "
+                >
+                    Showing the latest 5 transactions.
+                </div>
+
+            </div>
+
+        `;
+
+    }
+
+
+    window.renderRecentTransactions =
+        renderRecentTransactions;
+
+
+    window.getKabadiSetuTransactions =
+        getTransactions;
+
+
+    // Initial render
+    setTimeout(
+        function () {
+
+            renderRecentTransactions();
+
+        },
+        1100
+    );
+
+
+    // Refresh when Dashboard is opened
+    document.addEventListener(
+        "click",
+        function (event) {
+
+            const button =
+                event.target.closest(
+                    ".nav-item"
+                );
+
+
+            if (!button) {
+                return;
+            }
+
+
+            if (
+                button.innerText
+                    .toLowerCase()
+                    .includes("dashboard")
+            ) {
+
+                setTimeout(
+                    function () {
+
+                        renderRecentTransactions();
+
+                    },
+                    300
+                );
+
+            }
+
+        }
+    );
+
+
+    // Keep transaction list synchronized
+    setInterval(
+        function () {
+
+            renderRecentTransactions();
+
+        },
+        1500
+    );
+
+
+    console.log(
+        "✅ Step 5C - Recent Transactions active."
+    );
+
+})();
+
+// ============================================================
+// STEP 5D - TRANSACTION DETAILS + TRACEABILITY
+// ============================================================
+
+(function () {
+
+    console.log("🚀 Step 5D - Transaction Details loaded.");
+
+    function getTransactions() {
+
+        if (
+            typeof wasteJourneyTransactions !== "undefined" &&
+            Array.isArray(wasteJourneyTransactions)
+        ) {
+            return wasteJourneyTransactions;
+        }
+
+        try {
+
+            const saved =
+                localStorage.getItem(
+                    "kabadiSetuWasteJourneyTransactions"
+                );
+
+            if (saved) {
+
+                const parsed = JSON.parse(saved);
+
+                if (Array.isArray(parsed)) {
+                    return parsed;
+                }
+
+            }
+
+        } catch (error) {
+
+            console.warn(
+                "Step 5D: Could not read transactions.",
+                error
+            );
+
+        }
+
+        return [];
+
+    }
+
+
+    function getWeight(transaction) {
+
+        if (!transaction) {
+            return 0;
+        }
+
+        const values = [
+            transaction.finalWeight,
+            transaction.actualWeight,
+            transaction.estimatedWeight,
+            transaction.weight
+        ];
+
+        for (let i = 0; i < values.length; i++) {
+
+            const weight =
+                Number(values[i]);
+
+            if (
+                Number.isFinite(weight) &&
+                weight > 0
+            ) {
+                return weight;
+            }
+
+        }
+
+        return 0;
+
+    }
+
+
+    function getRecycler(transaction) {
+
+        if (!transaction) {
+            return null;
+        }
+
+        if (
+            transaction.recycler &&
+            typeof transaction.recycler === "object"
+        ) {
+
+            return transaction.recycler;
+
+        }
+
+        return {
+            name:
+                transaction.recycler ||
+                "Recycler not recorded",
+
+            rate:
+                Number(transaction.recyclerRate) || 0,
+
+            estimated_value:
+                Number(
+                    transaction.finalRecyclerValue ||
+                    transaction.recyclerValue ||
+                    transaction.value ||
+                    0
+                ),
+
+            distance:
+                transaction.recyclerDistance ||
+                "Not recorded",
+
+            rating:
+                Number(
+                    transaction.recyclerRating
+                ) || 0,
+
+            authorization:
+                "Verified"
+
+        };
+
+    }
+
+
+    function getValue(transaction) {
+
+        if (!transaction) {
+            return 0;
+        }
+
+        const recycler =
+            getRecycler(transaction);
+
+        const directValues = [
+            transaction.finalRecyclerValue,
+            transaction.recyclerValue,
+            transaction.finalValue,
+            transaction.value,
+            transaction.estimatedValue
+        ];
+
+        for (
+            let i = 0;
+            i < directValues.length;
+            i++
+        ) {
+
+            const value =
+                Number(directValues[i]);
+
+            if (
+                Number.isFinite(value) &&
+                value > 0
+            ) {
+
+                return value;
+
+            }
+
+        }
+
+        if (recycler) {
+
+            const recyclerValue =
+                Number(
+                    recycler.estimated_value
+                );
+
+            if (
+                Number.isFinite(recyclerValue) &&
+                recyclerValue > 0
+            ) {
+
+                return recyclerValue;
+
+            }
+
+            const rate =
+                Number(recycler.rate) || 0;
+
+            const weight =
+                getWeight(transaction);
+
+            return rate * weight;
+
+        }
+
+        return 0;
+
+    }
+
+
+    function getMaterial(transaction) {
+
+        return String(
+            transaction.material ||
+            transaction.category ||
+            transaction.wasteCategory ||
+            "Unknown Material"
+        );
+
+    }
+
+
+    function getStatus(transaction) {
+
+        if (!transaction) {
+            return "Transaction Recorded";
+        }
+
+        const value =
+            String(
+                transaction.status ||
+                transaction.journeyStatus ||
+                ""
+            ).toLowerCase();
+
+        if (
+            value.includes("complete") ||
+            value.includes("recycl")
+        ) {
+            return "Recycling Completed";
+        }
+
+        if (
+            transaction.recyclerConfirmed ||
+            transaction.receiptConfirmed ||
+            transaction.recyclingCompleted
+        ) {
+            return "Recycling Completed";
+        }
+
+        if (transaction.handoverId) {
+            return "Handover Prepared";
+        }
+
+        return "Transaction Recorded";
+
+    }
+
+
+    function getDate(transaction) {
+
+        const values = [
+            transaction.completedAt,
+            transaction.confirmedAt,
+            transaction.createdAt,
+            transaction.timestamp,
+            transaction.date
+        ];
+
+        for (let i = 0; i < values.length; i++) {
+
+            if (!values[i]) {
+                continue;
+            }
+
+            const date =
+                new Date(values[i]);
+
+            if (
+                !Number.isNaN(
+                    date.getTime()
+                )
+            ) {
+
+                return date.toLocaleString(
+                    "en-IN",
+                    {
+                        day: "2-digit",
+                        month: "short",
+                        year: "numeric",
+                        hour: "2-digit",
+                        minute: "2-digit"
+                    }
+                );
+
+            }
+
+        }
+
+        return "Date not recorded";
+
+    }
+
+
+    function openTransactionDetails(transaction) {
+
+        if (!transaction) {
+            return;
+        }
+
+        const recycler =
+            getRecycler(transaction);
+
+        const material =
+            getMaterial(transaction);
+
+        const weight =
+            getWeight(transaction);
+
+        const value =
+            getValue(transaction);
+
+        const status =
+            getStatus(transaction);
+
+        const transactionId =
+            transaction.id ||
+            transaction.transactionId ||
+            "KS-TXN-UNKNOWN";
+
+        const handoverId =
+            transaction.handoverId ||
+            transaction.handoverID ||
+            "Not generated";
+
+        const token =
+            transaction.token ||
+            transaction.handoverToken ||
+            "Not generated";
+
+        const rate =
+            recycler
+                ? Number(recycler.rate) || 0
+                : Number(transaction.recyclerRate) || 0;
+
+        const recyclerName =
+            recycler
+                ? recycler.name || "Recycler not recorded"
+                : "Recycler not recorded";
+
+        const distance =
+            recycler
+                ? recycler.distance || "Not recorded"
+                : "Not recorded";
+
+        const rating =
+            recycler
+                ? Number(recycler.rating) || 0
+                : 0;
+
+        const authorization =
+            recycler
+                ? recycler.authorization || "Verified"
+                : "Verified";
+
+        const date =
+            getDate(transaction);
+
+
+        // Remove previous modal if present
+
+        const oldModal =
+            document.getElementById(
+                "transactionDetailsModal"
+            );
+
+        if (oldModal) {
+            oldModal.remove();
+        }
+
+
+        const modal =
+            document.createElement(
+                "div"
+            );
+
+        modal.id =
+            "transactionDetailsModal";
+
+
+        modal.style.cssText = `
+            position:fixed;
+            inset:0;
+            background:rgba(0,0,0,0.55);
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            z-index:99999;
+            padding:20px;
+        `;
+
+
+        modal.innerHTML = `
+
+            <div
+                style="
+                    width:min(720px, 100%);
+                    max-height:90vh;
+                    overflow-y:auto;
+                    background:#ffffff;
+                    border-radius:22px;
+                    box-shadow:0 20px 60px rgba(0,0,0,0.25);
+                "
+            >
+
+                <!-- HEADER -->
+
+                <div
+                    style="
+                        display:flex;
+                        justify-content:space-between;
+                        align-items:center;
+                        padding:22px 24px;
+                        border-bottom:1px solid #e5e7eb;
+                    "
+                >
+
+                    <div>
+
+                        <div
+                            style="
+                                font-size:20px;
+                                font-weight:800;
+                                color:#111827;
+                            "
+                        >
+                            ♻️ Transaction Details
+                        </div>
+
+                        <div
+                            style="
+                                margin-top:5px;
+                                font-size:12px;
+                                color:#6b7280;
+                            "
+                        >
+                            ${transactionId}
+                        </div>
+
+                    </div>
+
+
+                    <button
+                        id="closeTransactionDetails"
+                        style="
+                            width:36px;
+                            height:36px;
+                            border:none;
+                            border-radius:10px;
+                            background:#f3f4f6;
+                            color:#374151;
+                            font-size:20px;
+                            cursor:pointer;
+                        "
+                    >
+                        ×
+                    </button>
+
+                </div>
+
+
+                <!-- STATUS -->
+
+                <div
+                    style="
+                        margin:20px 24px 0;
+                        padding:13px 15px;
+                        border-radius:12px;
+                        background:#f0fdf4;
+                        border:1px solid #bbf7d0;
+                        color:#15803d;
+                        font-size:13px;
+                        font-weight:800;
+                    "
+                >
+                    ✅ ${status}
+                </div>
+
+
+                <!-- BASIC DETAILS -->
+
+                <div
+                    style="
+                        padding:22px 24px;
+                    "
+                >
+
+                    <div
+                        style="
+                            display:grid;
+                            grid-template-columns:
+                                repeat(2, minmax(0, 1fr));
+                            gap:12px;
+                        "
+                    >
+
+                        <div
+                            style="
+                                padding:15px;
+                                border:1px solid #e5e7eb;
+                                border-radius:14px;
+                            "
+                        >
+
+                            <div
+                                style="
+                                    font-size:11px;
+                                    color:#6b7280;
+                                    font-weight:700;
+                                "
+                            >
+                                MATERIAL
+                            </div>
+
+                            <div
+                                style="
+                                    margin-top:5px;
+                                    font-size:16px;
+                                    font-weight:800;
+                                    color:#111827;
+                                "
+                            >
+                                ${material}
+                            </div>
+
+                        </div>
+
+
+                        <div
+                            style="
+                                padding:15px;
+                                border:1px solid #e5e7eb;
+                                border-radius:14px;
+                            "
+                        >
+
+                            <div
+                                style="
+                                    font-size:11px;
+                                    color:#6b7280;
+                                    font-weight:700;
+                                "
+                            >
+                                ACTUAL WEIGHT
+                            </div>
+
+                            <div
+                                style="
+                                    margin-top:5px;
+                                    font-size:16px;
+                                    font-weight:800;
+                                    color:#111827;
+                                "
+                            >
+                                ${weight > 0
+                                    ? weight + " kg"
+                                    : "Not recorded"}
+                            </div>
+
+                        </div>
+
+
+                        <div
+                            style="
+                                padding:15px;
+                                border:1px solid #e5e7eb;
+                                border-radius:14px;
+                            "
+                        >
+
+                            <div
+                                style="
+                                    font-size:11px;
+                                    color:#6b7280;
+                                    font-weight:700;
+                                "
+                            >
+                                RECYCLER RATE
+                            </div>
+
+                            <div
+                                style="
+                                    margin-top:5px;
+                                    font-size:16px;
+                                    font-weight:800;
+                                    color:#159570;
+                                "
+                            >
+                                ₹${rate.toLocaleString(
+                                    "en-IN"
+                                )}/kg
+                            </div>
+
+                        </div>
+
+
+                        <div
+                            style="
+                                padding:15px;
+                                border:1px solid #e5e7eb;
+                                border-radius:14px;
+                            "
+                        >
+
+                            <div
+                                style="
+                                    font-size:11px;
+                                    color:#6b7280;
+                                    font-weight:700;
+                                "
+                            >
+                                FINAL VALUE
+                            </div>
+
+                            <div
+                                style="
+                                    margin-top:5px;
+                                    font-size:18px;
+                                    font-weight:800;
+                                    color:#159570;
+                                "
+                            >
+                                ₹${Math.round(
+                                    value
+                                ).toLocaleString(
+                                    "en-IN"
+                                )}
+                            </div>
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- RECYCLER -->
+
+                    <div
+                        style="
+                            margin-top:18px;
+                            padding:18px;
+                            border-radius:16px;
+                            background:#f8fafc;
+                            border:1px solid #e5e7eb;
+                        "
+                    >
+
+                        <div
+                            style="
+                                font-size:13px;
+                                font-weight:800;
+                                color:#111827;
+                                margin-bottom:12px;
+                            "
+                        >
+                            🏭 Recycler Information
+                        </div>
+
+
+                        <div
+                            style="
+                                font-size:15px;
+                                font-weight:800;
+                                color:#111827;
+                            "
+                        >
+                            ${recyclerName}
+                        </div>
+
+
+                        <div
+                            style="
+                                display:flex;
+                                flex-wrap:wrap;
+                                gap:10px;
+                                margin-top:10px;
+                            "
+                        >
+
+                            <span
+                                style="
+                                    padding:6px 9px;
+                                    border-radius:999px;
+                                    background:#dcfce7;
+                                    color:#166534;
+                                    font-size:11px;
+                                    font-weight:700;
+                                "
+                            >
+                                ✓ ${authorization}
+                            </span>
+
+
+                            <span
+                                style="
+                                    padding:6px 9px;
+                                    border-radius:999px;
+                                    background:#f3f4f6;
+                                    color:#4b5563;
+                                    font-size:11px;
+                                    font-weight:700;
+                                "
+                            >
+                                📍 ${distance}
+                            </span>
+
+
+                            ${
+                                rating > 0
+                                    ? `
+                                        <span
+                                            style="
+                                                padding:6px 9px;
+                                                border-radius:999px;
+                                                background:#fef3c7;
+                                                color:#92400e;
+                                                font-size:11px;
+                                                font-weight:700;
+                                            "
+                                        >
+                                            ⭐ ${rating}
+                                        </span>
+                                    `
+                                    : ""
+                            }
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- TRACEABILITY -->
+
+                    <div
+                        style="
+                            margin-top:22px;
+                        "
+                    >
+
+                        <div
+                            style="
+                                font-size:16px;
+                                font-weight:800;
+                                color:#111827;
+                                margin-bottom:15px;
+                            "
+                        >
+                            🔗 Waste Journey Traceability
+                        </div>
+
+
+                        <div
+                            style="
+                                display:flex;
+                                flex-direction:column;
+                                gap:0;
+                            "
+                        >
+
+                            <!-- HOUSEHOLD -->
+
+                            <div
+                                style="
+                                    display:flex;
+                                    align-items:center;
+                                    gap:13px;
+                                "
+                            >
+
+                                <div
+                                    style="
+                                        width:42px;
+                                        height:42px;
+                                        border-radius:50%;
+                                        background:#eff6ff;
+                                        display:flex;
+                                        align-items:center;
+                                        justify-content:center;
+                                        font-size:20px;
+                                        flex-shrink:0;
+                                    "
+                                >
+                                    🏠
+                                </div>
+
+                                <div>
+
+                                    <div
+                                        style="
+                                            font-size:13px;
+                                            font-weight:800;
+                                            color:#111827;
+                                        "
+                                    >
+                                        Household
+                                    </div>
+
+                                    <div
+                                        style="
+                                            font-size:11px;
+                                            color:#6b7280;
+                                        "
+                                    >
+                                        Waste submitted
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+
+                            <div
+                                style="
+                                    margin-left:20px;
+                                    width:2px;
+                                    height:22px;
+                                    background:#bbf7d0;
+                                "
+                            ></div>
+
+
+                            <!-- AI -->
+
+                            <div
+                                style="
+                                    display:flex;
+                                    align-items:center;
+                                    gap:13px;
+                                "
+                            >
+
+                                <div
+                                    style="
+                                        width:42px;
+                                        height:42px;
+                                        border-radius:50%;
+                                        background:#f5f3ff;
+                                        display:flex;
+                                        align-items:center;
+                                        justify-content:center;
+                                        font-size:20px;
+                                        flex-shrink:0;
+                                    "
+                                >
+                                    🤖
+                                </div>
+
+                                <div>
+
+                                    <div
+                                        style="
+                                            font-size:13px;
+                                            font-weight:800;
+                                            color:#111827;
+                                        "
+                                    >
+                                        AI Classification
+                                    </div>
+
+                                    <div
+                                        style="
+                                            font-size:11px;
+                                            color:#6b7280;
+                                        "
+                                    >
+                                        Material category identified
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+
+                            <div
+                                style="
+                                    margin-left:20px;
+                                    width:2px;
+                                    height:22px;
+                                    background:#bbf7d0;
+                                "
+                            ></div>
+
+
+                            <!-- WEIGHING -->
+
+                            <div
+                                style="
+                                    display:flex;
+                                    align-items:center;
+                                    gap:13px;
+                                "
+                            >
+
+                                <div
+                                    style="
+                                        width:42px;
+                                        height:42px;
+                                        border-radius:50%;
+                                        background:#fff7ed;
+                                        display:flex;
+                                        align-items:center;
+                                        justify-content:center;
+                                        font-size:20px;
+                                        flex-shrink:0;
+                                    "
+                                >
+                                    ⚖️
+                                </div>
+
+                                <div>
+
+                                    <div
+                                        style="
+                                            font-size:13px;
+                                            font-weight:800;
+                                            color:#111827;
+                                        "
+                                    >
+                                        Physical Weighing
+                                    </div>
+
+                                    <div
+                                        style="
+                                            font-size:11px;
+                                            color:#6b7280;
+                                        "
+                                    >
+                                        Final weight: ${
+                                            weight > 0
+                                                ? weight + " kg"
+                                                : "Not recorded"
+                                        }
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+
+                            <div
+                                style="
+                                    margin-left:20px;
+                                    width:2px;
+                                    height:22px;
+                                    background:#bbf7d0;
+                                "
+                            ></div>
+
+
+                            <!-- COLLECTOR -->
+
+                            <div
+                                style="
+                                    display:flex;
+                                    align-items:center;
+                                    gap:13px;
+                                "
+                            >
+
+                                <div
+                                    style="
+                                        width:42px;
+                                        height:42px;
+                                        border-radius:50%;
+                                        background:#f0fdf4;
+                                        display:flex;
+                                        align-items:center;
+                                        justify-content:center;
+                                        font-size:20px;
+                                        flex-shrink:0;
+                                    "
+                                >
+                                    👤
+                                </div>
+
+                                <div>
+
+                                    <div
+                                        style="
+                                            font-size:13px;
+                                            font-weight:800;
+                                            color:#111827;
+                                        "
+                                    >
+                                        Informal Collector
+                                    </div>
+
+                                    <div
+                                        style="
+                                            font-size:11px;
+                                            color:#6b7280;
+                                        "
+                                    >
+                                        Collection and handover
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+
+                            <div
+                                style="
+                                    margin-left:20px;
+                                    width:2px;
+                                    height:22px;
+                                    background:#bbf7d0;
+                                "
+                            ></div>
+
+
+                            <!-- RECYCLER -->
+
+                            <div
+                                style="
+                                    display:flex;
+                                    align-items:center;
+                                    gap:13px;
+                                "
+                            >
+
+                                <div
+                                    style="
+                                        width:42px;
+                                        height:42px;
+                                        border-radius:50%;
+                                        background:#ecfdf5;
+                                        display:flex;
+                                        align-items:center;
+                                        justify-content:center;
+                                        font-size:20px;
+                                        flex-shrink:0;
+                                    "
+                                >
+                                    🏭
+                                </div>
+
+                                <div>
+
+                                    <div
+                                        style="
+                                            font-size:13px;
+                                            font-weight:800;
+                                            color:#111827;
+                                        "
+                                    >
+                                        Authorized Recycler
+                                    </div>
+
+                                    <div
+                                        style="
+                                            font-size:11px;
+                                            color:#6b7280;
+                                        "
+                                    >
+                                        ${recyclerName}
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+
+                            <div
+                                style="
+                                    margin-left:20px;
+                                    width:2px;
+                                    height:22px;
+                                    background:#bbf7d0;
+                                "
+                            ></div>
+
+
+                            <!-- COMPLETE -->
+
+                            <div
+                                style="
+                                    display:flex;
+                                    align-items:center;
+                                    gap:13px;
+                                "
+                            >
+
+                                <div
+                                    style="
+                                        width:42px;
+                                        height:42px;
+                                        border-radius:50%;
+                                        background:#dcfce7;
+                                        display:flex;
+                                        align-items:center;
+                                        justify-content:center;
+                                        font-size:20px;
+                                        flex-shrink:0;
+                                    "
+                                >
+                                    ♻️
+                                </div>
+
+                                <div>
+
+                                    <div
+                                        style="
+                                            font-size:13px;
+                                            font-weight:800;
+                                            color:#15803d;
+                                        "
+                                    >
+                                        Recycling Completed
+                                    </div>
+
+                                    <div
+                                        style="
+                                            font-size:11px;
+                                            color:#6b7280;
+                                        "
+                                    >
+                                        Waste journey completed
+                                    </div>
+
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- HANDOVER IDs -->
+
+                    <div
+                        style="
+                            margin-top:22px;
+                            padding:17px;
+                            border-radius:14px;
+                            background:#f8fafc;
+                            border:1px solid #e5e7eb;
+                        "
+                    >
+
+                        <div
+                            style="
+                                font-size:13px;
+                                font-weight:800;
+                                color:#111827;
+                                margin-bottom:12px;
+                            "
+                        >
+                            🔐 Digital Traceability Records
+                        </div>
+
+
+                        <div
+                            style="
+                                display:grid;
+                                grid-template-columns:
+                                    repeat(2, minmax(0, 1fr));
+                                gap:10px;
+                            "
+                        >
+
+                            <div>
+
+                                <div
+                                    style="
+                                        font-size:10px;
+                                        color:#6b7280;
+                                        font-weight:700;
+                                    "
+                                >
+                                    HANDOVER ID
+                                </div>
+
+                                <div
+                                    style="
+                                        margin-top:3px;
+                                        font-size:12px;
+                                        font-weight:800;
+                                        color:#111827;
+                                        word-break:break-all;
+                                    "
+                                >
+                                    ${handoverId}
+                                </div>
+
+                            </div>
+
+
+                            <div>
+
+                                <div
+                                    style="
+                                        font-size:10px;
+                                        color:#6b7280;
+                                        font-weight:700;
+                                    "
+                                >
+                                    QR TOKEN
+                                </div>
+
+                                <div
+                                    style="
+                                        margin-top:3px;
+                                        font-size:12px;
+                                        font-weight:800;
+                                        color:#111827;
+                                        word-break:break-all;
+                                    "
+                                >
+                                    ${token}
+                                </div>
+
+                            </div>
+
+                        </div>
+
+
+                        <div
+                            style="
+                                margin-top:12px;
+                                padding-top:10px;
+                                border-top:1px solid #e5e7eb;
+                                font-size:11px;
+                                color:#6b7280;
+                            "
+                        >
+                            Recorded: ${date}
+                        </div>
+
+                    </div>
+
+
+                    <!-- CLOSE -->
+
+                    <button
+                        id="closeTransactionDetailsBottom"
+                        style="
+                            width:100%;
+                            margin-top:20px;
+                            padding:12px;
+                            border:none;
+                            border-radius:11px;
+                            background:#159570;
+                            color:#ffffff;
+                            font-size:14px;
+                            font-weight:800;
+                            cursor:pointer;
+                        "
+                    >
+                        Close
+                    </button>
+
+                </div>
+
+            </div>
+
+        `;
+
+
+        document.body.appendChild(
+            modal
+        );
+
+
+        function closeModal() {
+
+            const element =
+                document.getElementById(
+                    "transactionDetailsModal"
+                );
+
+            if (element) {
+                element.remove();
+            }
+
+        }
+
+
+        document
+            .getElementById(
+                "closeTransactionDetails"
+            )
+            .addEventListener(
+                "click",
+                closeModal
+            );
+
+
+        document
+            .getElementById(
+                "closeTransactionDetailsBottom"
+            )
+            .addEventListener(
+                "click",
+                closeModal
+            );
+
+
+        modal.addEventListener(
+            "click",
+            function (event) {
+
+                if (
+                    event.target === modal
+                ) {
+
+                    closeModal();
+
+                }
+
+            }
+        );
+
+    }
+
+
+    function attachTransactionClickHandlers() {
+
+        const card =
+            document.getElementById(
+                "recentTransactionsCard"
+            );
+
+        if (!card) {
+            return;
+        }
+
+
+        const rows =
+            card.querySelectorAll(
+                "div"
+            );
+
+
+        rows.forEach(
+            function (row) {
+
+                if (
+                    row.dataset &&
+                    row.dataset.transactionDetailsAttached
+                ) {
+                    return;
+                }
+
+
+                const text =
+                    row.innerText || "";
+
+
+                if (
+                    text.includes("KS-TXN-")
+                ) {
+
+                    const transactions =
+                        getTransactions();
+
+
+                    const matchingTransaction =
+                        transactions
+                            .slice()
+                            .reverse()
+                            .find(
+                                function (transaction) {
+
+                                    const id =
+                                        transaction.id ||
+                                        transaction.transactionId ||
+                                        "";
+
+                                    return text.includes(
+                                        id
+                                    );
+
+                                }
+                            );
+
+
+                    if (
+                        matchingTransaction
+                    ) {
+
+                        row.style.cursor =
+                            "pointer";
+
+
+                        row.style.transition =
+                            "background 0.2s ease";
+
+
+                        row.addEventListener(
+                            "mouseenter",
+                            function () {
+
+                                row.style.background =
+                                    "#f8fafc";
+
+                            }
+                        );
+
+
+                        row.addEventListener(
+                            "mouseleave",
+                            function () {
+
+                                row.style.background =
+                                    "";
+
+                            }
+                        );
+
+
+                        row.addEventListener(
+                            "click",
+                            function (event) {
+
+                                event.stopPropagation();
+
+                                openTransactionDetails(
+                                    matchingTransaction
+                                );
+
+                            }
+                        );
+
+
+                        row.dataset.transactionDetailsAttached =
+                            "true";
+
+                    }
+
+                }
+
+            }
+        );
+
+    }
+
+
+    window.openKabadiSetuTransactionDetails =
+        openTransactionDetails;
+
+
+    // Initial setup
+
+    setTimeout(
+        function () {
+
+            attachTransactionClickHandlers();
+
+        },
+        1400
+    );
+
+
+    // Refresh handlers after dashboard updates
+
+    setInterval(
+        function () {
+
+            attachTransactionClickHandlers();
+
+        },
+        1500
+    );
+
+
+    console.log(
+        "✅ Step 5D - Transaction details + traceability active."
+    );
+
+})();
+// ============================================================
+// STEP 5E - COLLECTOR INVENTORY
+// ============================================================
+
+(function () {
+
+    console.log("🚀 Step 5E - Collector Inventory loaded.");
+
+    const INVENTORY_KEY =
+        "kabadiSetuCollectorInventory";
+
+
+    // ------------------------------------------------------------
+    // MATERIAL RATES
+    // ------------------------------------------------------------
+
+    const inventoryRates = {
+
+        "Iron": 35,
+        "Steel": 45,
+        "Aluminium": 140,
+        "Copper": 700,
+        "Plastic": 25,
+        "Glass": 15,
+        "Books & Newspapers": 28,
+        "Printed Circuit Board": 220,
+        "Copper Cable": 380,
+        "Lithium Battery": 105,
+        "Mobile Phone": 3500,
+        "Laptop": 280,
+        "Display/LCD": 180,
+        "Electric Motor": 300,
+        "Mixed E-Waste": 120
+
+    };
+
+
+    // ------------------------------------------------------------
+    // GET INVENTORY
+    // ------------------------------------------------------------
+
+    function getCollectorInventory() {
+
+        try {
+
+            const saved =
+                localStorage.getItem(
+                    INVENTORY_KEY
+                );
+
+            if (saved) {
+
+                const parsed =
+                    JSON.parse(saved);
+
+                if (Array.isArray(parsed)) {
+
+                    return parsed;
+
+                }
+
+            }
+
+        } catch (error) {
+
+            console.warn(
+                "Step 5E: Could not load inventory.",
+                error
+            );
+
+        }
+
+        return [];
+
+    }
+
+
+    // ------------------------------------------------------------
+    // SAVE INVENTORY
+    // ------------------------------------------------------------
+
+    function saveCollectorInventory(inventory) {
+
+        try {
+
+            localStorage.setItem(
+                INVENTORY_KEY,
+                JSON.stringify(inventory)
+            );
+
+        } catch (error) {
+
+            console.warn(
+                "Step 5E: Could not save inventory.",
+                error
+            );
+
+        }
+
+    }
+
+
+    // ------------------------------------------------------------
+    // MATERIAL ICON
+    // ------------------------------------------------------------
+
+    function getInventoryIcon(material) {
+
+        const value =
+            String(material)
+                .toLowerCase();
+
+
+        if (value.includes("plastic")) {
+            return "🧴";
+        }
+
+        if (value.includes("copper")) {
+            return "🔶";
+        }
+
+        if (
+            value.includes("aluminium") ||
+            value.includes("aluminum")
+        ) {
+            return "🥫";
+        }
+
+        if (value.includes("iron")) {
+            return "🔩";
+        }
+
+        if (value.includes("steel")) {
+            return "⚙️";
+        }
+
+        if (value.includes("glass")) {
+            return "🫙";
+        }
+
+        if (
+            value.includes("book") ||
+            value.includes("paper") ||
+            value.includes("newspaper")
+        ) {
+            return "📚";
+        }
+
+        if (
+            value.includes("battery") ||
+            value.includes("lithium")
+        ) {
+            return "🔋";
+        }
+
+        if (
+            value.includes("pcb") ||
+            value.includes("circuit")
+        ) {
+            return "💻";
+        }
+
+        if (
+            value.includes("mobile") ||
+            value.includes("phone")
+        ) {
+            return "📱";
+        }
+
+        if (value.includes("laptop")) {
+            return "💻";
+        }
+
+        if (
+            value.includes("display") ||
+            value.includes("lcd")
+        ) {
+            return "🖥️";
+        }
+
+        if (value.includes("motor")) {
+            return "⚙️";
+        }
+
+        if (
+            value.includes("e-waste") ||
+            value.includes("ewaste")
+        ) {
+            return "♻️";
+        }
+
+        return "♻️";
+
+    }
+
+
+    // ------------------------------------------------------------
+    // FORMAT MONEY
+    // ------------------------------------------------------------
+
+    function formatInventoryMoney(value) {
+
+        return (
+            "₹" +
+            Math.round(
+                Number(value) || 0
+            ).toLocaleString("en-IN")
+        );
+
+    }
+
+
+    // ------------------------------------------------------------
+    // OPEN ADD INVENTORY MODAL
+    // ------------------------------------------------------------
+
+    function openAddInventoryModal() {
+
+        const oldModal =
+            document.getElementById(
+                "collectorInventoryModal"
+            );
+
+        if (oldModal) {
+            oldModal.remove();
+        }
+
+
+        const modal =
+            document.createElement(
+                "div"
+            );
+
+        modal.id =
+            "collectorInventoryModal";
+
+
+        modal.style.cssText = `
+            position:fixed;
+            inset:0;
+            background:rgba(0,0,0,0.55);
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            z-index:99999;
+            padding:20px;
+        `;
+
+
+        modal.innerHTML = `
+
+            <div
+                style="
+                    width:min(500px,100%);
+                    background:#ffffff;
+                    border-radius:22px;
+                    box-shadow:0 20px 60px rgba(0,0,0,0.25);
+                    overflow:hidden;
+                "
+            >
+
+                <!-- HEADER -->
+
+                <div
+                    style="
+                        display:flex;
+                        justify-content:space-between;
+                        align-items:center;
+                        padding:20px 22px;
+                        border-bottom:1px solid #e5e7eb;
+                    "
+                >
+
+                    <div>
+
+                        <div
+                            style="
+                                font-size:19px;
+                                font-weight:800;
+                                color:#111827;
+                            "
+                        >
+                            📦 Add to Inventory
+                        </div>
+
+                        <div
+                            style="
+                                margin-top:4px;
+                                font-size:12px;
+                                color:#6b7280;
+                            "
+                        >
+                            Record collected material
+                        </div>
+
+                    </div>
+
+
+                    <button
+                        id="closeInventoryModal"
+                        style="
+                            width:36px;
+                            height:36px;
+                            border:none;
+                            border-radius:10px;
+                            background:#f3f4f6;
+                            font-size:20px;
+                            cursor:pointer;
+                        "
+                    >
+                        ×
+                    </button>
+
+                </div>
+
+
+                <!-- FORM -->
+
+                <div
+                    style="
+                        padding:22px;
+                    "
+                >
+
+                    <label
+                        style="
+                            display:block;
+                            font-size:12px;
+                            font-weight:800;
+                            color:#374151;
+                            margin-bottom:7px;
+                        "
+                    >
+                        MATERIAL
+                    </label>
+
+
+                    <select
+                        id="inventoryMaterialInput"
+                        style="
+                            width:100%;
+                            padding:12px;
+                            border:1px solid #d1d5db;
+                            border-radius:11px;
+                            font-size:14px;
+                            outline:none;
+                            background:#ffffff;
+                        "
+                    >
+
+                        <option value="">
+                            Select material
+                        </option>
+
+                        ${Object.keys(inventoryRates)
+                            .map(
+                                function (material) {
+
+                                    return `
+                                        <option value="${material}">
+                                            ${material}
+                                        </option>
+                                    `;
+
+                                }
+                            )
+                            .join("")}
+
+                    </select>
+
+
+                    <label
+                        style="
+                            display:block;
+                            font-size:12px;
+                            font-weight:800;
+                            color:#374151;
+                            margin-top:18px;
+                            margin-bottom:7px;
+                        "
+                    >
+                        PHYSICAL WEIGHT (KG)
+                    </label>
+
+
+                    <input
+                        id="inventoryWeightInput"
+                        type="number"
+                        min="0.1"
+                        step="0.1"
+                        placeholder="Enter weight in kg"
+                        style="
+                            width:100%;
+                            box-sizing:border-box;
+                            padding:12px;
+                            border:1px solid #d1d5db;
+                            border-radius:11px;
+                            font-size:14px;
+                            outline:none;
+                        "
+                    />
+
+
+                    <div
+                        id="inventoryRatePreview"
+                        style="
+                            margin-top:14px;
+                            padding:12px;
+                            border-radius:11px;
+                            background:#f0fdf4;
+                            color:#15803d;
+                            font-size:12px;
+                            font-weight:700;
+                        "
+                    >
+                        Select a material to see its indicative rate.
+                    </div>
+
+
+                    <div
+                        style="
+                            display:flex;
+                            gap:10px;
+                            margin-top:20px;
+                        "
+                    >
+
+                        <button
+                            id="cancelInventoryButton"
+                            style="
+                                flex:1;
+                                padding:12px;
+                                border:1px solid #d1d5db;
+                                border-radius:11px;
+                                background:#ffffff;
+                                color:#374151;
+                                font-size:14px;
+                                font-weight:700;
+                                cursor:pointer;
+                            "
+                        >
+                            Cancel
+                        </button>
+
+
+                        <button
+                            id="saveInventoryButton"
+                            style="
+                                flex:1;
+                                padding:12px;
+                                border:none;
+                                border-radius:11px;
+                                background:#159570;
+                                color:#ffffff;
+                                font-size:14px;
+                                font-weight:800;
+                                cursor:pointer;
+                            "
+                        >
+                            Add Material
+                        </button>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        `;
+
+
+        document.body.appendChild(
+            modal
+        );
+
+
+        const materialInput =
+            document.getElementById(
+                "inventoryMaterialInput"
+            );
+
+        const weightInput =
+            document.getElementById(
+                "inventoryWeightInput"
+            );
+
+        const ratePreview =
+            document.getElementById(
+                "inventoryRatePreview"
+            );
+
+
+        materialInput.addEventListener(
+            "change",
+            function () {
+
+                const material =
+                    materialInput.value;
+
+                if (!material) {
+
+                    ratePreview.innerText =
+                        "Select a material to see its indicative rate.";
+
+                    return;
+
+                }
+
+
+                const rate =
+                    inventoryRates[material] || 0;
+
+
+                ratePreview.innerText =
+                    "Indicative recycler rate: ₹" +
+                    rate +
+                    "/kg";
+
+            }
+        );
+
+
+        function closeModal() {
+
+            const element =
+                document.getElementById(
+                    "collectorInventoryModal"
+                );
+
+            if (element) {
+                element.remove();
+            }
+
+        }
+
+
+        document
+            .getElementById(
+                "closeInventoryModal"
+            )
+            .addEventListener(
+                "click",
+                closeModal
+            );
+
+
+        document
+            .getElementById(
+                "cancelInventoryButton"
+            )
+            .addEventListener(
+                "click",
+                closeModal
+            );
+
+
+        document
+            .getElementById(
+                "saveInventoryButton"
+            )
+            .addEventListener(
+                "click",
+                function () {
+
+                    const material =
+                        materialInput.value;
+
+                    const weight =
+                        Number(
+                            weightInput.value
+                        );
+
+
+                    if (!material) {
+
+                        alert(
+                            "Please select a material."
+                        );
+
+                        return;
+
+                    }
+
+
+                    if (
+                        !Number.isFinite(weight) ||
+                        weight <= 0
+                    ) {
+
+                        alert(
+                            "Please enter a valid weight."
+                        );
+
+                        return;
+
+                    }
+
+
+                    const inventory =
+                        getCollectorInventory();
+
+
+                    const existing =
+                        inventory.find(
+                            function (item) {
+
+                                return (
+                                    item.material ===
+                                    material
+                                );
+
+                            }
+                        );
+
+
+                    if (existing) {
+
+                        existing.weight =
+                            Number(existing.weight || 0) +
+                            weight;
+
+                        existing.updatedAt =
+                            new Date().toISOString();
+
+                    } else {
+
+                        inventory.push({
+
+                            id:
+                                "INV-" +
+                                Date.now()
+                                    .toString(36)
+                                    .toUpperCase(),
+
+                            material:
+                                material,
+
+                            weight:
+                                weight,
+
+                            rate:
+                                inventoryRates[material] || 0,
+
+                            createdAt:
+                                new Date().toISOString(),
+
+                            updatedAt:
+                                new Date().toISOString()
+
+                        });
+
+                    }
+
+
+                    saveCollectorInventory(
+                        inventory
+                    );
+
+
+                    closeModal();
+
+
+                    renderCollectorInventory();
+
+
+                    console.log(
+                        "✅ Inventory updated:",
+                        material,
+                        weight + " kg"
+                    );
+
+                }
+            );
+
+
+        modal.addEventListener(
+            "click",
+            function (event) {
+
+                if (
+                    event.target === modal
+                ) {
+
+                    closeModal();
+
+                }
+
+            }
+        );
+
+    }
+
+
+    // ------------------------------------------------------------
+    // DELETE INVENTORY ITEM
+    // ------------------------------------------------------------
+
+    function removeInventoryItem(id) {
+
+        const inventory =
+            getCollectorInventory();
+
+
+        const item =
+            inventory.find(
+                function (entry) {
+
+                    return entry.id === id;
+
+                }
+            );
+
+
+        if (!item) {
+            return;
+        }
+
+
+        const confirmed =
+            confirm(
+                "Remove " +
+                item.material +
+                " from collector inventory?"
+            );
+
+
+        if (!confirmed) {
+            return;
+        }
+
+
+        const updated =
+            inventory.filter(
+                function (entry) {
+
+                    return entry.id !== id;
+
+                }
+            );
+
+
+        saveCollectorInventory(
+            updated
+        );
+
+
+        renderCollectorInventory();
+
+    }
+
+
+    // ------------------------------------------------------------
+    // RENDER COLLECTOR INVENTORY
+    // ------------------------------------------------------------
+
+    function renderCollectorInventory() {
+
+        const dashboard =
+            document.getElementById(
+                "dashboard"
+            );
+
+
+        if (!dashboard) {
+            return;
+        }
+
+
+        let card =
+            document.getElementById(
+                "collectorInventoryCard"
+            );
+
+
+        if (!card) {
+
+            card =
+                document.createElement(
+                    "div"
+                );
+
+            card.id =
+                "collectorInventoryCard";
+
+            dashboard.appendChild(
+                card
+            );
+
+        }
+
+
+        const inventory =
+            getCollectorInventory();
+
+
+        let totalWeight = 0;
+        let totalValue = 0;
+
+
+        inventory.forEach(
+            function (item) {
+
+                const weight =
+                    Number(item.weight) || 0;
+
+                const rate =
+                    Number(
+                        item.rate ||
+                        inventoryRates[item.material] ||
+                        0
+                    );
+
+                totalWeight +=
+                    weight;
+
+                totalValue +=
+                    weight * rate;
+
+            }
+        );
+
+
+        const itemsHTML =
+            inventory.length === 0
+
+                ? `
+
+                    <div
+                        style="
+                            padding:28px 15px;
+                            text-align:center;
+                            color:#6b7280;
+                            font-size:13px;
+                        "
+                    >
+
+                        <div
+                            style="
+                                font-size:35px;
+                                margin-bottom:10px;
+                            "
+                        >
+                            📦
+                        </div>
+
+                        <strong
+                            style="
+                                display:block;
+                                color:#374151;
+                                font-size:14px;
+                                margin-bottom:5px;
+                            "
+                        >
+                            Inventory is empty
+                        </strong>
+
+                        Add collected material to start
+                        tracking your stock.
+
+                    </div>
+
+                `
+
+                : inventory
+                    .map(
+                        function (item) {
+
+                            const weight =
+                                Number(
+                                    item.weight
+                                ) || 0;
+
+                            const rate =
+                                Number(
+                                    item.rate ||
+                                    inventoryRates[
+                                        item.material
+                                    ] ||
+                                    0
+                                );
+
+                            const value =
+                                weight * rate;
+
+
+                            return `
+
+                                <div
+                                    style="
+                                        display:flex;
+                                        align-items:center;
+                                        justify-content:space-between;
+                                        gap:14px;
+                                        padding:15px 0;
+                                        border-bottom:1px solid #f1f5f9;
+                                    "
+                                >
+
+                                    <div
+                                        style="
+                                            display:flex;
+                                            align-items:center;
+                                            gap:11px;
+                                            min-width:0;
+                                            flex:1;
+                                        "
+                                    >
+
+                                        <div
+                                            style="
+                                                width:43px;
+                                                height:43px;
+                                                border-radius:12px;
+                                                background:#f0fdf4;
+                                                display:flex;
+                                                align-items:center;
+                                                justify-content:center;
+                                                font-size:21px;
+                                                flex-shrink:0;
+                                            "
+                                        >
+                                            ${getInventoryIcon(
+                                                item.material
+                                            )}
+                                        </div>
+
+
+                                        <div
+                                            style="
+                                                min-width:0;
+                                            "
+                                        >
+
+                                            <div
+                                                style="
+                                                    font-size:14px;
+                                                    font-weight:800;
+                                                    color:#111827;
+                                                "
+                                            >
+                                                ${item.material}
+                                            </div>
+
+
+                                            <div
+                                                style="
+                                                    margin-top:4px;
+                                                    font-size:12px;
+                                                    color:#6b7280;
+                                                "
+                                            >
+                                                ${weight} kg
+                                                • ₹${rate}/kg
+                                            </div>
+
+                                        </div>
+
+                                    </div>
+
+
+                                    <div
+                                        style="
+                                            text-align:right;
+                                            flex-shrink:0;
+                                        "
+                                    >
+
+                                        <div
+                                            style="
+                                                font-size:15px;
+                                                font-weight:800;
+                                                color:#159570;
+                                            "
+                                        >
+                                            ${formatInventoryMoney(
+                                                value
+                                            )}
+                                        </div>
+
+
+                                        <button
+                                            data-remove-inventory="${item.id}"
+                                            style="
+                                                margin-top:5px;
+                                                padding:4px 8px;
+                                                border:none;
+                                                border-radius:7px;
+                                                background:#fef2f2;
+                                                color:#dc2626;
+                                                font-size:10px;
+                                                font-weight:700;
+                                                cursor:pointer;
+                                            "
+                                        >
+                                            Remove
+                                        </button>
+
+                                    </div>
+
+                                </div>
+
+                            `;
+
+                        }
+                    )
+                    .join("");
+
+
+        card.innerHTML = `
+
+            <div
+                style="
+                    background:#ffffff;
+                    border:1px solid #e5e7eb;
+                    border-radius:18px;
+                    padding:22px;
+                    margin-top:22px;
+                    box-shadow:0 4px 14px rgba(0,0,0,0.05);
+                "
+            >
+
+                <!-- HEADER -->
+
+                <div
+                    style="
+                        display:flex;
+                        justify-content:space-between;
+                        align-items:flex-start;
+                        gap:15px;
+                        margin-bottom:17px;
+                    "
+                >
+
+                    <div>
+
+                        <div
+                            style="
+                                font-size:19px;
+                                font-weight:800;
+                                color:#111827;
+                            "
+                        >
+                            📦 Collector Inventory
+                        </div>
+
+
+                        <div
+                            style="
+                                margin-top:5px;
+                                font-size:13px;
+                                color:#6b7280;
+                            "
+                        >
+                            Track collected material before selling to recyclers
+                        </div>
+
+                    </div>
+
+
+                    <button
+                        id="addInventoryButton"
+                        style="
+                            padding:9px 13px;
+                            border:none;
+                            border-radius:10px;
+                            background:#159570;
+                            color:#ffffff;
+                            font-size:12px;
+                            font-weight:800;
+                            cursor:pointer;
+                            white-space:nowrap;
+                        "
+                    >
+                        + Add Material
+                    </button>
+
+                </div>
+
+
+                <!-- SUMMARY -->
+
+                <div
+                    style="
+                        display:grid;
+                        grid-template-columns:
+                            repeat(2, minmax(0,1fr));
+                        gap:10px;
+                        margin-bottom:8px;
+                    "
+                >
+
+                    <div
+                        style="
+                            padding:13px;
+                            border-radius:12px;
+                            background:#f8fafc;
+                        "
+                    >
+
+                        <div
+                            style="
+                                font-size:10px;
+                                color:#6b7280;
+                                font-weight:700;
+                            "
+                        >
+                            TOTAL STOCK
+                        </div>
+
+                        <div
+                            style="
+                                margin-top:4px;
+                                font-size:17px;
+                                font-weight:800;
+                                color:#111827;
+                            "
+                        >
+                            ${totalWeight.toFixed(
+                                totalWeight % 1 === 0
+                                    ? 0
+                                    : 2
+                            )} kg
+                        </div>
+
+                    </div>
+
+
+                    <div
+                        style="
+                            padding:13px;
+                            border-radius:12px;
+                            background:#f0fdf4;
+                        "
+                    >
+
+                        <div
+                            style="
+                                font-size:10px;
+                                color:#6b7280;
+                                font-weight:700;
+                            "
+                        >
+                            EST. STOCK VALUE
+                        </div>
+
+                        <div
+                            style="
+                                margin-top:4px;
+                                font-size:17px;
+                                font-weight:800;
+                                color:#159570;
+                            "
+                        >
+                            ${formatInventoryMoney(
+                                totalValue
+                            )}
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <!-- ITEMS -->
+
+                <div>
+                    ${itemsHTML}
+                </div>
+
+
+                <div
+                    style="
+                        margin-top:14px;
+                        padding-top:13px;
+                        border-top:1px solid #f1f5f9;
+                        font-size:11px;
+                        color:#6b7280;
+                    "
+                >
+                    Values are indicative and based on the current stored material rates.
+                </div>
+
+            </div>
+
+        `;
+
+
+        // Add button
+
+        const addButton =
+            document.getElementById(
+                "addInventoryButton"
+            );
+
+
+        if (addButton) {
+
+            addButton.addEventListener(
+                "click",
+                openAddInventoryModal
+            );
+
+        }
+
+
+        // Remove buttons
+
+        card
+            .querySelectorAll(
+                "[data-remove-inventory]"
+            )
+            .forEach(
+                function (button) {
+
+                    button.addEventListener(
+                        "click",
+                        function () {
+
+                            removeInventoryItem(
+                                button.dataset.removeInventory
+                            );
+
+                        }
+                    );
+
+                }
+            );
+
+    }
+
+
+    // ------------------------------------------------------------
+    // EXPOSE FUNCTIONS
+    // ------------------------------------------------------------
+
+    window.getCollectorInventory =
+        getCollectorInventory;
+
+
+    window.saveCollectorInventory =
+        saveCollectorInventory;
+
+
+    window.renderCollectorInventory =
+        renderCollectorInventory;
+
+
+    window.openAddInventoryModal =
+        openAddInventoryModal;
+
+
+    // ------------------------------------------------------------
+    // INITIAL RENDER
+    // ------------------------------------------------------------
+
+    setTimeout(
+        function () {
+
+            renderCollectorInventory();
+
+        },
+        1200
+    );
+
+
+    // ------------------------------------------------------------
+    // REFRESH WHEN DASHBOARD OPENS
+    // ------------------------------------------------------------
+
+    document.addEventListener(
+        "click",
+        function (event) {
+
+            const button =
+                event.target.closest(
+                    ".nav-item"
+                );
+
+
+            if (!button) {
+                return;
+            }
+
+
+            if (
+                button.innerText
+                    .toLowerCase()
+                    .includes("dashboard")
+            ) {
+
+                setTimeout(
+                    function () {
+
+                        renderCollectorInventory();
+
+                    },
+                    350
+                );
+
+            }
+
+        }
+    );
+
+
+    // ------------------------------------------------------------
+    // KEEP UI SYNCHRONIZED
+    // ------------------------------------------------------------
+
+    setInterval(
+        function () {
+
+            renderCollectorInventory();
+
+        },
+        2000
+    );
+
+
+    console.log(
+        "✅ Step 5E - Collector Inventory active."
+    );
+
+})();
+// ============================================================
+// STEP 5F - BEST RECYCLER RECOMMENDATION
+// ============================================================
+
+(function () {
+
+    console.log("🚀 Step 5F - Best Recycler Recommendation loaded.");
+
+    const INVENTORY_KEY =
+        "kabadiSetuCollectorInventory";
+
+
+    // ------------------------------------------------------------
+    // GET INVENTORY
+    // ------------------------------------------------------------
+
+    function getInventory() {
+
+        try {
+
+            const saved =
+                localStorage.getItem(
+                    INVENTORY_KEY
+                );
+
+            if (saved) {
+
+                const parsed =
+                    JSON.parse(saved);
+
+                if (Array.isArray(parsed)) {
+                    return parsed;
+                }
+
+            }
+
+        } catch (error) {
+
+            console.warn(
+                "Step 5F: Could not read inventory.",
+                error
+            );
+
+        }
+
+        return [];
+
+    }
+
+
+    // ------------------------------------------------------------
+    // FORMAT MONEY
+    // ------------------------------------------------------------
+
+    function formatMoney(value) {
+
+        return (
+            "₹" +
+            Math.round(
+                Number(value) || 0
+            ).toLocaleString("en-IN")
+        );
+
+    }
+
+
+    // ------------------------------------------------------------
+    // OPEN RECYCLER COMPARISON
+    // ------------------------------------------------------------
+
+    function openBestRecyclerModal(item) {
+
+        if (!item) {
+            return;
+        }
+
+
+        const material =
+            item.material;
+
+        const weight =
+            Number(item.weight) || 0;
+
+
+        if (!material || weight <= 0) {
+
+            alert(
+                "Valid inventory material and weight are required."
+            );
+
+            return;
+
+        }
+
+
+        const oldModal =
+            document.getElementById(
+                "bestRecyclerModal"
+            );
+
+        if (oldModal) {
+            oldModal.remove();
+        }
+
+
+        const modal =
+            document.createElement(
+                "div"
+            );
+
+        modal.id =
+            "bestRecyclerModal";
+
+
+        modal.style.cssText = `
+            position:fixed;
+            inset:0;
+            background:rgba(0,0,0,0.55);
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            z-index:99999;
+            padding:20px;
+        `;
+
+
+        modal.innerHTML = `
+
+            <div
+                style="
+                    width:min(760px,100%);
+                    max-height:90vh;
+                    overflow-y:auto;
+                    background:#ffffff;
+                    border-radius:22px;
+                    box-shadow:0 20px 60px rgba(0,0,0,0.25);
+                "
+            >
+
+                <!-- HEADER -->
+
+                <div
+                    style="
+                        display:flex;
+                        justify-content:space-between;
+                        align-items:center;
+                        gap:15px;
+                        padding:21px 23px;
+                        border-bottom:1px solid #e5e7eb;
+                    "
+                >
+
+                    <div>
+
+                        <div
+                            style="
+                                font-size:20px;
+                                font-weight:800;
+                                color:#111827;
+                            "
+                        >
+                            🏆 Find Best Recycler
+                        </div>
+
+                        <div
+                            style="
+                                margin-top:5px;
+                                font-size:12px;
+                                color:#6b7280;
+                            "
+                        >
+                            Compare verified recyclers for your inventory
+                        </div>
+
+                    </div>
+
+
+                    <button
+                        id="closeBestRecyclerModal"
+                        style="
+                            width:36px;
+                            height:36px;
+                            border:none;
+                            border-radius:10px;
+                            background:#f3f4f6;
+                            color:#374151;
+                            font-size:20px;
+                            cursor:pointer;
+                        "
+                    >
+                        ×
+                    </button>
+
+                </div>
+
+
+                <!-- MATERIAL SUMMARY -->
+
+                <div
+                    style="
+                        margin:20px 23px;
+                        padding:17px;
+                        border-radius:15px;
+                        background:#f0fdf4;
+                        border:1px solid #bbf7d0;
+                    "
+                >
+
+                    <div
+                        style="
+                            font-size:12px;
+                            color:#166534;
+                            font-weight:700;
+                        "
+                    >
+                        SELLING FROM INVENTORY
+                    </div>
+
+
+                    <div
+                        style="
+                            display:flex;
+                            justify-content:space-between;
+                            align-items:center;
+                            gap:15px;
+                            margin-top:7px;
+                        "
+                    >
+
+                        <div
+                            style="
+                                font-size:18px;
+                                font-weight:800;
+                                color:#111827;
+                            "
+                        >
+                            ${material}
+                        </div>
+
+
+                        <div
+                            style="
+                                font-size:18px;
+                                font-weight:800;
+                                color:#159570;
+                            "
+                        >
+                            ${weight} kg
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <!-- LOADING -->
+
+                <div
+                    id="bestRecyclerResults"
+                    style="
+                        padding:0 23px 23px;
+                    "
+                >
+
+                    <div
+                        style="
+                            padding:30px;
+                            text-align:center;
+                            color:#6b7280;
+                            font-size:13px;
+                        "
+                    >
+                        🔄 Comparing recycler prices...
+                    </div>
+
+                </div>
+
+            </div>
+
+        `;
+
+
+        document.body.appendChild(
+            modal
+        );
+
+
+        function closeModal() {
+
+            const element =
+                document.getElementById(
+                    "bestRecyclerModal"
+                );
+
+            if (element) {
+                element.remove();
+            }
+
+        }
+
+
+        document
+            .getElementById(
+                "closeBestRecyclerModal"
+            )
+            .addEventListener(
+                "click",
+                closeModal
+            );
+
+
+        modal.addEventListener(
+            "click",
+            function (event) {
+
+                if (
+                    event.target === modal
+                ) {
+
+                    closeModal();
+
+                }
+
+            }
+        );
+
+
+        compareRecyclerPrices(
+            material,
+            weight
+        );
+
+    }
+
+
+    // ------------------------------------------------------------
+    // COMPARE RECYCLER PRICES
+    // ------------------------------------------------------------
+
+    async function compareRecyclerPrices(
+        material,
+        weight
+    ) {
+
+        const results =
+            document.getElementById(
+                "bestRecyclerResults"
+            );
+
+
+        if (!results) {
+            return;
+        }
+
+
+        try {
+
+            const response =
+                await fetch(
+                    "/recyclers",
+                    {
+                        method: "POST",
+
+                        headers: {
+                            "Content-Type":
+                                "application/json"
+                        },
+
+                        body:
+                            JSON.stringify({
+                                material:
+                                    material,
+
+                                weight:
+                                    weight
+                            })
+                    }
+                );
+
+
+            const data =
+                await response.json();
+
+
+            if (
+                !response.ok ||
+                !data.recyclers ||
+                !Array.isArray(
+                    data.recyclers
+                )
+            ) {
+
+                throw new Error(
+                    "Recycler comparison failed."
+                );
+
+            }
+
+
+            const recyclers =
+                data.recyclers
+                    .slice()
+                    .sort(
+                        function (a, b) {
+
+                            return (
+                                Number(
+                                    b.rate
+                                ) -
+                                Number(
+                                    a.rate
+                                )
+                            );
+
+                        }
+                    );
+
+
+            if (
+                recyclers.length === 0
+            ) {
+
+                results.innerHTML = `
+
+                    <div
+                        style="
+                            padding:30px 10px;
+                            text-align:center;
+                            color:#6b7280;
+                        "
+                    >
+                        No verified recycler found for
+                        <strong>${material}</strong>.
+                    </div>
+
+                `;
+
+                return;
+
+            }
+
+
+            const best =
+                recyclers[0];
+
+
+            const bestRate =
+                Number(
+                    best.rate
+                ) || 0;
+
+
+            const bestValue =
+                Number(
+                    best.estimated_value
+                ) ||
+                (
+                    bestRate *
+                    weight
+                );
+
+
+            // ----------------------------------------------------
+            // BEST RECYCLER BANNER
+            // ----------------------------------------------------
+
+            let html = `
+
+                <div
+                    style="
+                        padding:17px;
+                        margin-bottom:17px;
+                        border-radius:15px;
+                        background:#ecfdf5;
+                        border:1px solid #86efac;
+                    "
+                >
+
+                    <div
+                        style="
+                            font-size:11px;
+                            color:#15803d;
+                            font-weight:800;
+                            letter-spacing:0.4px;
+                        "
+                    >
+                        🏆 RECOMMENDED RECYCLER
+                    </div>
+
+
+                    <div
+                        style="
+                            margin-top:6px;
+                            font-size:19px;
+                            font-weight:800;
+                            color:#111827;
+                        "
+                    >
+                        ${best.name}
+                    </div>
+
+
+                    <div
+                        style="
+                            margin-top:5px;
+                            font-size:13px;
+                            color:#4b5563;
+                        "
+                    >
+                        Best available price for
+                        ${weight} kg of ${material}
+                    </div>
+
+
+                    <div
+                        style="
+                            display:flex;
+                            justify-content:space-between;
+                            align-items:flex-end;
+                            gap:15px;
+                            margin-top:14px;
+                        "
+                    >
+
+                        <div>
+
+                            <div
+                                style="
+                                    font-size:11px;
+                                    color:#6b7280;
+                                "
+                            >
+                                RATE
+                            </div>
+
+                            <strong
+                                style="
+                                    display:block;
+                                    margin-top:3px;
+                                    font-size:22px;
+                                    color:#159570;
+                                "
+                            >
+                                ${formatMoney(
+                                    bestRate
+                                )}/kg
+                            </strong>
+
+                        </div>
+
+
+                        <div
+                            style="
+                                text-align:right;
+                            "
+                        >
+
+                            <div
+                                style="
+                                    font-size:11px;
+                                    color:#6b7280;
+                                "
+                            >
+                                ESTIMATED EARNING
+                            </div>
+
+                            <strong
+                                style="
+                                    display:block;
+                                    margin-top:3px;
+                                    font-size:22px;
+                                    color:#159570;
+                                "
+                            >
+                                ${formatMoney(
+                                    bestValue
+                                )}
+                            </strong>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <div
+                    style="
+                        font-size:15px;
+                        font-weight:800;
+                        color:#111827;
+                        margin-bottom:10px;
+                    "
+                >
+                    Compare Verified Recyclers
+                </div>
+
+            `;
+
+
+            // ----------------------------------------------------
+            // RECYCLER CARDS
+            // ----------------------------------------------------
+
+            recyclers.forEach(
+                function (
+                    recycler,
+                    index
+                ) {
+
+                    const rate =
+                        Number(
+                            recycler.rate
+                        ) || 0;
+
+
+                    const estimatedValue =
+                        Number(
+                            recycler.estimated_value
+                        ) ||
+                        (
+                            rate *
+                            weight
+                        );
+
+
+                    const isBest =
+                        index === 0;
+
+
+                    const difference =
+                        bestRate -
+                        rate;
+
+
+                    html += `
+
+                        <div
+                            style="
+                                position:relative;
+                                padding:17px;
+                                margin-bottom:11px;
+                                border-radius:15px;
+                                border:${isBest
+                                    ? "2px solid #22c55e"
+                                    : "1px solid #e5e7eb"};
+                                background:${isBest
+                                    ? "#f0fdf4"
+                                    : "#ffffff"};
+                            "
+                        >
+
+                            ${
+                                isBest
+                                    ? `
+                                        <div
+                                            style="
+                                                position:absolute;
+                                                top:12px;
+                                                right:12px;
+                                                padding:5px 9px;
+                                                border-radius:999px;
+                                                background:#dcfce7;
+                                                color:#166534;
+                                                font-size:10px;
+                                                font-weight:800;
+                                            "
+                                        >
+                                            🏆 BEST PRICE
+                                        </div>
+                                    `
+                                    : ""
+                            }
+
+
+                            <div
+                                style="
+                                    padding-right:${isBest
+                                        ? "105px"
+                                        : "0"};
+                                "
+                            >
+
+                                <div
+                                    style="
+                                        font-size:15px;
+                                        font-weight:800;
+                                        color:#111827;
+                                    "
+                                >
+                                    ${recycler.name}
+                                </div>
+
+
+                                <div
+                                    style="
+                                        margin-top:6px;
+                                        display:flex;
+                                        flex-wrap:wrap;
+                                        gap:8px;
+                                    "
+                                >
+
+                                    <span
+                                        style="
+                                            padding:4px 7px;
+                                            border-radius:999px;
+                                            background:#dcfce7;
+                                            color:#166534;
+                                            font-size:10px;
+                                            font-weight:700;
+                                        "
+                                    >
+                                        ✓ ${recycler.authorization || "Verified"}
+                                    </span>
+
+
+                                    ${
+                                        recycler.distance
+                                            ? `
+                                                <span
+                                                    style="
+                                                        padding:4px 7px;
+                                                        border-radius:999px;
+                                                        background:#f3f4f6;
+                                                        color:#4b5563;
+                                                        font-size:10px;
+                                                        font-weight:700;
+                                                    "
+                                                >
+                                                    📍 ${recycler.distance}
+                                                </span>
+                                            `
+                                            : ""
+                                    }
+
+
+                                    ${
+                                        recycler.rating
+                                            ? `
+                                                <span
+                                                    style="
+                                                        padding:4px 7px;
+                                                        border-radius:999px;
+                                                        background:#fef3c7;
+                                                        color:#92400e;
+                                                        font-size:10px;
+                                                        font-weight:700;
+                                                    "
+                                                >
+                                                    ⭐ ${recycler.rating}
+                                                </span>
+                                            `
+                                            : ""
+                                    }
+
+                                </div>
+
+
+                                <div
+                                    style="
+                                        display:flex;
+                                        justify-content:space-between;
+                                        align-items:flex-end;
+                                        gap:15px;
+                                        margin-top:13px;
+                                    "
+                                >
+
+                                    <div>
+
+                                        <div
+                                            style="
+                                                font-size:10px;
+                                                color:#6b7280;
+                                                font-weight:700;
+                                            "
+                                        >
+                                            PRICE
+                                        </div>
+
+                                        <strong
+                                            style="
+                                                display:block;
+                                                margin-top:3px;
+                                                font-size:20px;
+                                                color:#159570;
+                                            "
+                                        >
+                                            ${formatMoney(
+                                                rate
+                                            )}/kg
+                                        </strong>
+
+                                    </div>
+
+
+                                    <div
+                                        style="
+                                            text-align:right;
+                                        "
+                                    >
+
+                                        <div
+                                            style="
+                                                font-size:10px;
+                                                color:#6b7280;
+                                                font-weight:700;
+                                            "
+                                        >
+                                            ${weight} KG VALUE
+                                        </div>
+
+                                        <strong
+                                            style="
+                                                display:block;
+                                                margin-top:3px;
+                                                font-size:18px;
+                                                color:#111827;
+                                            "
+                                        >
+                                            ${formatMoney(
+                                                estimatedValue
+                                            )}
+                                        </strong>
+
+                                    </div>
+
+                                </div>
+
+
+                                ${
+                                    difference > 0
+                                        ? `
+                                            <div
+                                                style="
+                                                    margin-top:9px;
+                                                    font-size:11px;
+                                                    color:#dc2626;
+                                                "
+                                            >
+                                                ${formatMoney(
+                                                    difference
+                                                )}/kg lower than the best price
+                                            </div>
+                                        `
+                                        : `
+                                            <div
+                                                style="
+                                                    margin-top:9px;
+                                                    font-size:11px;
+                                                    color:#15803d;
+                                                    font-weight:700;
+                                                "
+                                            >
+                                                ✓ Highest available rate
+                                            </div>
+                                        `
+                                }
+
+
+                                <button
+                                    data-select-best-recycler="${index}"
+                                    style="
+                                        width:100%;
+                                        margin-top:13px;
+                                        padding:10px;
+                                        border:none;
+                                        border-radius:10px;
+                                        background:${isBest
+                                            ? "#159570"
+                                            : "#f0fdf4"};
+                                        color:${isBest
+                                            ? "#ffffff"
+                                            : "#15803d"};
+                                        font-size:12px;
+                                        font-weight:800;
+                                        cursor:pointer;
+                                    "
+                                >
+                                    ${
+                                        isBest
+                                            ? "Select Recommended Recycler"
+                                            : "Select This Recycler"
+                                    }
+                                </button>
+
+                            </div>
+
+                        </div>
+
+                    `;
+
+                }
+            );
+
+
+            results.innerHTML =
+                html;
+
+
+            // ----------------------------------------------------
+            // SELECT RECYCLER
+            // ----------------------------------------------------
+
+            results
+                .querySelectorAll(
+                    "[data-select-best-recycler]"
+                )
+                .forEach(
+                    function (button) {
+
+                        button.addEventListener(
+                            "click",
+                            function () {
+
+                                const index =
+                                    Number(
+                                        button.dataset
+                                            .selectBestRecycler
+                                    );
+
+
+                                const selected =
+                                    recyclers[index];
+
+
+                                if (!selected) {
+                                    return;
+                                }
+
+
+                                selectCollectorRecycler(
+                                    selected,
+                                    material,
+                                    weight
+                                );
+
+                            }
+                        );
+
+                    }
+                );
+
+
+        } catch (error) {
+
+            console.error(
+                "Step 5F recycler comparison error:",
+                error
+            );
+
+
+            results.innerHTML = `
+
+                <div
+                    style="
+                        padding:25px;
+                        text-align:center;
+                        border-radius:14px;
+                        background:#fef2f2;
+                        border:1px solid #fecaca;
+                        color:#b91c1c;
+                        font-size:13px;
+                    "
+                >
+
+                    ❌ Unable to compare recycler prices.
+
+                    <div
+                        style="
+                            margin-top:6px;
+                            font-size:11px;
+                            color:#7f1d1d;
+                        "
+                    >
+                        Please make sure the Kabadi Setu server is running.
+                    </div>
+
+                </div>
+
+            `;
+
+        }
+
+    }
+
+
+    // ------------------------------------------------------------
+    // SELECT COLLECTOR RECYCLER
+    // ------------------------------------------------------------
+
+    function selectCollectorRecycler(
+        recycler,
+        material,
+        weight
+    ) {
+
+        const value =
+            Number(
+                recycler.estimated_value
+            ) ||
+            (
+                Number(recycler.rate || 0) *
+                Number(weight || 0)
+            );
+
+
+        // Save collector selection
+
+        window.collectorSelectedRecycler = {
+
+            recycler:
+                recycler,
+
+            material:
+                material,
+
+            weight:
+                weight,
+
+            estimatedValue:
+                value,
+
+            selectedAt:
+                new Date().toISOString()
+
+        };
+
+
+        console.log(
+            "✅ Step 5F: Collector recycler selected",
+            window.collectorSelectedRecycler
+        );
+
+
+        // Close comparison modal
+
+        const modal =
+            document.getElementById(
+                "bestRecyclerModal"
+            );
+
+        if (modal) {
+            modal.remove();
+        }
+
+
+        // Show confirmation
+
+        showCollectorRecyclerConfirmation(
+            recycler,
+            material,
+            weight,
+            value
+        );
+
+    }
+
+
+    // ------------------------------------------------------------
+    // CONFIRMATION
+    // ------------------------------------------------------------
+
+    function showCollectorRecyclerConfirmation(
+        recycler,
+        material,
+        weight,
+        value
+    ) {
+
+        const oldModal =
+            document.getElementById(
+                "collectorRecyclerConfirmation"
+            );
+
+        if (oldModal) {
+            oldModal.remove();
+        }
+
+
+        const modal =
+            document.createElement(
+                "div"
+            );
+
+        modal.id =
+            "collectorRecyclerConfirmation";
+
+
+        modal.style.cssText = `
+            position:fixed;
+            inset:0;
+            background:rgba(0,0,0,0.55);
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            z-index:99999;
+            padding:20px;
+        `;
+
+
+        modal.innerHTML = `
+
+            <div
+                style="
+                    width:min(500px,100%);
+                    background:#ffffff;
+                    border-radius:22px;
+                    padding:25px;
+                    box-shadow:0 20px 60px rgba(0,0,0,0.25);
+                "
+            >
+
+                <div
+                    style="
+                        text-align:center;
+                    "
+                >
+
+                    <div
+                        style="
+                            width:58px;
+                            height:58px;
+                            margin:0 auto;
+                            border-radius:50%;
+                            background:#dcfce7;
+                            display:flex;
+                            align-items:center;
+                            justify-content:center;
+                            font-size:28px;
+                        "
+                    >
+                        🏆
+                    </div>
+
+
+                    <div
+                        style="
+                            margin-top:13px;
+                            font-size:20px;
+                            font-weight:800;
+                            color:#111827;
+                        "
+                    >
+                        Recycler Selected
+                    </div>
+
+
+                    <div
+                        style="
+                            margin-top:5px;
+                            font-size:13px;
+                            color:#6b7280;
+                        "
+                    >
+                        You selected the best available price.
+                    </div>
+
+                </div>
+
+
+                <div
+                    style="
+                        margin-top:20px;
+                        padding:17px;
+                        border-radius:15px;
+                        background:#f8fafc;
+                        border:1px solid #e5e7eb;
+                    "
+                >
+
+                    <div
+                        style="
+                            font-size:16px;
+                            font-weight:800;
+                            color:#111827;
+                        "
+                    >
+                        ${recycler.name}
+                    </div>
+
+
+                    <div
+                        style="
+                            margin-top:9px;
+                            font-size:13px;
+                            color:#6b7280;
+                        "
+                    >
+                        ${material} • ${weight} kg
+                    </div>
+
+
+                    <div
+                        style="
+                            display:flex;
+                            justify-content:space-between;
+                            align-items:center;
+                            margin-top:15px;
+                        "
+                    >
+
+                        <div>
+
+                            <div
+                                style="
+                                    font-size:10px;
+                                    color:#6b7280;
+                                    font-weight:700;
+                                "
+                            >
+                                RATE
+                            </div>
+
+                            <strong
+                                style="
+                                    display:block;
+                                    margin-top:3px;
+                                    color:#159570;
+                                    font-size:19px;
+                                "
+                            >
+                                ${formatMoney(
+                                    recycler.rate
+                                )}/kg
+                            </strong>
+
+                        </div>
+
+
+                        <div
+                            style="
+                                text-align:right;
+                            "
+                        >
+
+                            <div
+                                style="
+                                    font-size:10px;
+                                    color:#6b7280;
+                                    font-weight:700;
+                                "
+                            >
+                                ESTIMATED VALUE
+                            </div>
+
+                            <strong
+                                style="
+                                    display:block;
+                                    margin-top:3px;
+                                    color:#159570;
+                                    font-size:19px;
+                                "
+                            >
+                                ${formatMoney(
+                                    value
+                                )}
+                            </strong>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <div
+                    style="
+                        margin-top:14px;
+                        padding:12px;
+                        border-radius:11px;
+                        background:#fffbeb;
+                        border:1px solid #fde68a;
+                        font-size:11px;
+                        color:#92400e;
+                        line-height:1.5;
+                    "
+                >
+                    💡 Final payment is subject to actual physical
+                    weighing and the recycler's applicable rate
+                    at the time of handover.
+                </div>
+
+
+                <div
+                    style="
+                        display:flex;
+                        gap:10px;
+                        margin-top:18px;
+                    "
+                >
+
+                    <button
+                        id="closeCollectorRecyclerConfirmation"
+                        style="
+                            flex:1;
+                            padding:12px;
+                            border:1px solid #d1d5db;
+                            border-radius:11px;
+                            background:#ffffff;
+                            color:#374151;
+                            font-size:13px;
+                            font-weight:700;
+                            cursor:pointer;
+                        "
+                    >
+                        Close
+                    </button>
+
+
+                    <button
+                        id="proceedCollectorHandover"
+                        style="
+                            flex:1;
+                            padding:12px;
+                            border:none;
+                            border-radius:11px;
+                            background:#159570;
+                            color:#ffffff;
+                            font-size:13px;
+                            font-weight:800;
+                            cursor:pointer;
+                        "
+                    >
+                        Proceed to Handover
+                    </button>
+
+                </div>
+
+            </div>
+
+        `;
+
+
+        document.body.appendChild(
+            modal
+        );
+
+
+        function closeModal() {
+
+            const element =
+                document.getElementById(
+                    "collectorRecyclerConfirmation"
+                );
+
+            if (element) {
+                element.remove();
+            }
+
+        }
+
+
+        document
+            .getElementById(
+                "closeCollectorRecyclerConfirmation"
+            )
+            .addEventListener(
+                "click",
+                closeModal
+            );
+
+
+        document
+            .getElementById(
+                "proceedCollectorHandover"
+            )
+            .addEventListener(
+                "click",
+                function () {
+
+                    closeModal();
+
+
+                    // Connect with existing handover system
+                    if (
+                        typeof window.prepareRecyclerHandover ===
+                        "function"
+                    ) {
+
+                        window.prepareRecyclerHandover();
+
+                    } else {
+
+                        alert(
+                            "Recycler selected successfully. Handover module is ready."
+                        );
+
+                    }
+
+                }
+            );
+
+
+        modal.addEventListener(
+            "click",
+            function (event) {
+
+                if (
+                    event.target === modal
+                ) {
+
+                    closeModal();
+
+                }
+
+            }
+        );
+
+    }
+
+
+    // ------------------------------------------------------------
+    // ADD "FIND BEST RECYCLER" BUTTON TO INVENTORY
+    // ------------------------------------------------------------
+
+    function attachInventoryRecyclerButtons() {
+
+        const card =
+            document.getElementById(
+                "collectorInventoryCard"
+            );
+
+
+        if (!card) {
+            return;
+        }
+
+
+        const rows =
+            card.querySelectorAll(
+                "div"
+            );
+
+
+        rows.forEach(
+            function (row) {
+
+                if (
+                    row.dataset &&
+                    row.dataset.bestRecyclerAttached
+                ) {
+                    return;
+                }
+
+
+                const text =
+                    row.innerText || "";
+
+
+                const inventory =
+                    getInventory();
+
+
+                const matchingItem =
+                    inventory.find(
+                        function (item) {
+
+                            return (
+                                text.includes(
+                                    item.material
+                                ) &&
+                                text.includes(
+                                    String(
+                                        item.weight
+                                    )
+                                )
+                            );
+
+                        }
+                    );
+
+
+                if (
+                    !matchingItem
+                ) {
+                    return;
+                }
+
+
+                // Prevent nested duplicate buttons
+
+                if (
+                    row.querySelector(
+                        "[data-best-recycler-button]"
+                    )
+                ) {
+                    return;
+                }
+
+
+                const actionArea =
+                    document.createElement(
+                        "div"
+                    );
+
+
+                actionArea.style.cssText = `
+                    margin-top:10px;
+                `;
+
+
+                actionArea.innerHTML = `
+
+                    <button
+                        data-best-recycler-button="true"
+                        style="
+                            width:100%;
+                            padding:9px 11px;
+                            border:none;
+                            border-radius:9px;
+                            background:#eff6ff;
+                            color:#2563eb;
+                            font-size:11px;
+                            font-weight:800;
+                            cursor:pointer;
+                        "
+                    >
+                        🏆 Find Best Recycler
+                    </button>
+
+                `;
+
+
+                row.appendChild(
+                    actionArea
+                );
+
+
+                const button =
+                    actionArea.querySelector(
+                        "[data-best-recycler-button]"
+                    );
+
+
+                button.addEventListener(
+                    "click",
+                    function (event) {
+
+                        event.stopPropagation();
+
+
+                        openBestRecyclerModal(
+                            matchingItem
+                        );
+
+                    }
+                );
+
+
+                row.dataset.bestRecyclerAttached =
+                    "true";
+
+            }
+        );
+
+    }
+
+
+    // ------------------------------------------------------------
+    // EXPOSE FUNCTIONS
+    // ------------------------------------------------------------
+
+    window.openBestRecyclerForInventory =
+        openBestRecyclerModal;
+
+
+    window.compareCollectorRecyclerPrices =
+        compareRecyclerPrices;
+
+
+    window.collectorSelectedRecycler =
+        window.collectorSelectedRecycler ||
+        null;
+
+
+    // ------------------------------------------------------------
+    // INITIALIZATION
+    // ------------------------------------------------------------
+
+    setTimeout(
+        function () {
+
+            attachInventoryRecyclerButtons();
+
+        },
+        1600
+    );
+
+
+    // ------------------------------------------------------------
+    // REFRESH
+    // ------------------------------------------------------------
+
+    setInterval(
+        function () {
+
+            attachInventoryRecyclerButtons();
+
+        },
+        2000
+    );
+
+
+    console.log(
+        "✅ Step 5F - Best Recycler Recommendation active."
+    );
+
+})();
+
+// ============================================================
+// STEP 5G - COLLECTOR SELL / HANDOVER FLOW
+// Inventory → Recycler → Handover → Sold → Inventory Updated
+// ============================================================
+
+(function () {
+
+    console.log("🚀 Step 5G - Collector Sell / Handover Flow loaded.");
+
+    const SALES_KEY = "kabadiSetuCollectorSales";
+
+    // ------------------------------------------------------------
+    // STORAGE HELPERS
+    // ------------------------------------------------------------
+
+    function getCollectorSales() {
+        try {
+            const data = JSON.parse(localStorage.getItem(SALES_KEY) || "[]");
+            return Array.isArray(data) ? data : [];
+        } catch (error) {
+            console.error("Step 5G: Could not read collector sales.", error);
+            return [];
+        }
+    }
+
+    function saveCollectorSales(sales) {
+        localStorage.setItem(SALES_KEY, JSON.stringify(sales));
+    }
+
+    function generateCollectorSaleId() {
+        const now = new Date();
+
+        const date =
+            now.getFullYear().toString() +
+            String(now.getMonth() + 1).padStart(2, "0") +
+            String(now.getDate()).padStart(2, "0");
+
+        const random = Math.floor(100000 + Math.random() * 900000);
+
+        return "CS-" + date + "-" + random;
+    }
+
+    function generateCollectorToken() {
+        return (
+            "KSETU-COL-" +
+            Date.now().toString(36).toUpperCase()
+        );
+    }
+
+    function formatMoney(value) {
+        return "₹" + Number(value || 0).toLocaleString("en-IN");
+    }
+
+    // ------------------------------------------------------------
+    // NORMALIZE SELECTED RECYCLER
+    // ------------------------------------------------------------
+
+    function getSelectedRecyclerData() {
+
+        const selected = window.collectorSelectedRecycler;
+
+        if (!selected) {
+            return null;
+        }
+
+        const recycler = selected.recycler || {};
+
+        const material = selected.material || "";
+        const weight = Number(selected.weight) || 0;
+
+        const rate =
+            Number(
+                recycler.rate ??
+                recycler.recyclerRate ??
+                selected.rate ??
+                0
+            ) || 0;
+
+        const estimatedValue =
+            Number(
+                recycler.estimated_value ??
+                recycler.estimatedValue ??
+                selected.estimatedValue ??
+                0
+            ) || (rate * weight);
+
+        return {
+            material: material,
+            weight: weight,
+            recycler: {
+                ...recycler,
+                name: recycler.name || "Unknown Recycler",
+                rate: rate,
+                estimated_value: estimatedValue,
+                distance: recycler.distance || "Distance unavailable",
+                rating: Number(recycler.rating) || 0,
+                authorization: recycler.authorization || "Verified",
+                pickup: Boolean(recycler.pickup)
+            },
+            rate: rate,
+            estimatedValue: estimatedValue
+        };
+    }
+
+    // ------------------------------------------------------------
+    // COLLECTOR HANDOVER MODAL
+    // ------------------------------------------------------------
+
+    function createCollectorHandoverModal() {
+
+        if (document.getElementById("collectorHandoverModal")) {
+            return;
+        }
+
+        const modal = document.createElement("div");
+
+        modal.id = "collectorHandoverModal";
+
+        modal.innerHTML = `
+            <div class="modal-overlay" style="
+                position:fixed;
+                inset:0;
+                background:rgba(0,0,0,0.65);
+                z-index:99999;
+                display:flex;
+                align-items:center;
+                justify-content:center;
+                padding:20px;
+            ">
+
+                <div style="
+                    width:min(650px, 100%);
+                    max-height:90vh;
+                    overflow-y:auto;
+                    background:#ffffff;
+                    border-radius:20px;
+                    padding:25px;
+                    box-shadow:0 20px 60px rgba(0,0,0,0.25);
+                ">
+
+                    <div style="
+                        display:flex;
+                        justify-content:space-between;
+                        align-items:center;
+                        margin-bottom:20px;
+                    ">
+
+                        <div>
+                            <h2 style="margin:0 0 5px 0;">
+                                📦 Collector Handover
+                            </h2>
+
+                            <p style="
+                                margin:0;
+                                color:#666;
+                                font-size:14px;
+                            ">
+                                Complete the sale to the selected recycler
+                            </p>
+                        </div>
+
+                        <button
+                            id="closeCollectorHandoverBtn"
+                            style="
+                                border:none;
+                                background:#f1f1f1;
+                                width:38px;
+                                height:38px;
+                                border-radius:50%;
+                                font-size:20px;
+                                cursor:pointer;
+                            "
+                        >
+                            ×
+                        </button>
+
+                    </div>
+
+                    <div id="collectorHandoverContent"></div>
+
+                </div>
+
+            </div>
+        `;
+
+        document.body.appendChild(modal);
+
+        document
+            .getElementById("closeCollectorHandoverBtn")
+            .addEventListener("click", closeCollectorHandover);
+
+        modal
+            .querySelector(".modal-overlay")
+            .addEventListener("click", function (event) {
+
+                if (event.target === this) {
+                    closeCollectorHandover();
+                }
+
+            });
+    }
+
+    // ------------------------------------------------------------
+    // OPEN COLLECTOR HANDOVER
+    // ------------------------------------------------------------
+
+    function openCollectorHandover(data) {
+
+        if (!data) {
+            data = getSelectedRecyclerData();
+        }
+
+        if (!data) {
+            alert(
+                "Please select a recycler from Best Recycler Recommendation first."
+            );
+            return;
+        }
+
+        if (!data.material || data.weight <= 0) {
+            alert("Material and weight are required for handover.");
+            return;
+        }
+
+        createCollectorHandoverModal();
+
+        const modal = document.getElementById(
+            "collectorHandoverModal"
+        );
+
+        const content = document.getElementById(
+            "collectorHandoverContent"
+        );
+
+        const recycler = data.recycler;
+
+        const saleId = generateCollectorSaleId();
+        const token = generateCollectorToken();
+
+        window.activeCollectorHandover = {
+            saleId: saleId,
+            token: token,
+            material: data.material,
+            weight: data.weight,
+            recycler: recycler,
+            rate: data.rate,
+            estimatedValue: data.estimatedValue,
+            createdAt: new Date().toISOString()
+        };
+
+        content.innerHTML = `
+
+            <div style="
+                background:#f7f8fa;
+                border-radius:15px;
+                padding:18px;
+                margin-bottom:15px;
+            ">
+
+                <div style="
+                    font-size:13px;
+                    color:#777;
+                    margin-bottom:5px;
+                ">
+                    SELECTED RECYCLER
+                </div>
+
+                <div style="
+                    font-size:21px;
+                    font-weight:700;
+                    margin-bottom:8px;
+                ">
+                    ♻️ ${recycler.name}
+                </div>
+
+                <div style="
+                    display:flex;
+                    flex-wrap:wrap;
+                    gap:10px;
+                    font-size:13px;
+                ">
+
+                    <span>
+                        📍 ${recycler.distance}
+                    </span>
+
+                    <span>
+                        ⭐ ${recycler.rating || "N/A"}
+                    </span>
+
+                    <span>
+                        ✅ ${recycler.authorization}
+                    </span>
+
+                </div>
+
+            </div>
+
+
+            <div style="
+                display:grid;
+                grid-template-columns:repeat(2, 1fr);
+                gap:12px;
+                margin-bottom:18px;
+            ">
+
+                <div style="
+                    background:#f7f8fa;
+                    border-radius:14px;
+                    padding:15px;
+                ">
+                    <div style="
+                        font-size:12px;
+                        color:#777;
+                    ">
+                        MATERIAL
+                    </div>
+
+                    <strong style="font-size:18px;">
+                        ${data.material}
+                    </strong>
+                </div>
+
+
+                <div style="
+                    background:#f7f8fa;
+                    border-radius:14px;
+                    padding:15px;
+                ">
+                    <div style="
+                        font-size:12px;
+                        color:#777;
+                    ">
+                        PHYSICAL WEIGHT
+                    </div>
+
+                    <strong style="font-size:18px;">
+                        ${data.weight} kg
+                    </strong>
+                </div>
+
+
+                <div style="
+                    background:#f7f8fa;
+                    border-radius:14px;
+                    padding:15px;
+                ">
+                    <div style="
+                        font-size:12px;
+                        color:#777;
+                    ">
+                        RECYCLER RATE
+                    </div>
+
+                    <strong style="font-size:18px;">
+                        ${formatMoney(data.rate)}/kg
+                    </strong>
+                </div>
+
+
+                <div style="
+                    background:#f7f8fa;
+                    border-radius:14px;
+                    padding:15px;
+                ">
+                    <div style="
+                        font-size:12px;
+                        color:#777;
+                    ">
+                        INDICATIVE VALUE
+                    </div>
+
+                    <strong style="
+                        font-size:18px;
+                    ">
+                        ${formatMoney(data.estimatedValue)}
+                    </strong>
+                </div>
+
+            </div>
+
+
+            <div style="
+                border:1px solid #e4e4e4;
+                border-radius:14px;
+                padding:15px;
+                margin-bottom:18px;
+            ">
+
+                <div style="
+                    font-size:13px;
+                    color:#666;
+                    margin-bottom:7px;
+                ">
+                    HANDOVER REFERENCE
+                </div>
+
+                <strong style="
+                    font-size:20px;
+                    letter-spacing:1px;
+                ">
+                    ${saleId}
+                </strong>
+
+                <div style="
+                    margin-top:8px;
+                    font-size:12px;
+                    color:#777;
+                    word-break:break-all;
+                ">
+                    QR Token: ${token}
+                </div>
+
+            </div>
+
+
+            <div style="
+                background:#fff8e6;
+                border:1px solid #f1d48a;
+                border-radius:14px;
+                padding:15px;
+                margin-bottom:20px;
+                font-size:13px;
+                line-height:1.6;
+            ">
+
+                ⚠️ <strong>Important:</strong><br>
+
+                This amount is an indicative value based on the
+                selected recycler rate and entered weight.
+
+                Final settlement may change after the recycler
+                physically verifies the material and weight.
+
+            </div>
+
+
+            <div style="
+                display:flex;
+                gap:10px;
+                flex-wrap:wrap;
+            ">
+
+                <button
+                    id="collectorGenerateQRBtn"
+                    style="
+                        flex:1;
+                        min-width:200px;
+                        padding:14px;
+                        border:none;
+                        border-radius:12px;
+                        background:#111827;
+                        color:white;
+                        font-size:15px;
+                        font-weight:600;
+                        cursor:pointer;
+                    "
+                >
+                    🔐 Generate Handover Token
+                </button>
+
+                <button
+                    id="collectorMarkSoldBtn"
+                    style="
+                        flex:1;
+                        min-width:200px;
+                        padding:14px;
+                        border:none;
+                        border-radius:12px;
+                        background:#16a34a;
+                        color:white;
+                        font-size:15px;
+                        font-weight:600;
+                        cursor:pointer;
+                    "
+                >
+                    ✅ Mark as Sold
+                </button>
+
+            </div>
+
+        `;
+
+        modal.style.display = "block";
+
+        document
+            .getElementById("collectorGenerateQRBtn")
+            .addEventListener("click", generateCollectorHandoverToken);
+
+        document
+            .getElementById("collectorMarkSoldBtn")
+            .addEventListener("click", confirmCollectorSale);
+    }
+
+    // ------------------------------------------------------------
+    // GENERATE HANDOVER TOKEN
+    // ------------------------------------------------------------
+
+    function generateCollectorHandoverToken() {
+
+        if (!window.activeCollectorHandover) {
+            return;
+        }
+
+        const token = window.activeCollectorHandover.token;
+
+        const content = document.getElementById(
+            "collectorHandoverContent"
+        );
+
+        const oldTokenBox = document.getElementById(
+            "collectorTokenBox"
+        );
+
+        if (oldTokenBox) {
+            oldTokenBox.remove();
+        }
+
+        const tokenBox = document.createElement("div");
+
+        tokenBox.id = "collectorTokenBox";
+
+        tokenBox.style.cssText = `
+            margin-top:18px;
+            padding:18px;
+            background:#eef6ff;
+            border:1px solid #b8d9ff;
+            border-radius:14px;
+            text-align:center;
+        `;
+
+        tokenBox.innerHTML = `
+
+            <div style="
+                font-size:13px;
+                color:#555;
+                margin-bottom:8px;
+            ">
+                🔐 DIGITAL HANDOVER TOKEN
+            </div>
+
+            <div style="
+                font-size:25px;
+                font-weight:800;
+                letter-spacing:2px;
+                word-break:break-all;
+            ">
+                ${token}
+            </div>
+
+            <div style="
+                margin-top:8px;
+                font-size:12px;
+                color:#666;
+            ">
+                Show this reference to the recycler during handover.
+            </div>
+
+        `;
+
+        content.appendChild(tokenBox);
+
+        alert(
+            "Handover token generated successfully."
+        );
+    }
+
+    // ------------------------------------------------------------
+    // CLOSE HANDOVER
+    // ------------------------------------------------------------
+
+    function closeCollectorHandover() {
+
+        const modal = document.getElementById(
+            "collectorHandoverModal"
+        );
+
+        if (modal) {
+            modal.style.display = "none";
+        }
+    }
+
+    // ------------------------------------------------------------
+    // UPDATE INVENTORY AFTER SALE
+    // ------------------------------------------------------------
+
+    function updateInventoryAfterSale(material, soldWeight) {
+
+        const INVENTORY_KEY =
+            "kabadiSetuCollectorInventory";
+
+        let inventory = [];
+
+        try {
+            inventory = JSON.parse(
+                localStorage.getItem(INVENTORY_KEY) || "[]"
+            );
+
+            if (!Array.isArray(inventory)) {
+                inventory = [];
+            }
+
+        } catch (error) {
+            console.error(
+                "Step 5G: Inventory read failed.",
+                error
+            );
+
+            return false;
+        }
+
+        let found = false;
+
+        inventory = inventory
+            .map(function (item) {
+
+                if (
+                    item &&
+                    String(item.material).toLowerCase() ===
+                    String(material).toLowerCase()
+                ) {
+
+                    found = true;
+
+                    const currentWeight =
+                        Number(
+                            item.weight ??
+                            item.physicalWeight ??
+                            item.quantity ??
+                            0
+                        ) || 0;
+
+                    const remainingWeight =
+                        currentWeight - Number(soldWeight);
+
+                    return {
+                        ...item,
+                        weight:
+                            remainingWeight > 0
+                                ? Number(remainingWeight.toFixed(2))
+                                : 0
+                    };
+                }
+
+                return item;
+            })
+            .filter(function (item) {
+
+                const weight =
+                    Number(
+                        item.weight ??
+                        item.physicalWeight ??
+                        item.quantity ??
+                        0
+                    ) || 0;
+
+                return weight > 0;
+            });
+
+        if (found) {
+
+            localStorage.setItem(
+                INVENTORY_KEY,
+                JSON.stringify(inventory)
+            );
+
+            console.log(
+                "✅ Step 5G: Inventory updated after sale."
+            );
+
+            return true;
+        }
+
+        console.warn(
+            "Step 5G: Matching inventory item not found."
+        );
+
+        return false;
+    }
+
+    // ------------------------------------------------------------
+    // CONFIRM SALE
+    // ------------------------------------------------------------
+
+    function confirmCollectorSale() {
+
+        const handover =
+            window.activeCollectorHandover;
+
+        if (!handover) {
+            alert("No active collector handover found.");
+            return;
+        }
+
+        const confirmed = confirm(
+            "Confirm that this material has been handed over to the selected recycler and mark it as SOLD?"
+        );
+
+        if (!confirmed) {
+            return;
+        }
+
+        const inventoryUpdated =
+            updateInventoryAfterSale(
+                handover.material,
+                handover.weight
+            );
+
+        if (!inventoryUpdated) {
+
+            alert(
+                "The matching inventory item could not be found. Sale was not recorded."
+            );
+
+            return;
+        }
+
+        const finalValue =
+            Number(handover.rate) *
+            Number(handover.weight);
+
+        const sale = {
+
+            id: handover.saleId,
+
+            token: handover.token,
+
+            material: handover.material,
+
+            weight: Number(handover.weight),
+
+            recycler: {
+                name: handover.recycler.name,
+                rate: Number(handover.rate),
+                distance: handover.recycler.distance,
+                rating: Number(handover.recycler.rating) || 0,
+                authorization:
+                    handover.recycler.authorization
+            },
+
+            rate: Number(handover.rate),
+
+            estimatedValue:
+                Number(handover.estimatedValue),
+
+            finalValue: finalValue,
+
+            status: "Sold",
+
+            createdAt: handover.createdAt,
+
+            completedAt:
+                new Date().toISOString()
+
+        };
+
+        const sales =
+            getCollectorSales();
+
+        sales.unshift(sale);
+
+        saveCollectorSales(sales);
+
+        console.log(
+            "🎉 STEP 5G COMPLETE"
+        );
+
+        console.log(
+            "Collector Sale:",
+            sale
+        );
+
+        showCollectorSaleReceipt(sale);
+
+        window.activeCollectorHandover = null;
+
+        // Clear selected recycler after successful sale
+        window.collectorSelectedRecycler = null;
+
+        // Refresh dashboard/inventory
+        refreshCollectorInventoryUI();
+
+    }
+
+    // ------------------------------------------------------------
+    // SALE RECEIPT
+    // ------------------------------------------------------------
+
+    function showCollectorSaleReceipt(sale) {
+
+        const content =
+            document.getElementById(
+                "collectorHandoverContent"
+            );
+
+        if (!content) {
+            return;
+        }
+
+        content.innerHTML = `
+
+            <div style="
+                text-align:center;
+                padding:10px 0 20px;
+            ">
+
+                <div style="
+                    width:70px;
+                    height:70px;
+                    border-radius:50%;
+                    background:#dcfce7;
+                    display:flex;
+                    align-items:center;
+                    justify-content:center;
+                    margin:0 auto 15px;
+                    font-size:35px;
+                ">
+                    ✓
+                </div>
+
+                <h2 style="
+                    margin:0 0 8px;
+                    color:#15803d;
+                ">
+                    Sale Completed
+                </h2>
+
+                <p style="
+                    margin:0;
+                    color:#666;
+                ">
+                    Material successfully marked as sold.
+                </p>
+
+            </div>
+
+
+            <div style="
+                background:#f7f8fa;
+                border-radius:15px;
+                padding:18px;
+                margin-bottom:18px;
+            ">
+
+                <div style="
+                    display:flex;
+                    justify-content:space-between;
+                    gap:15px;
+                    margin-bottom:12px;
+                ">
+                    <span>Sale ID</span>
+                    <strong>${sale.id}</strong>
+                </div>
+
+                <div style="
+                    display:flex;
+                    justify-content:space-between;
+                    gap:15px;
+                    margin-bottom:12px;
+                ">
+                    <span>Material</span>
+                    <strong>${sale.material}</strong>
+                </div>
+
+                <div style="
+                    display:flex;
+                    justify-content:space-between;
+                    gap:15px;
+                    margin-bottom:12px;
+                ">
+                    <span>Weight</span>
+                    <strong>${sale.weight} kg</strong>
+                </div>
+
+                <div style="
+                    display:flex;
+                    justify-content:space-between;
+                    gap:15px;
+                    margin-bottom:12px;
+                ">
+                    <span>Recycler</span>
+                    <strong>${sale.recycler.name}</strong>
+                </div>
+
+                <div style="
+                    display:flex;
+                    justify-content:space-between;
+                    gap:15px;
+                    margin-bottom:12px;
+                ">
+                    <span>Rate</span>
+                    <strong>${formatMoney(sale.rate)}/kg</strong>
+                </div>
+
+                <div style="
+                    display:flex;
+                    justify-content:space-between;
+                    gap:15px;
+                    padding-top:12px;
+                    border-top:1px solid #ddd;
+                ">
+                    <strong>Sale Value</strong>
+                    <strong style="
+                        font-size:22px;
+                    ">
+                        ${formatMoney(sale.finalValue)}
+                    </strong>
+                </div>
+
+            </div>
+
+
+            <div style="
+                background:#eefbf1;
+                border:1px solid #b8e5c2;
+                border-radius:14px;
+                padding:15px;
+                margin-bottom:18px;
+            ">
+
+                <div style="
+                    font-size:13px;
+                    color:#555;
+                    margin-bottom:6px;
+                ">
+                    DIGITAL TRACEABILITY
+                </div>
+
+                <div style="
+                    font-size:13px;
+                    line-height:1.7;
+                ">
+
+                    Collector Inventory
+                    <br>
+                    ↓
+                    <br>
+                    ${sale.material} — ${sale.weight} kg
+                    <br>
+                    ↓
+                    <br>
+                    ${sale.recycler.name}
+                    <br>
+                    ↓
+                    <br>
+                    <strong>♻️ SOLD / HANDED OVER</strong>
+
+                </div>
+
+            </div>
+
+
+            <div style="
+                display:flex;
+                gap:10px;
+            ">
+
+                <button
+                    id="closeCollectorReceiptBtn"
+                    style="
+                        width:100%;
+                        padding:14px;
+                        border:none;
+                        border-radius:12px;
+                        background:#111827;
+                        color:white;
+                        font-size:15px;
+                        font-weight:600;
+                        cursor:pointer;
+                    "
+                >
+                    Done
+                </button>
+
+            </div>
+
+        `;
+
+        document
+            .getElementById("closeCollectorReceiptBtn")
+            .addEventListener(
+                "click",
+                closeCollectorHandover
+            );
+
+        renderCollectorSalesHistory();
+    }
+
+    // ------------------------------------------------------------
+    // REFRESH INVENTORY UI
+    // ------------------------------------------------------------
+
+    function refreshCollectorInventoryUI() {
+
+        try {
+
+            if (
+                typeof window.renderCollectorInventory ===
+                "function"
+            ) {
+                window.renderCollectorInventory();
+            }
+
+        } catch (error) {
+            console.warn(
+                "Step 5G: Inventory refresh skipped.",
+                error
+            );
+        }
+
+        try {
+
+            if (
+                typeof window.loadCollectorInventory ===
+                "function"
+            ) {
+                window.loadCollectorInventory();
+            }
+
+        } catch (error) {
+            console.warn(
+                "Step 5G: Inventory loader refresh skipped.",
+                error
+            );
+        }
+
+        // Trigger dashboard refresh through click if available
+        try {
+
+            const dashboardButton =
+                document.querySelector(
+                    '[data-page="dashboard"], [data-section="dashboard"]'
+                );
+
+            if (dashboardButton) {
+                // Do not force navigation.
+                // Existing dashboard interval will refresh the UI.
+            }
+
+        } catch (error) {
+            // Ignore UI refresh errors.
+        }
+    }
+
+    // ------------------------------------------------------------
+    // COLLECTOR SALES HISTORY CARD
+    // ------------------------------------------------------------
+
+    function renderCollectorSalesHistory() {
+
+        const sales =
+            getCollectorSales();
+
+        let card =
+            document.getElementById(
+                "collectorSalesHistoryCard"
+            );
+
+        if (!card) {
+
+            card = document.createElement("div");
+
+            card.id =
+                "collectorSalesHistoryCard";
+
+            card.style.cssText = `
+                margin-top:20px;
+                background:#ffffff;
+                border-radius:18px;
+                padding:20px;
+                box-shadow:0 5px 20px rgba(0,0,0,0.08);
+            `;
+
+            document.body.appendChild(card);
+        }
+
+        if (sales.length === 0) {
+
+            card.innerHTML = `
+                <h3 style="margin-top:0;">
+                    📦 Collector Sale History
+                </h3>
+
+                <p style="
+                    color:#777;
+                    margin-bottom:0;
+                ">
+                    No completed collector sales yet.
+                </p>
+            `;
+
+            return;
+        }
+
+        const latestSales =
+            sales.slice(0, 5);
+
+        card.innerHTML = `
+
+            <div style="
+                display:flex;
+                justify-content:space-between;
+                align-items:center;
+                margin-bottom:15px;
+            ">
+
+                <h3 style="margin:0;">
+                    📦 Collector Sale History
+                </h3>
+
+                <span style="
+                    font-size:13px;
+                    color:#666;
+                ">
+                    ${sales.length} sale${sales.length === 1 ? "" : "s"}
+                </span>
+
+            </div>
+
+            <div>
+
+                ${latestSales.map(function (sale) {
+
+                    const date =
+                        new Date(
+                            sale.completedAt ||
+                            sale.createdAt
+                        );
+
+                    return `
+
+                        <div style="
+                            padding:14px 0;
+                            border-bottom:1px solid #eee;
+                            cursor:pointer;
+                        "
+                        data-collector-sale-id="${sale.id}"
+                        >
+
+                            <div style="
+                                display:flex;
+                                justify-content:space-between;
+                                gap:10px;
+                                margin-bottom:6px;
+                            ">
+
+                                <strong>
+                                    ${sale.material}
+                                </strong>
+
+                                <strong>
+                                    ${formatMoney(sale.finalValue)}
+                                </strong>
+
+                            </div>
+
+                            <div style="
+                                display:flex;
+                                flex-wrap:wrap;
+                                gap:12px;
+                                font-size:12px;
+                                color:#666;
+                            ">
+
+                                <span>
+                                    ⚖️ ${sale.weight} kg
+                                </span>
+
+                                <span>
+                                    ♻️ ${sale.recycler.name}
+                                </span>
+
+                                <span>
+                                    ${date.toLocaleDateString("en-IN")}
+                                </span>
+
+                            </div>
+
+                            <div style="
+                                margin-top:6px;
+                                font-size:11px;
+                                color:#999;
+                            ">
+                                ${sale.id}
+                            </div>
+
+                        </div>
+
+                    `;
+
+                }).join("")}
+
+            </div>
+
+        `;
+
+        card
+            .querySelectorAll(
+                "[data-collector-sale-id]"
+            )
+            .forEach(function (row) {
+
+                row.addEventListener(
+                    "click",
+                    function () {
+
+                        const saleId =
+                            this.getAttribute(
+                                "data-collector-sale-id"
+                            );
+
+                        const sale =
+                            sales.find(
+                                function (item) {
+                                    return item.id === saleId;
+                                }
+                            );
+
+                        if (sale) {
+                            showCollectorSaleDetails(sale);
+                        }
+
+                    }
+                );
+
+            });
+    }
+
+    // ------------------------------------------------------------
+    // SALE DETAILS
+    // ------------------------------------------------------------
+
+    function showCollectorSaleDetails(sale) {
+
+        const modal =
+            document.getElementById(
+                "collectorHandoverModal"
+            );
+
+        if (!modal) {
+            createCollectorHandoverModal();
+        }
+
+        const content =
+            document.getElementById(
+                "collectorHandoverContent"
+            );
+
+        content.innerHTML = `
+
+            <h2 style="margin-top:0;">
+                📄 Sale Details
+            </h2>
+
+            <div style="
+                background:#f7f8fa;
+                padding:18px;
+                border-radius:15px;
+                line-height:1.9;
+            ">
+
+                <strong>Sale ID:</strong>
+                ${sale.id}
+                <br>
+
+                <strong>Material:</strong>
+                ${sale.material}
+                <br>
+
+                <strong>Weight:</strong>
+                ${sale.weight} kg
+                <br>
+
+                <strong>Recycler:</strong>
+                ${sale.recycler.name}
+                <br>
+
+                <strong>Recycler Rate:</strong>
+                ${formatMoney(sale.rate)}/kg
+                <br>
+
+                <strong>Final Value:</strong>
+                ${formatMoney(sale.finalValue)}
+                <br>
+
+                <strong>Status:</strong>
+                <span style="color:#15803d;">
+                    ${sale.status}
+                </span>
+
+            </div>
+
+            <div style="
+                margin-top:18px;
+                background:#eefbf1;
+                border-radius:15px;
+                padding:18px;
+            ">
+
+                <strong>
+                    🔗 Traceability
+                </strong>
+
+                <div style="
+                    margin-top:10px;
+                    line-height:1.8;
+                ">
+
+                    Collector Inventory
+                    →
+                    ${sale.material}
+                    →
+                    ${sale.recycler.name}
+                    →
+                    Recycling Chain
+
+                </div>
+
+            </div>
+
+            <button
+                id="closeCollectorSaleDetailsBtn"
+                style="
+                    width:100%;
+                    margin-top:20px;
+                    padding:14px;
+                    border:none;
+                    border-radius:12px;
+                    background:#111827;
+                    color:white;
+                    cursor:pointer;
+                    font-size:15px;
+                    font-weight:600;
+                "
+            >
+                Close
+            </button>
+
+        `;
+
+        modal.style.display = "block";
+
+        document
+            .getElementById(
+                "closeCollectorSaleDetailsBtn"
+            )
+            .addEventListener(
+                "click",
+                closeCollectorHandover
+            );
+    }
+
+    // ------------------------------------------------------------
+    // CONNECT STEP 5F "PROCEED TO HANDOVER"
+    // ------------------------------------------------------------
+
+    const originalPrepareRecyclerHandover =
+        window.prepareRecyclerHandover;
+
+    window.prepareRecyclerHandover =
+        function () {
+
+            /*
+             * If a collector has selected a recycler through
+             * Step 5F, open the collector-specific handover flow.
+             *
+             * Otherwise preserve the existing household/recycler
+             * handover functionality.
+             */
+
+            if (
+                window.collectorSelectedRecycler &&
+                window.collectorSelectedRecycler.material &&
+                Number(
+                    window.collectorSelectedRecycler.weight
+                ) > 0
+            ) {
+
+                console.log(
+                    "📦 Step 5G: Opening collector handover."
+                );
+
+                openCollectorHandover(
+                    getSelectedRecyclerData()
+                );
+
+                return;
+            }
+
+            if (
+                typeof originalPrepareRecyclerHandover ===
+                "function"
+            ) {
+
+                return originalPrepareRecyclerHandover();
+
+            }
+
+            console.warn(
+                "Step 5G: No recycler handover function available."
+            );
+
+        };
+
+    // ------------------------------------------------------------
+    // PUBLIC FUNCTIONS
+    // ------------------------------------------------------------
+
+    window.openCollectorHandover =
+        openCollectorHandover;
+
+    window.getCollectorSales =
+        getCollectorSales;
+
+    window.renderCollectorSalesHistory =
+        renderCollectorSalesHistory;
+
+    window.showCollectorSaleDetails =
+        showCollectorSaleDetails;
+
+    // ------------------------------------------------------------
+    // AUTO REFRESH
+    // ------------------------------------------------------------
+
+    setInterval(
+        function () {
+            renderCollectorSalesHistory();
+        },
+        2500
+    );
+
+    // Initial render
+    setTimeout(
+        function () {
+
+            renderCollectorSalesHistory();
+
+            console.log(
+                "✅ Step 5G - Collector Sell / Handover Flow ready."
+            );
+
+        },
+        1200
+    );
+
+})();
+
+// ============================================================
+// STEP 5H - COLLECTOR SALES DASHBOARD & EARNINGS
+// ============================================================
+
+(function () {
+
+    console.log("🚀 Step 5H - Collector Sales Dashboard loaded.");
+
+    const SALES_KEY = "kabadiSetuCollectorSales";
+
+    // ------------------------------------------------------------
+    // GET SALES
+    // ------------------------------------------------------------
+
+    function getSales() {
+
+        try {
+
+            const sales = JSON.parse(
+                localStorage.getItem(SALES_KEY) || "[]"
+            );
+
+            return Array.isArray(sales) ? sales : [];
+
+        } catch (error) {
+
+            console.error(
+                "Step 5H: Could not load sales.",
+                error
+            );
+
+            return [];
+        }
+    }
+
+    // ------------------------------------------------------------
+    // FORMAT MONEY
+    // ------------------------------------------------------------
+
+    function money(value) {
+
+        return "₹" + Number(value || 0).toLocaleString("en-IN");
+
+    }
+
+    // ------------------------------------------------------------
+    // CREATE DASHBOARD CARD
+    // ------------------------------------------------------------
+
+    function createCollectorEarningsCard() {
+
+        let card = document.getElementById(
+            "collectorEarningsDashboardCard"
+        );
+
+        if (card) {
+            return card;
+        }
+
+        card = document.createElement("div");
+
+        card.id =
+            "collectorEarningsDashboardCard";
+
+        card.style.cssText = `
+            margin-top:20px;
+            background:#ffffff;
+            border-radius:18px;
+            padding:20px;
+            box-shadow:0 5px 20px rgba(0,0,0,0.08);
+        `;
+
+        document.body.appendChild(card);
+
+        return card;
+    }
+
+    // ------------------------------------------------------------
+    // CALCULATE ANALYTICS
+    // ------------------------------------------------------------
+
+    function calculateCollectorAnalytics() {
+
+        const sales = getSales();
+
+        let totalEarnings = 0;
+        let totalWeight = 0;
+        let totalSales = sales.length;
+
+        const recyclerStats = {};
+
+        sales.forEach(function (sale) {
+
+            const value =
+                Number(
+                    sale.finalValue ??
+                    sale.estimatedValue ??
+                    0
+                ) || 0;
+
+            const weight =
+                Number(
+                    sale.weight
+                ) || 0;
+
+            totalEarnings += value;
+
+            totalWeight += weight;
+
+            const recyclerName =
+                sale.recycler &&
+                sale.recycler.name
+                    ? sale.recycler.name
+                    : "Unknown Recycler";
+
+            if (!recyclerStats[recyclerName]) {
+
+                recyclerStats[recyclerName] = {
+                    sales: 0,
+                    weight: 0,
+                    earnings: 0
+                };
+
+            }
+
+            recyclerStats[recyclerName].sales += 1;
+
+            recyclerStats[recyclerName].weight +=
+                weight;
+
+            recyclerStats[recyclerName].earnings +=
+                value;
+
+        });
+
+        return {
+            totalEarnings:
+                Number(totalEarnings.toFixed(2)),
+
+            totalWeight:
+                Number(totalWeight.toFixed(2)),
+
+            totalSales:
+                totalSales,
+
+            recyclerStats:
+                recyclerStats
+        };
+    }
+
+    // ------------------------------------------------------------
+    // RENDER DASHBOARD
+    // ------------------------------------------------------------
+
+    function renderCollectorEarningsDashboard() {
+
+        const card =
+            createCollectorEarningsCard();
+
+        const analytics =
+            calculateCollectorAnalytics();
+
+        const recyclerNames =
+            Object.keys(
+                analytics.recyclerStats
+            );
+
+        if (analytics.totalSales === 0) {
+
+            card.innerHTML = `
+
+                <div style="
+                    display:flex;
+                    justify-content:space-between;
+                    align-items:center;
+                    margin-bottom:15px;
+                ">
+
+                    <h3 style="margin:0;">
+                        💰 Collector Earnings
+                    </h3>
+
+                    <span style="
+                        font-size:12px;
+                        color:#777;
+                    ">
+                        Sales Dashboard
+                    </span>
+
+                </div>
+
+                <div style="
+                    text-align:center;
+                    padding:25px 10px;
+                    color:#777;
+                ">
+
+                    <div style="
+                        font-size:40px;
+                        margin-bottom:10px;
+                    ">
+                        📦
+                    </div>
+
+                    <strong>
+                        No completed sales yet
+                    </strong>
+
+                    <p style="
+                        font-size:13px;
+                        margin-bottom:0;
+                    ">
+                        Complete a recycler handover to
+                        start tracking your earnings.
+                    </p>
+
+                </div>
+
+            `;
+
+            return;
+        }
+
+        card.innerHTML = `
+
+            <div style="
+                display:flex;
+                justify-content:space-between;
+                align-items:center;
+                margin-bottom:18px;
+            ">
+
+                <div>
+
+                    <h3 style="
+                        margin:0 0 4px;
+                    ">
+                        💰 Collector Earnings
+                    </h3>
+
+                    <div style="
+                        font-size:12px;
+                        color:#777;
+                    ">
+                        Recycling sales performance
+                    </div>
+
+                </div>
+
+                <div style="
+                    font-size:24px;
+                ">
+                    📊
+                </div>
+
+            </div>
+
+
+            <!-- SUMMARY CARDS -->
+
+            <div style="
+                display:grid;
+                grid-template-columns:
+                    repeat(auto-fit,minmax(140px,1fr));
+                gap:12px;
+                margin-bottom:20px;
+            ">
+
+
+                <div style="
+                    background:#f0fdf4;
+                    border-radius:15px;
+                    padding:16px;
+                    border:1px solid #dcfce7;
+                ">
+
+                    <div style="
+                        font-size:12px;
+                        color:#666;
+                    ">
+                        TOTAL EARNINGS
+                    </div>
+
+                    <div style="
+                        font-size:23px;
+                        font-weight:800;
+                        margin-top:6px;
+                    ">
+                        ${money(
+                            analytics.totalEarnings
+                        )}
+                    </div>
+
+                </div>
+
+
+                <div style="
+                    background:#eff6ff;
+                    border-radius:15px;
+                    padding:16px;
+                    border:1px solid #dbeafe;
+                ">
+
+                    <div style="
+                        font-size:12px;
+                        color:#666;
+                    ">
+                        WEIGHT SOLD
+                    </div>
+
+                    <div style="
+                        font-size:23px;
+                        font-weight:800;
+                        margin-top:6px;
+                    ">
+                        ${analytics.totalWeight}
+                        kg
+                    </div>
+
+                </div>
+
+
+                <div style="
+                    background:#faf5ff;
+                    border-radius:15px;
+                    padding:16px;
+                    border:1px solid #f3e8ff;
+                ">
+
+                    <div style="
+                        font-size:12px;
+                        color:#666;
+                    ">
+                        COMPLETED SALES
+                    </div>
+
+                    <div style="
+                        font-size:23px;
+                        font-weight:800;
+                        margin-top:6px;
+                    ">
+                        ${analytics.totalSales}
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- RECYCLER PERFORMANCE -->
+
+            <div>
+
+                <div style="
+                    font-size:14px;
+                    font-weight:700;
+                    margin-bottom:10px;
+                ">
+                    ♻️ Recycler-wise Performance
+                </div>
+
+
+                ${recyclerNames.map(function (name) {
+
+                    const stats =
+                        analytics.recyclerStats[name];
+
+                    return `
+
+                        <div style="
+                            padding:14px;
+                            border:1px solid #eee;
+                            border-radius:14px;
+                            margin-bottom:10px;
+                        ">
+
+                            <div style="
+                                display:flex;
+                                justify-content:space-between;
+                                gap:10px;
+                                margin-bottom:8px;
+                            ">
+
+                                <strong>
+                                    ${name}
+                                </strong>
+
+                                <strong>
+                                    ${money(
+                                        stats.earnings
+                                    )}
+                                </strong>
+
+                            </div>
+
+
+                            <div style="
+                                display:flex;
+                                flex-wrap:wrap;
+                                gap:12px;
+                                font-size:12px;
+                                color:#666;
+                            ">
+
+                                <span>
+                                    📦 ${stats.sales}
+                                    sale${stats.sales === 1 ? "" : "s"}
+                                </span>
+
+                                <span>
+                                    ⚖️ ${stats.weight.toFixed(2)}
+                                    kg
+                                </span>
+
+                                <span>
+                                    💰 ${money(
+                                        stats.earnings
+                                    )}
+                                </span>
+
+                            </div>
+
+                        </div>
+
+                    `;
+
+                }).join("")}
+
+            </div>
+
+
+            <!-- TRANSPARENCY NOTE -->
+
+            <div style="
+                margin-top:15px;
+                padding:13px;
+                border-radius:12px;
+                background:#f8fafc;
+                font-size:12px;
+                color:#666;
+                line-height:1.6;
+            ">
+
+                💡 <strong>Transparent Earnings:</strong>
+                Earnings are calculated from completed
+                collector sales recorded in Kabadi Setu.
+                Final settlement is subject to actual
+                physical weight and recycler rates.
+
+            </div>
+
+        `;
+
+    }
+
+    // ------------------------------------------------------------
+    // ADD TO DASHBOARD
+    // ------------------------------------------------------------
+
+    function moveCardNearDashboard() {
+
+        const card =
+            document.getElementById(
+                "collectorEarningsDashboardCard"
+            );
+
+        if (!card) {
+            return;
+        }
+
+        /*
+         * We intentionally do not force the card into an
+         * existing container because the current dashboard
+         * structure may vary.
+         *
+         * The card remains part of the existing page and
+         * refreshes automatically.
+         */
+
+    }
+
+    // ------------------------------------------------------------
+    // REFRESH
+    // ------------------------------------------------------------
+
+    function refreshCollectorEarnings() {
+
+        renderCollectorEarningsDashboard();
+
+        moveCardNearDashboard();
+
+    }
+
+    // ------------------------------------------------------------
+    // PUBLIC FUNCTION
+    // ------------------------------------------------------------
+
+    window.renderCollectorEarningsDashboard =
+        renderCollectorEarningsDashboard;
+
+    window.getCollectorSalesAnalytics =
+        calculateCollectorAnalytics;
+
+    // ------------------------------------------------------------
+    // AUTO REFRESH
+    // ------------------------------------------------------------
+
+    setInterval(
+        function () {
+
+            refreshCollectorEarnings();
+
+        },
+        2500
+    );
+
+    // ------------------------------------------------------------
+    // INITIAL LOAD
+    // ------------------------------------------------------------
+
+    setTimeout(
+        function () {
+
+            refreshCollectorEarnings();
+
+            console.log(
+                "✅ Step 5H - Collector Earnings Dashboard ready."
+            );
+
+        },
+        1500
+    );
+
+})();
+
+// ============================================================
+// STEP 5I - COLLECTOR PROFILE & VERIFICATION
+// ============================================================
+
+(function () {
+
+    console.log("🚀 Step 5I - Collector Profile loaded.");
+
+    const PROFILE_KEY = "kabadiSetuCollectorProfile";
+    const SALES_KEY = "kabadiSetuCollectorSales";
+    const INVENTORY_KEY = "kabadiSetuCollectorInventory";
+
+    // ------------------------------------------------------------
+    // DEFAULT PROFILE
+    // ------------------------------------------------------------
+
+    const DEFAULT_PROFILE = {
+        name: "Kabadi Setu Collector",
+        phone: "",
+        area: "Local Service Area",
+        language: "Hindi",
+        verified: true,
+        joinedAt: new Date().toISOString(),
+        trustScore: 4.8
+    };
+
+    // ------------------------------------------------------------
+    // GET PROFILE
+    // ------------------------------------------------------------
+
+    function getCollectorProfile() {
+
+        try {
+
+            const saved =
+                JSON.parse(
+                    localStorage.getItem(PROFILE_KEY) || "null"
+                );
+
+            if (saved && typeof saved === "object") {
+                return {
+                    ...DEFAULT_PROFILE,
+                    ...saved
+                };
+            }
+
+        } catch (error) {
+
+            console.warn(
+                "Step 5I: Profile could not be loaded.",
+                error
+            );
+
+        }
+
+        return {
+            ...DEFAULT_PROFILE
+        };
+    }
+
+    // ------------------------------------------------------------
+    // SAVE PROFILE
+    // ------------------------------------------------------------
+
+    function saveCollectorProfile(profile) {
+
+        localStorage.setItem(
+            PROFILE_KEY,
+            JSON.stringify(profile)
+        );
+
+        console.log(
+            "✅ Step 5I: Collector profile saved."
+        );
+    }
+
+    // ------------------------------------------------------------
+    // GET SALES
+    // ------------------------------------------------------------
+
+    function getSales() {
+
+        try {
+
+            const sales =
+                JSON.parse(
+                    localStorage.getItem(SALES_KEY) || "[]"
+                );
+
+            return Array.isArray(sales)
+                ? sales
+                : [];
+
+        } catch (error) {
+
+            return [];
+
+        }
+    }
+
+    // ------------------------------------------------------------
+    // GET INVENTORY
+    // ------------------------------------------------------------
+
+    function getInventory() {
+
+        try {
+
+            const inventory =
+                JSON.parse(
+                    localStorage.getItem(
+                        INVENTORY_KEY
+                    ) || "[]"
+                );
+
+            return Array.isArray(inventory)
+                ? inventory
+                : [];
+
+        } catch (error) {
+
+            return [];
+
+        }
+    }
+
+    // ------------------------------------------------------------
+    // CALCULATE COLLECTOR STATS
+    // ------------------------------------------------------------
+
+    function calculateCollectorStats() {
+
+        const sales =
+            getSales();
+
+        const inventory =
+            getInventory();
+
+        let totalWeightSold = 0;
+        let totalEarnings = 0;
+
+        sales.forEach(function (sale) {
+
+            totalWeightSold +=
+                Number(sale.weight) || 0;
+
+            totalEarnings +=
+                Number(
+                    sale.finalValue ??
+                    sale.estimatedValue ??
+                    0
+                ) || 0;
+
+        });
+
+        let inventoryWeight = 0;
+
+        inventory.forEach(function (item) {
+
+            inventoryWeight +=
+                Number(
+                    item.weight ??
+                    item.physicalWeight ??
+                    item.quantity ??
+                    0
+                ) || 0;
+
+        });
+
+        return {
+
+            completedSales:
+                sales.length,
+
+            totalWeightSold:
+                Number(
+                    totalWeightSold.toFixed(2)
+                ),
+
+            totalEarnings:
+                Number(
+                    totalEarnings.toFixed(2)
+                ),
+
+            currentInventory:
+                Number(
+                    inventoryWeight.toFixed(2)
+                )
+
+        };
+
+    }
+
+    // ------------------------------------------------------------
+    // COLLECTOR LEVEL
+    // ------------------------------------------------------------
+
+    function getCollectorLevel(sales) {
+
+        if (sales >= 25) {
+            return {
+                title: "🏆 Recycling Champion",
+                description:
+                    "25+ successful recycler handovers"
+            };
+        }
+
+        if (sales >= 10) {
+            return {
+                title: "🥇 Verified Recycler Partner",
+                description:
+                    "10+ successful recycler handovers"
+            };
+        }
+
+        if (sales >= 5) {
+            return {
+                title: "🥈 Active Collector",
+                description:
+                    "5+ successful recycler handovers"
+            };
+        }
+
+        return {
+            title: "🌱 New Collector",
+            description:
+                "Start completing handovers to level up"
+        };
+
+    }
+
+    // ------------------------------------------------------------
+    // CREATE PROFILE CARD
+    // ------------------------------------------------------------
+
+    function createProfileCard() {
+
+        let card =
+            document.getElementById(
+                "collectorProfileCard"
+            );
+
+        if (card) {
+            return card;
+        }
+
+        card =
+            document.createElement("div");
+
+        card.id =
+            "collectorProfileCard";
+
+        card.style.cssText = `
+            margin-top:20px;
+            background:#ffffff;
+            border-radius:18px;
+            padding:20px;
+            box-shadow:0 5px 20px rgba(0,0,0,0.08);
+        `;
+
+        document.body.appendChild(card);
+
+        return card;
+
+    }
+
+    // ------------------------------------------------------------
+    // RENDER PROFILE
+    // ------------------------------------------------------------
+
+    function renderCollectorProfile() {
+
+        const card =
+            createProfileCard();
+
+        const profile =
+            getCollectorProfile();
+
+        const stats =
+            calculateCollectorStats();
+
+        const level =
+            getCollectorLevel(
+                stats.completedSales
+            );
+
+        card.innerHTML = `
+
+            <!-- HEADER -->
+
+            <div style="
+                display:flex;
+                justify-content:space-between;
+                align-items:center;
+                gap:15px;
+                margin-bottom:20px;
+            ">
+
+                <div style="
+                    display:flex;
+                    align-items:center;
+                    gap:14px;
+                ">
+
+                    <div style="
+                        width:58px;
+                        height:58px;
+                        border-radius:50%;
+                        background:#f0fdf4;
+                        display:flex;
+                        align-items:center;
+                        justify-content:center;
+                        font-size:30px;
+                    ">
+                        👤
+                    </div>
+
+                    <div>
+
+                        <h3 style="
+                            margin:0 0 5px;
+                        ">
+                            ${profile.name}
+                        </h3>
+
+                        <div style="
+                            font-size:12px;
+                            color:#777;
+                        ">
+                            Collector ID: KS-COL-${String(
+                                Math.abs(
+                                    profile.name
+                                        .split("")
+                                        .reduce(
+                                            function (a, c) {
+                                                return (
+                                                    (a << 5) -
+                                                    a +
+                                                    c.charCodeAt(0)
+                                                ) |
+                                                0;
+                                            },
+                                            0
+                                        )
+                                )
+                            ).slice(0, 6)}
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <div style="
+                    padding:7px 10px;
+                    border-radius:20px;
+                    background:#dcfce7;
+                    color:#15803d;
+                    font-size:12px;
+                    font-weight:700;
+                    white-space:nowrap;
+                ">
+                    ${profile.verified
+                        ? "✓ VERIFIED"
+                        : "UNVERIFIED"}
+                </div>
+
+            </div>
+
+
+            <!-- LEVEL -->
+
+            <div style="
+                background:#f8fafc;
+                border-radius:15px;
+                padding:16px;
+                margin-bottom:18px;
+            ">
+
+                <div style="
+                    font-size:12px;
+                    color:#777;
+                    margin-bottom:5px;
+                ">
+                    COLLECTOR LEVEL
+                </div>
+
+                <div style="
+                    font-size:19px;
+                    font-weight:800;
+                ">
+                    ${level.title}
+                </div>
+
+                <div style="
+                    margin-top:5px;
+                    font-size:12px;
+                    color:#777;
+                ">
+                    ${level.description}
+                </div>
+
+            </div>
+
+
+            <!-- PROFILE DETAILS -->
+
+            <div style="
+                display:grid;
+                grid-template-columns:
+                    repeat(auto-fit,minmax(150px,1fr));
+                gap:10px;
+                margin-bottom:18px;
+            ">
+
+                <div style="
+                    padding:14px;
+                    border:1px solid #eee;
+                    border-radius:13px;
+                ">
+
+                    <div style="
+                        font-size:11px;
+                        color:#888;
+                    ">
+                        SERVICE AREA
+                    </div>
+
+                    <strong>
+                        📍 ${profile.area}
+                    </strong>
+
+                </div>
+
+
+                <div style="
+                    padding:14px;
+                    border:1px solid #eee;
+                    border-radius:13px;
+                ">
+
+                    <div style="
+                        font-size:11px;
+                        color:#888;
+                    ">
+                        LANGUAGE
+                    </div>
+
+                    <strong>
+                        🗣️ ${profile.language}
+                    </strong>
+
+                </div>
+
+
+                <div style="
+                    padding:14px;
+                    border:1px solid #eee;
+                    border-radius:13px;
+                ">
+
+                    <div style="
+                        font-size:11px;
+                        color:#888;
+                    ">
+                        TRUST SCORE
+                    </div>
+
+                    <strong>
+                        ⭐ ${profile.trustScore}/5
+                    </strong>
+
+                </div>
+
+            </div>
+
+
+            <!-- PERFORMANCE -->
+
+            <div style="
+                font-size:14px;
+                font-weight:700;
+                margin-bottom:10px;
+            ">
+                📊 Collector Performance
+            </div>
+
+
+            <div style="
+                display:grid;
+                grid-template-columns:
+                    repeat(auto-fit,minmax(130px,1fr));
+                gap:10px;
+            ">
+
+                <div style="
+                    background:#f0fdf4;
+                    border-radius:13px;
+                    padding:14px;
+                ">
+
+                    <div style="
+                        font-size:11px;
+                        color:#777;
+                    ">
+                        EARNINGS
+                    </div>
+
+                    <strong style="
+                        font-size:19px;
+                    ">
+                        ₹${stats.totalEarnings.toLocaleString(
+                            "en-IN"
+                        )}
+                    </strong>
+
+                </div>
+
+
+                <div style="
+                    background:#eff6ff;
+                    border-radius:13px;
+                    padding:14px;
+                ">
+
+                    <div style="
+                        font-size:11px;
+                        color:#777;
+                    ">
+                        WEIGHT SOLD
+                    </div>
+
+                    <strong style="
+                        font-size:19px;
+                    ">
+                        ${stats.totalWeightSold} kg
+                    </strong>
+
+                </div>
+
+
+                <div style="
+                    background:#faf5ff;
+                    border-radius:13px;
+                    padding:14px;
+                ">
+
+                    <div style="
+                        font-size:11px;
+                        color:#777;
+                    ">
+                        HANDOVERS
+                    </div>
+
+                    <strong style="
+                        font-size:19px;
+                    ">
+                        ${stats.completedSales}
+                    </strong>
+
+                </div>
+
+
+                <div style="
+                    background:#fff7ed;
+                    border-radius:13px;
+                    padding:14px;
+                ">
+
+                    <div style="
+                        font-size:11px;
+                        color:#777;
+                    ">
+                        CURRENT STOCK
+                    </div>
+
+                    <strong style="
+                        font-size:19px;
+                    ">
+                        ${stats.currentInventory} kg
+                    </strong>
+
+                </div>
+
+            </div>
+
+
+            <!-- EDIT PROFILE -->
+
+            <button
+                id="editCollectorProfileBtn"
+                style="
+                    width:100%;
+                    margin-top:18px;
+                    padding:13px;
+                    border:none;
+                    border-radius:12px;
+                    background:#111827;
+                    color:white;
+                    font-size:14px;
+                    font-weight:600;
+                    cursor:pointer;
+                "
+            >
+                ✏️ Edit Collector Profile
+            </button>
+
+        `;
+
+        const editButton =
+            document.getElementById(
+                "editCollectorProfileBtn"
+            );
+
+        if (editButton) {
+
+            editButton.addEventListener(
+                "click",
+                openCollectorProfileEditor
+            );
+
+        }
+
+    }
+
+    // ------------------------------------------------------------
+    // PROFILE EDITOR
+    // ------------------------------------------------------------
+
+    function openCollectorProfileEditor() {
+
+        const profile =
+            getCollectorProfile();
+
+        let modal =
+            document.getElementById(
+                "collectorProfileEditor"
+            );
+
+        if (!modal) {
+
+            modal =
+                document.createElement("div");
+
+            modal.id =
+                "collectorProfileEditor";
+
+            modal.innerHTML = `
+
+                <div style="
+                    position:fixed;
+                    inset:0;
+                    background:rgba(0,0,0,0.65);
+                    z-index:99998;
+                    display:flex;
+                    align-items:center;
+                    justify-content:center;
+                    padding:20px;
+                ">
+
+                    <div style="
+                        width:min(500px,100%);
+                        background:white;
+                        border-radius:18px;
+                        padding:24px;
+                    ">
+
+                        <h2 style="
+                            margin-top:0;
+                        ">
+                            👤 Collector Profile
+                        </h2>
+
+                        <label style="
+                            display:block;
+                            margin-bottom:5px;
+                            font-size:13px;
+                        ">
+                            Name
+                        </label>
+
+                        <input
+                            id="collectorProfileName"
+                            type="text"
+                            style="
+                                width:100%;
+                                box-sizing:border-box;
+                                padding:12px;
+                                border:1px solid #ddd;
+                                border-radius:10px;
+                                margin-bottom:14px;
+                            "
+                        />
+
+
+                        <label style="
+                            display:block;
+                            margin-bottom:5px;
+                            font-size:13px;
+                        ">
+                            Phone
+                        </label>
+
+                        <input
+                            id="collectorProfilePhone"
+                            type="tel"
+                            style="
+                                width:100%;
+                                box-sizing:border-box;
+                                padding:12px;
+                                border:1px solid #ddd;
+                                border-radius:10px;
+                                margin-bottom:14px;
+                            "
+                        />
+
+
+                        <label style="
+                            display:block;
+                            margin-bottom:5px;
+                            font-size:13px;
+                        ">
+                            Service Area
+                        </label>
+
+                        <input
+                            id="collectorProfileArea"
+                            type="text"
+                            style="
+                                width:100%;
+                                box-sizing:border-box;
+                                padding:12px;
+                                border:1px solid #ddd;
+                                border-radius:10px;
+                                margin-bottom:14px;
+                            "
+                        />
+
+
+                        <label style="
+                            display:block;
+                            margin-bottom:5px;
+                            font-size:13px;
+                        ">
+                            Preferred Language
+                        </label>
+
+                        <select
+                            id="collectorProfileLanguage"
+                            style="
+                                width:100%;
+                                box-sizing:border-box;
+                                padding:12px;
+                                border:1px solid #ddd;
+                                border-radius:10px;
+                                margin-bottom:20px;
+                            "
+                        >
+
+                            <option value="Hindi">
+                                Hindi
+                            </option>
+
+                            <option value="Marathi">
+                                Marathi
+                            </option>
+
+                            <option value="English">
+                                English
+                            </option>
+
+                        </select>
+
+
+                        <div style="
+                            display:flex;
+                            gap:10px;
+                        ">
+
+                            <button
+                                id="cancelCollectorProfileBtn"
+                                style="
+                                    flex:1;
+                                    padding:13px;
+                                    border:1px solid #ddd;
+                                    border-radius:10px;
+                                    background:white;
+                                    cursor:pointer;
+                                "
+                            >
+                                Cancel
+                            </button>
+
+                            <button
+                                id="saveCollectorProfileBtn"
+                                style="
+                                    flex:1;
+                                    padding:13px;
+                                    border:none;
+                                    border-radius:10px;
+                                    background:#111827;
+                                    color:white;
+                                    cursor:pointer;
+                                    font-weight:600;
+                                "
+                            >
+                                Save Profile
+                            </button>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            `;
+
+            document.body.appendChild(modal);
+
+        }
+
+        modal.style.display = "block";
+
+        document.getElementById(
+            "collectorProfileName"
+        ).value = profile.name;
+
+        document.getElementById(
+            "collectorProfilePhone"
+        ).value = profile.phone;
+
+        document.getElementById(
+            "collectorProfileArea"
+        ).value = profile.area;
+
+        document.getElementById(
+            "collectorProfileLanguage"
+        ).value = profile.language;
+
+        document.getElementById(
+            "cancelCollectorProfileBtn"
+        ).onclick = function () {
+
+            modal.style.display = "none";
+
+        };
+
+        document.getElementById(
+            "saveCollectorProfileBtn"
+        ).onclick = function () {
+
+            profile.name =
+                document.getElementById(
+                    "collectorProfileName"
+                ).value.trim()
+                || "Kabadi Setu Collector";
+
+            profile.phone =
+                document.getElementById(
+                    "collectorProfilePhone"
+                ).value.trim();
+
+            profile.area =
+                document.getElementById(
+                    "collectorProfileArea"
+                ).value.trim()
+                || "Local Service Area";
+
+            profile.language =
+                document.getElementById(
+                    "collectorProfileLanguage"
+                ).value;
+
+            saveCollectorProfile(profile);
+
+            modal.style.display = "none";
+
+            renderCollectorProfile();
+
+            alert(
+                "Collector profile updated successfully."
+            );
+
+        };
+
+    }
+
+    // ------------------------------------------------------------
+    // PUBLIC FUNCTIONS
+    // ------------------------------------------------------------
+
+    window.getCollectorProfile =
+        getCollectorProfile;
+
+    window.saveCollectorProfile =
+        saveCollectorProfile;
+
+    window.renderCollectorProfile =
+        renderCollectorProfile;
+
+    window.calculateCollectorStats =
+        calculateCollectorStats;
+
+    // ------------------------------------------------------------
+    // AUTO REFRESH
+    // ------------------------------------------------------------
+
+    setInterval(
+        function () {
+
+            renderCollectorProfile();
+
+        },
+        3000
+    );
+
+    // ------------------------------------------------------------
+    // INITIAL LOAD
+    // ------------------------------------------------------------
+
+    setTimeout(
+        function () {
+
+            renderCollectorProfile();
+
+            console.log(
+                "✅ Step 5I - Collector Profile ready."
+            );
+
+        },
+        1800
+    );
+
+})();
+
+// ============================================================
+// STEP 5J - COLLECTOR NOTIFICATIONS & ALERTS
+// ============================================================
+
+(function () {
+
+    console.log("🚀 Step 5J - Notifications & Alerts loaded.");
+
+    const NOTIFICATION_KEY =
+        "kabadiSetuCollectorNotifications";
+
+    // ------------------------------------------------------------
+    // STORAGE
+    // ------------------------------------------------------------
+
+    function getNotifications() {
+
+        try {
+
+            const data = JSON.parse(
+                localStorage.getItem(NOTIFICATION_KEY) || "[]"
+            );
+
+            return Array.isArray(data) ? data : [];
+
+        } catch (error) {
+
+            console.error(
+                "Step 5J: Notification storage error.",
+                error
+            );
+
+            return [];
+        }
+    }
+
+    function saveNotifications(notifications) {
+
+        localStorage.setItem(
+            NOTIFICATION_KEY,
+            JSON.stringify(notifications)
+        );
+
+    }
+
+    // ------------------------------------------------------------
+    // CREATE NOTIFICATION
+    // ------------------------------------------------------------
+
+    function addCollectorNotification(
+        title,
+        message,
+        type = "info"
+    ) {
+
+        const notifications =
+            getNotifications();
+
+        const notification = {
+
+            id:
+                "NT-" +
+                Date.now() +
+                "-" +
+                Math.floor(
+                    Math.random() * 1000
+                ),
+
+            title: title,
+
+            message: message,
+
+            type: type,
+
+            read: false,
+
+            createdAt:
+                new Date().toISOString()
+
+        };
+
+        notifications.unshift(
+            notification
+        );
+
+        // Keep latest 50 notifications
+        const limited =
+            notifications.slice(0, 50);
+
+        saveNotifications(limited);
+
+        renderNotificationUI();
+
+        console.log(
+            "🔔 Notification added:",
+            notification
+        );
+
+        return notification;
+    }
+
+    // ------------------------------------------------------------
+    // UNREAD COUNT
+    // ------------------------------------------------------------
+
+    function getUnreadCount() {
+
+        return getNotifications()
+            .filter(function (notification) {
+                return !notification.read;
+            })
+            .length;
+
+    }
+
+    // ------------------------------------------------------------
+    // FORMAT TIME
+    // ------------------------------------------------------------
+
+    function formatNotificationTime(
+        dateString
+    ) {
+
+        const date =
+            new Date(dateString);
+
+        if (isNaN(date.getTime())) {
+            return "";
+        }
+
+        return date.toLocaleString(
+            "en-IN",
+            {
+                day: "2-digit",
+                month: "short",
+                year: "numeric",
+                hour: "2-digit",
+                minute: "2-digit"
+            }
+        );
+
+    }
+
+    // ------------------------------------------------------------
+    // ICON
+    // ------------------------------------------------------------
+
+    function getNotificationIcon(
+        type
+    ) {
+
+        switch (type) {
+
+            case "success":
+                return "✅";
+
+            case "warning":
+                return "⚠️";
+
+            case "sale":
+                return "💰";
+
+            case "pickup":
+                return "🚚";
+
+            case "recycler":
+                return "♻️";
+
+            case "inventory":
+                return "📦";
+
+            case "achievement":
+                return "🏆";
+
+            default:
+                return "🔔";
+
+        }
+
+    }
+
+    // ------------------------------------------------------------
+    // CREATE NOTIFICATION CARD
+    // ------------------------------------------------------------
+
+    function createNotificationCard() {
+
+        let card =
+            document.getElementById(
+                "collectorNotificationsCard"
+            );
+
+        if (card) {
+            return card;
+        }
+
+        card =
+            document.createElement("div");
+
+        card.id =
+            "collectorNotificationsCard";
+
+        card.style.cssText = `
+            margin-top:20px;
+            background:#ffffff;
+            border-radius:18px;
+            padding:20px;
+            box-shadow:0 5px 20px rgba(0,0,0,0.08);
+        `;
+
+        document.body.appendChild(card);
+
+        return card;
+
+    }
+
+    // ------------------------------------------------------------
+    // RENDER NOTIFICATIONS
+    // ------------------------------------------------------------
+
+    function renderNotificationUI() {
+
+        const card =
+            createNotificationCard();
+
+        const notifications =
+            getNotifications();
+
+        const unreadCount =
+            getUnreadCount();
+
+        if (notifications.length === 0) {
+
+            card.innerHTML = `
+
+                <div style="
+                    display:flex;
+                    justify-content:space-between;
+                    align-items:center;
+                    margin-bottom:15px;
+                ">
+
+                    <div>
+                        <h3 style="margin:0;">
+                            🔔 Notifications
+                        </h3>
+
+                        <div style="
+                            font-size:12px;
+                            color:#777;
+                            margin-top:4px;
+                        ">
+                            Collector activity updates
+                        </div>
+                    </div>
+
+                </div>
+
+                <div style="
+                    text-align:center;
+                    padding:25px 10px;
+                    color:#777;
+                ">
+
+                    <div style="
+                        font-size:38px;
+                        margin-bottom:8px;
+                    ">
+                        🔕
+                    </div>
+
+                    <strong>
+                        No notifications yet
+                    </strong>
+
+                    <p style="
+                        font-size:13px;
+                        margin-bottom:0;
+                    ">
+                        Your important activity updates
+                        will appear here.
+                    </p>
+
+                </div>
+
+            `;
+
+            updateNotificationBell();
+
+            return;
+        }
+
+        card.innerHTML = `
+
+            <div style="
+                display:flex;
+                justify-content:space-between;
+                align-items:center;
+                gap:10px;
+                margin-bottom:16px;
+            ">
+
+                <div>
+
+                    <h3 style="margin:0;">
+                        🔔 Notifications
+                    </h3>
+
+                    <div style="
+                        font-size:12px;
+                        color:#777;
+                        margin-top:4px;
+                    ">
+
+                        ${unreadCount}
+                        unread notification${unreadCount === 1 ? "" : "s"}
+
+                    </div>
+
+                </div>
+
+
+                ${
+                    unreadCount > 0
+                    ? `
+                        <button
+                            id="markAllNotificationsReadBtn"
+                            style="
+                                border:none;
+                                background:#f1f5f9;
+                                padding:8px 12px;
+                                border-radius:9px;
+                                cursor:pointer;
+                                font-size:12px;
+                            "
+                        >
+                            ✓ Mark all read
+                        </button>
+                    `
+                    : ""
+                }
+
+            </div>
+
+
+            <div>
+
+                ${
+                    notifications
+                        .slice(0, 10)
+                        .map(function (notification) {
+
+                            const background =
+                                notification.read
+                                    ? "#ffffff"
+                                    : "#f8fafc";
+
+                            return `
+
+                                <div
+                                    data-notification-id="${notification.id}"
+                                    style="
+                                        display:flex;
+                                        gap:12px;
+                                        padding:13px;
+                                        margin-bottom:8px;
+                                        border-radius:13px;
+                                        border:1px solid #eeeeee;
+                                        background:${background};
+                                        cursor:pointer;
+                                    "
+                                >
+
+                                    <div style="
+                                        width:38px;
+                                        height:38px;
+                                        flex-shrink:0;
+                                        border-radius:50%;
+                                        background:#f1f5f9;
+                                        display:flex;
+                                        align-items:center;
+                                        justify-content:center;
+                                        font-size:19px;
+                                    ">
+                                        ${getNotificationIcon(
+                                            notification.type
+                                        )}
+                                    </div>
+
+
+                                    <div style="
+                                        flex:1;
+                                        min-width:0;
+                                    ">
+
+                                        <div style="
+                                            display:flex;
+                                            justify-content:space-between;
+                                            gap:10px;
+                                        ">
+
+                                            <strong style="
+                                                font-size:14px;
+                                            ">
+                                                ${notification.title}
+                                            </strong>
+
+                                            ${
+                                                !notification.read
+                                                ? `
+                                                    <span style="
+                                                        width:8px;
+                                                        height:8px;
+                                                        border-radius:50%;
+                                                        background:#16a34a;
+                                                        flex-shrink:0;
+                                                        margin-top:5px;
+                                                    "></span>
+                                                `
+                                                : ""
+                                            }
+
+                                        </div>
+
+
+                                        <div style="
+                                            margin-top:4px;
+                                            font-size:12px;
+                                            color:#666;
+                                            line-height:1.5;
+                                        ">
+                                            ${notification.message}
+                                        </div>
+
+
+                                        <div style="
+                                            margin-top:5px;
+                                            font-size:10px;
+                                            color:#999;
+                                        ">
+                                            ${formatNotificationTime(
+                                                notification.createdAt
+                                            )}
+                                        </div>
+
+                                    </div>
+
+                                </div>
+
+                            `;
+
+                        })
+                        .join("")
+                }
+
+            </div>
+
+        `;
+
+
+        // --------------------------------------------------------
+        // MARK ALL READ
+        // --------------------------------------------------------
+
+        const markAll =
+            document.getElementById(
+                "markAllNotificationsReadBtn"
+            );
+
+        if (markAll) {
+
+            markAll.onclick =
+                function () {
+
+                    markAllNotificationsRead();
+
+                };
+
+        }
+
+
+        // --------------------------------------------------------
+        // INDIVIDUAL NOTIFICATIONS
+        // --------------------------------------------------------
+
+        card
+            .querySelectorAll(
+                "[data-notification-id]"
+            )
+            .forEach(function (element) {
+
+                element.addEventListener(
+                    "click",
+                    function () {
+
+                        const id =
+                            this.getAttribute(
+                                "data-notification-id"
+                            );
+
+                        markNotificationRead(id);
+
+                    }
+                );
+
+            });
+
+
+        updateNotificationBell();
+
+    }
+
+    // ------------------------------------------------------------
+    // MARK ONE READ
+    // ------------------------------------------------------------
+
+    function markNotificationRead(id) {
+
+        const notifications =
+            getNotifications();
+
+        const notification =
+            notifications.find(
+                function (item) {
+                    return item.id === id;
+                }
+            );
+
+        if (notification) {
+
+            notification.read = true;
+
+            saveNotifications(
+                notifications
+            );
+
+            renderNotificationUI();
+
+        }
+
+    }
+
+    // ------------------------------------------------------------
+    // MARK ALL READ
+    // ------------------------------------------------------------
+
+    function markAllNotificationsRead() {
+
+        const notifications =
+            getNotifications();
+
+        notifications.forEach(
+            function (notification) {
+
+                notification.read = true;
+
+            }
+        );
+
+        saveNotifications(
+            notifications
+        );
+
+        renderNotificationUI();
+
+        console.log(
+            "✅ All notifications marked as read."
+        );
+
+    }
+
+    // ------------------------------------------------------------
+    // DELETE ALL NOTIFICATIONS
+    // ------------------------------------------------------------
+
+    function clearAllNotifications() {
+
+        const confirmed =
+            confirm(
+                "Clear all collector notifications?"
+            );
+
+        if (!confirmed) {
+            return;
+        }
+
+        localStorage.removeItem(
+            NOTIFICATION_KEY
+        );
+
+        renderNotificationUI();
+
+    }
+
+    // ------------------------------------------------------------
+    // NOTIFICATION BELL
+    // ------------------------------------------------------------
+
+    function updateNotificationBell() {
+
+        let bell =
+            document.getElementById(
+                "collectorNotificationBell"
+            );
+
+        if (!bell) {
+
+            bell =
+                document.createElement("button");
+
+            bell.id =
+                "collectorNotificationBell";
+
+            bell.style.cssText = `
+                position:fixed;
+                right:22px;
+                bottom:22px;
+                width:52px;
+                height:52px;
+                border:none;
+                border-radius:50%;
+                background:#111827;
+                color:white;
+                font-size:22px;
+                cursor:pointer;
+                z-index:9990;
+                box-shadow:0 5px 20px rgba(0,0,0,0.2);
+            `;
+
+            document.body.appendChild(
+                bell
+            );
+
+            bell.onclick =
+                function () {
+
+                    const card =
+                        document.getElementById(
+                            "collectorNotificationsCard"
+                        );
+
+                    if (card) {
+
+                        card.scrollIntoView({
+                            behavior: "smooth",
+                            block: "center"
+                        });
+
+                    }
+
+                };
+
+        }
+
+        const unread =
+            getUnreadCount();
+
+        bell.innerHTML = `
+            🔔
+            ${
+                unread > 0
+                ? `
+                    <span style="
+                        position:absolute;
+                        top:-3px;
+                        right:-3px;
+                        min-width:19px;
+                        height:19px;
+                        padding:0 4px;
+                        border-radius:20px;
+                        background:#dc2626;
+                        color:white;
+                        font-size:10px;
+                        display:flex;
+                        align-items:center;
+                        justify-content:center;
+                        font-weight:700;
+                    ">
+                        ${unread > 99 ? "99+" : unread}
+                    </span>
+                `
+                : ""
+            }
+        `;
+
+    }
+
+    // ------------------------------------------------------------
+    // AUTOMATIC SALE NOTIFICATION
+    // ------------------------------------------------------------
+
+    function checkForNewSales() {
+
+        const SALES_KEY =
+            "kabadiSetuCollectorSales";
+
+        try {
+
+            const sales =
+                JSON.parse(
+                    localStorage.getItem(
+                        SALES_KEY
+                    ) || "[]"
+                );
+
+            if (!Array.isArray(sales)) {
+                return;
+            }
+
+            const latestSale =
+                sales[0];
+
+            if (!latestSale) {
+                return;
+            }
+
+            const processedKey =
+                "kabadiSetuLastNotifiedSale";
+
+            const lastNotified =
+                localStorage.getItem(
+                    processedKey
+                );
+
+            if (
+                lastNotified !==
+                latestSale.id
+            ) {
+
+                addCollectorNotification(
+                    "Sale Completed",
+                    `${latestSale.material} (${latestSale.weight} kg) sold to ${latestSale.recycler?.name || "recycler"} for approximately ₹${Number(latestSale.finalValue || 0).toLocaleString("en-IN")}.`,
+                    "sale"
+                );
+
+                localStorage.setItem(
+                    processedKey,
+                    latestSale.id
+                );
+
+                checkCollectorAchievement(
+                    sales.length
+                );
+
+            }
+
+        } catch (error) {
+
+            console.warn(
+                "Step 5J: Sale notification check failed.",
+                error
+            );
+
+        }
+
+    }
+
+    // ------------------------------------------------------------
+    // ACHIEVEMENTS
+    // ------------------------------------------------------------
+
+    function checkCollectorAchievement(
+        totalSales
+    ) {
+
+        const milestones = [
+            {
+                count: 1,
+                key: "first-sale",
+                title: "First Sale Completed",
+                message:
+                    "Your first recycler handover is complete. Welcome to the formal recycling chain!"
+            },
+            {
+                count: 5,
+                key: "five-sales",
+                title: "Active Collector",
+                message:
+                    "You have completed 5 recycler handovers. Keep building your recycling network!"
+            },
+            {
+                count: 10,
+                key: "ten-sales",
+                title: "Verified Recycler Partner",
+                message:
+                    "You have completed 10 recycler handovers. Your collection activity is growing!"
+            },
+            {
+                count: 25,
+                key: "twenty-five-sales",
+                title: "Recycling Champion",
+                message:
+                    "25 successful handovers completed. You are making a measurable contribution to formal recycling."
+            }
+        ];
+
+        milestones.forEach(
+            function (milestone) {
+
+                if (
+                    totalSales >=
+                    milestone.count
+                ) {
+
+                    const key =
+                        "kabadiSetuAchievement_" +
+                        milestone.key;
+
+                    if (
+                        localStorage.getItem(key)
+                        !== "true"
+                    ) {
+
+                        addCollectorNotification(
+                            milestone.title,
+                            milestone.message,
+                            "achievement"
+                        );
+
+                        localStorage.setItem(
+                            key,
+                            "true"
+                        );
+
+                    }
+
+                }
+
+            }
+        );
+
+    }
+
+    // ------------------------------------------------------------
+    // PUBLIC API
+    // ------------------------------------------------------------
+
+    window.addCollectorNotification =
+        addCollectorNotification;
+
+    window.getCollectorNotifications =
+        getNotifications;
+
+    window.getCollectorUnreadCount =
+        getUnreadCount;
+
+    window.markNotificationRead =
+        markNotificationRead;
+
+    window.markAllNotificationsRead =
+        markAllNotificationsRead;
+
+    window.clearAllCollectorNotifications =
+        clearAllNotifications;
+
+    window.renderCollectorNotifications =
+        renderNotificationUI;
+
+    // ------------------------------------------------------------
+    // INITIAL LOAD
+    // ------------------------------------------------------------
+
+    setTimeout(
+        function () {
+
+            renderNotificationUI();
+
+            checkForNewSales();
+
+            console.log(
+                "✅ Step 5J - Notifications system ready."
+            );
+
+        },
+        2000
+    );
+
+    // ------------------------------------------------------------
+    // AUTO REFRESH
+    // ------------------------------------------------------------
+
+    setInterval(
+        function () {
+
+            checkForNewSales();
+
+            renderNotificationUI();
+
+        },
+        3000
+    );
+
+})();
+
+// ============================================================
+// STEP 5K - COLLECTOR PICKUP REQUEST MANAGEMENT
+// Household → Pickup Request → Collector → Inventory
+// ============================================================
+
+(function () {
+
+    console.log("🚀 Step 5K - Pickup Request Management loaded.");
+
+    const PICKUP_KEY =
+        "kabadiSetuPickupRequests";
+
+    const INVENTORY_KEY =
+        "kabadiSetuCollectorInventory";
+
+    // ------------------------------------------------------------
+    // STORAGE HELPERS
+    // ------------------------------------------------------------
+
+    function getPickupRequests() {
+
+        try {
+
+            const data = JSON.parse(
+                localStorage.getItem(PICKUP_KEY) || "[]"
+            );
+
+            return Array.isArray(data) ? data : [];
+
+        } catch (error) {
+
+            console.error(
+                "Step 5K: Could not load pickup requests.",
+                error
+            );
+
+            return [];
+        }
+    }
+
+
+    function savePickupRequests(requests) {
+
+        localStorage.setItem(
+            PICKUP_KEY,
+            JSON.stringify(requests)
+        );
+
+    }
+
+
+    function getInventory() {
+
+        try {
+
+            const data = JSON.parse(
+                localStorage.getItem(INVENTORY_KEY) || "[]"
+            );
+
+            return Array.isArray(data) ? data : [];
+
+        } catch (error) {
+
+            return [];
+        }
+    }
+
+
+    function saveInventory(inventory) {
+
+        localStorage.setItem(
+            INVENTORY_KEY,
+            JSON.stringify(inventory)
+        );
+
+    }
+
+    // ------------------------------------------------------------
+    // HELPERS
+    // ------------------------------------------------------------
+
+    function money(value) {
+
+        return "₹" +
+            Number(value || 0)
+                .toLocaleString("en-IN");
+
+    }
+
+
+    function generatePickupId() {
+
+        const now = new Date();
+
+        const date =
+            now.getFullYear().toString() +
+            String(
+                now.getMonth() + 1
+            ).padStart(2, "0") +
+            String(
+                now.getDate()
+            ).padStart(2, "0");
+
+        const random =
+            Math.floor(
+                100000 +
+                Math.random() * 900000
+            );
+
+        return "PK-" +
+            date +
+            "-" +
+            random;
+    }
+
+
+    function formatDate(dateString) {
+
+        const date =
+            new Date(dateString);
+
+        if (isNaN(date.getTime())) {
+            return "Date unavailable";
+        }
+
+        return date.toLocaleString(
+            "en-IN",
+            {
+                day: "2-digit",
+                month: "short",
+                year: "numeric",
+                hour: "2-digit",
+                minute: "2-digit"
+            }
+        );
+
+    }
+
+    // ------------------------------------------------------------
+    // CREATE DEMO PICKUP REQUEST
+    // ------------------------------------------------------------
+
+    function createDemoPickupRequest() {
+
+        const requests =
+            getPickupRequests();
+
+        const request = {
+
+            id:
+                generatePickupId(),
+
+            customerName:
+                "Demo Household",
+
+            phone:
+                "Not provided",
+
+            address:
+                "Nearby Pickup Location",
+
+            material:
+                "Mixed E-Waste",
+
+            estimatedWeight:
+                5,
+
+            estimatedValue:
+                600,
+
+            status:
+                "Pending",
+
+            createdAt:
+                new Date().toISOString(),
+
+            acceptedAt:
+                null,
+
+            completedAt:
+                null
+
+        };
+
+        requests.unshift(request);
+
+        savePickupRequests(requests);
+
+        renderPickupRequests();
+
+        addPickupNotification(
+            "New Pickup Request",
+            "A new household pickup request has been added.",
+            "pickup"
+        );
+
+        return request;
+
+    }
+
+    // ------------------------------------------------------------
+    // PICKUP REQUEST CARD
+    // ------------------------------------------------------------
+
+    function createPickupCard() {
+
+        let card =
+            document.getElementById(
+                "collectorPickupRequestsCard"
+            );
+
+        if (card) {
+            return card;
+        }
+
+        card =
+            document.createElement("div");
+
+        card.id =
+            "collectorPickupRequestsCard";
+
+        card.style.cssText = `
+            margin-top:20px;
+            background:#ffffff;
+            border-radius:18px;
+            padding:20px;
+            box-shadow:0 5px 20px rgba(0,0,0,0.08);
+        `;
+
+        document.body.appendChild(card);
+
+        return card;
+
+    }
+
+    // ------------------------------------------------------------
+    // RENDER PICKUP REQUESTS
+    // ------------------------------------------------------------
+
+    function renderPickupRequests() {
+
+        const card =
+            createPickupCard();
+
+        const requests =
+            getPickupRequests();
+
+        const pending =
+            requests.filter(
+                function (request) {
+
+                    return request.status === "Pending";
+
+                }
+            );
+
+        card.innerHTML = `
+
+            <div style="
+                display:flex;
+                justify-content:space-between;
+                align-items:center;
+                gap:10px;
+                margin-bottom:18px;
+            ">
+
+                <div>
+
+                    <h3 style="
+                        margin:0 0 4px;
+                    ">
+                        🚚 Pickup Requests
+                    </h3>
+
+                    <div style="
+                        font-size:12px;
+                        color:#777;
+                    ">
+                        Household collection requests
+                    </div>
+
+                </div>
+
+
+                <div style="
+                    padding:7px 11px;
+                    border-radius:20px;
+                    background:#fff7ed;
+                    color:#c2410c;
+                    font-size:12px;
+                    font-weight:700;
+                ">
+                    ${pending.length} Pending
+                </div>
+
+            </div>
+
+
+            ${
+                requests.length === 0
+
+                ? `
+
+                    <div style="
+                        text-align:center;
+                        padding:25px 10px;
+                        color:#777;
+                    ">
+
+                        <div style="
+                            font-size:40px;
+                            margin-bottom:8px;
+                        ">
+                            📭
+                        </div>
+
+                        <strong>
+                            No pickup requests
+                        </strong>
+
+                        <p style="
+                            font-size:13px;
+                            margin-bottom:0;
+                        ">
+                            New household requests will
+                            appear here.
+                        </p>
+
+                    </div>
+
+                `
+
+                :
+
+                requests
+                    .slice(0, 10)
+                    .map(
+                        renderPickupRequest
+                    )
+                    .join("")
+            }
+
+
+            <button
+                id="createDemoPickupBtn"
+                style="
+                    width:100%;
+                    margin-top:15px;
+                    padding:12px;
+                    border:1px dashed #aaa;
+                    border-radius:11px;
+                    background:#fafafa;
+                    cursor:pointer;
+                    font-size:13px;
+                "
+            >
+                🧪 Add Demo Pickup Request
+            </button>
+
+        `;
+
+
+        const demoButton =
+            document.getElementById(
+                "createDemoPickupBtn"
+            );
+
+        if (demoButton) {
+
+            demoButton.onclick =
+                function () {
+
+                    createDemoPickupRequest();
+
+                };
+
+        }
+
+
+        attachPickupEvents();
+
+    }
+
+    // ------------------------------------------------------------
+    // RENDER SINGLE REQUEST
+    // ------------------------------------------------------------
+
+    function renderPickupRequest(request) {
+
+        let statusBackground =
+            "#fff7ed";
+
+        let statusColor =
+            "#c2410c";
+
+        if (request.status === "Accepted") {
+
+            statusBackground =
+                "#eff6ff";
+
+            statusColor =
+                "#1d4ed8";
+
+        }
+
+        if (request.status === "Completed") {
+
+            statusBackground =
+                "#f0fdf4";
+
+            statusColor =
+                "#15803d";
+
+        }
+
+
+        return `
+
+            <div style="
+                border:1px solid #eeeeee;
+                border-radius:15px;
+                padding:16px;
+                margin-bottom:10px;
+            ">
+
+                <div style="
+                    display:flex;
+                    justify-content:space-between;
+                    align-items:flex-start;
+                    gap:10px;
+                    margin-bottom:10px;
+                ">
+
+                    <div>
+
+                        <strong style="
+                            font-size:15px;
+                        ">
+                            ${request.material}
+                        </strong>
+
+                        <div style="
+                            font-size:11px;
+                            color:#999;
+                            margin-top:4px;
+                        ">
+                            ${request.id}
+                        </div>
+
+                    </div>
+
+
+                    <span style="
+                        padding:5px 9px;
+                        border-radius:15px;
+                        background:${statusBackground};
+                        color:${statusColor};
+                        font-size:11px;
+                        font-weight:700;
+                    ">
+                        ${request.status}
+                    </span>
+
+                </div>
+
+
+                <div style="
+                    display:grid;
+                    grid-template-columns:
+                        repeat(auto-fit,minmax(130px,1fr));
+                    gap:8px;
+                    font-size:12px;
+                    color:#666;
+                ">
+
+                    <div>
+                        👤 ${request.customerName}
+                    </div>
+
+                    <div>
+                        ⚖️ ${
+                            request.actualWeight ||
+                            request.estimatedWeight ||
+                            0
+                        } kg
+                    </div>
+
+                    <div>
+                        📍 ${request.address}
+                    </div>
+
+                    <div>
+                        💰 ${
+                            request.finalValue ||
+                            request.estimatedValue
+                                ? money(
+                                    request.finalValue ||
+                                    request.estimatedValue
+                                )
+                                : "To be calculated"
+                        }
+                    </div>
+
+                </div>
+
+
+                <div style="
+                    margin-top:12px;
+                    font-size:10px;
+                    color:#999;
+                ">
+                    Requested:
+                    ${formatDate(request.createdAt)}
+                </div>
+
+
+                ${
+                    request.status === "Pending"
+
+                    ? `
+
+                        <button
+                            class="acceptPickupBtn"
+                            data-pickup-id="${request.id}"
+                            style="
+                                width:100%;
+                                margin-top:13px;
+                                padding:12px;
+                                border:none;
+                                border-radius:10px;
+                                background:#2563eb;
+                                color:white;
+                                cursor:pointer;
+                                font-weight:600;
+                            "
+                        >
+                            🚚 Accept Pickup
+                        </button>
+
+                    `
+
+                    : ""
+                }
+
+
+                ${
+                    request.status === "Accepted"
+
+                    ? `
+
+                        <button
+                            class="completePickupBtn"
+                            data-pickup-id="${request.id}"
+                            style="
+                                width:100%;
+                                margin-top:13px;
+                                padding:12px;
+                                border:none;
+                                border-radius:10px;
+                                background:#16a34a;
+                                color:white;
+                                cursor:pointer;
+                                font-weight:600;
+                            "
+                        >
+                            ⚖️ Complete Pickup
+                        </button>
+
+                    `
+
+                    : ""
+                }
+
+            </div>
+
+        `;
+
+    }
+
+    // ------------------------------------------------------------
+    // ATTACH EVENTS
+    // ------------------------------------------------------------
+
+    function attachPickupEvents() {
+
+        document
+            .querySelectorAll(
+                ".acceptPickupBtn"
+            )
+            .forEach(
+                function (button) {
+
+                    button.onclick =
+                        function () {
+
+                            const id =
+                                this.getAttribute(
+                                    "data-pickup-id"
+                                );
+
+                            acceptPickup(id);
+
+                        };
+
+                }
+            );
+
+
+        document
+            .querySelectorAll(
+                ".completePickupBtn"
+            )
+            .forEach(
+                function (button) {
+
+                    button.onclick =
+                        function () {
+
+                            const id =
+                                this.getAttribute(
+                                    "data-pickup-id"
+                                );
+
+                            openCompletePickupModal(id);
+
+                        };
+
+                }
+            );
+
+    }
+
+    // ------------------------------------------------------------
+    // ACCEPT PICKUP
+    // ------------------------------------------------------------
+
+    function acceptPickup(id) {
+
+        const requests =
+            getPickupRequests();
+
+        const request =
+            requests.find(
+                function (item) {
+
+                    return item.id === id;
+
+                }
+            );
+
+        if (!request) {
+
+            alert(
+                "Pickup request not found."
+            );
+
+            return;
+
+        }
+
+        request.status =
+            "Accepted";
+
+        request.acceptedAt =
+            new Date().toISOString();
+
+        savePickupRequests(
+            requests
+        );
+
+        addPickupNotification(
+            "Pickup Accepted",
+            `Pickup ${request.id} has been accepted by the collector.`,
+            "pickup"
+        );
+
+        renderPickupRequests();
+
+        alert(
+            "Pickup accepted successfully."
+        );
+
+    }
+
+    // ------------------------------------------------------------
+    // COMPLETE PICKUP MODAL
+    // ------------------------------------------------------------
+
+    function openCompletePickupModal(id) {
+
+        const requests =
+            getPickupRequests();
+
+        const request =
+            requests.find(
+                function (item) {
+
+                    return item.id === id;
+
+                }
+            );
+
+        if (!request) {
+            return;
+        }
+
+
+        let modal =
+            document.getElementById(
+                "completePickupModal"
+            );
+
+        if (!modal) {
+
+            modal =
+                document.createElement("div");
+
+            modal.id =
+                "completePickupModal";
+
+            modal.innerHTML = `
+
+                <div style="
+                    position:fixed;
+                    inset:0;
+                    background:rgba(0,0,0,0.65);
+                    z-index:99999;
+                    display:flex;
+                    align-items:center;
+                    justify-content:center;
+                    padding:20px;
+                ">
+
+                    <div style="
+                        width:min(500px,100%);
+                        background:white;
+                        border-radius:18px;
+                        padding:24px;
+                    ">
+
+                        <h2 style="
+                            margin-top:0;
+                        ">
+                            ⚖️ Complete Pickup
+                        </h2>
+
+                        <p style="
+                            color:#666;
+                            font-size:13px;
+                        ">
+                            Enter the actual physical weight
+                            after collecting the material.
+                        </p>
+
+
+                        <div style="
+                            background:#f8fafc;
+                            padding:13px;
+                            border-radius:12px;
+                            margin-bottom:15px;
+                            font-size:13px;
+                        ">
+
+                            <strong>
+                                ${request.material}
+                            </strong>
+
+                            <br>
+
+                            Household:
+                            ${request.customerName}
+
+                            <br>
+
+                            Estimated weight:
+                            ${request.estimatedWeight || 0}
+                            kg
+
+                        </div>
+
+
+                        <label style="
+                            display:block;
+                            font-size:13px;
+                            margin-bottom:6px;
+                        ">
+                            Actual Physical Weight (kg)
+                        </label>
+
+
+                        <input
+                            id="actualPickupWeight"
+                            type="number"
+                            min="0.01"
+                            step="0.01"
+                            value="${
+                                request.estimatedWeight || ""
+                            }"
+                            style="
+                                width:100%;
+                                box-sizing:border-box;
+                                padding:12px;
+                                border:1px solid #ddd;
+                                border-radius:10px;
+                                margin-bottom:18px;
+                            "
+                        />
+
+
+                        <div style="
+                            display:flex;
+                            gap:10px;
+                        ">
+
+                            <button
+                                id="cancelCompletePickupBtn"
+                                style="
+                                    flex:1;
+                                    padding:13px;
+                                    border:1px solid #ddd;
+                                    border-radius:10px;
+                                    background:white;
+                                    cursor:pointer;
+                                "
+                            >
+                                Cancel
+                            </button>
+
+
+                            <button
+                                id="confirmCompletePickupBtn"
+                                style="
+                                    flex:1;
+                                    padding:13px;
+                                    border:none;
+                                    border-radius:10px;
+                                    background:#16a34a;
+                                    color:white;
+                                    font-weight:600;
+                                    cursor:pointer;
+                                "
+                            >
+                                Complete Pickup
+                            </button>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            `;
+
+            document.body.appendChild(
+                modal
+            );
+
+        }
+
+        modal.style.display =
+            "flex";
+
+        document.getElementById(
+            "cancelCompletePickupBtn"
+        ).onclick =
+            function () {
+
+                modal.style.display =
+                    "none";
+
+            };
+
+
+        document.getElementById(
+            "confirmCompletePickupBtn"
+        ).onclick =
+            function () {
+
+                const weight =
+                    Number(
+                        document.getElementById(
+                            "actualPickupWeight"
+                        ).value
+                    );
+
+                if (
+                    !weight ||
+                    weight <= 0
+                ) {
+
+                    alert(
+                        "Please enter a valid physical weight."
+                    );
+
+                    return;
+
+                }
+
+                completePickup(
+                    id,
+                    weight
+                );
+
+                modal.style.display =
+                    "none";
+
+            };
+
+    }
+
+    // ------------------------------------------------------------
+    // COMPLETE PICKUP
+    // ------------------------------------------------------------
+
+    function completePickup(
+        id,
+        actualWeight
+    ) {
+
+        const requests =
+            getPickupRequests();
+
+        const request =
+            requests.find(
+                function (item) {
+
+                    return item.id === id;
+
+                }
+            );
+
+        if (!request) {
+
+            alert(
+                "Pickup request not found."
+            );
+
+            return;
+
+        }
+
+
+        const rate =
+            getMaterialRate(
+                request.material
+            );
+
+        const finalValue =
+            rate *
+            Number(actualWeight);
+
+
+        request.status =
+            "Completed";
+
+        request.actualWeight =
+            Number(actualWeight);
+
+        request.finalRate =
+            rate;
+
+        request.finalValue =
+            Number(
+                finalValue.toFixed(2)
+            );
+
+        request.completedAt =
+            new Date().toISOString();
+
+
+        savePickupRequests(
+            requests
+        );
+
+
+        // Add collected material to inventory
+        addMaterialToInventory(
+            request.material,
+            actualWeight,
+            rate
+        );
+
+
+        addPickupNotification(
+            "Pickup Completed",
+            `${request.material} (${actualWeight} kg) has been collected and added to your inventory.`,
+            "success"
+        );
+
+
+        renderPickupRequests();
+
+
+        alert(
+            `Pickup completed successfully.\n\n` +
+            `Material: ${request.material}\n` +
+            `Weight: ${actualWeight} kg\n` +
+            `Indicative Value: ${money(finalValue)}`
+        );
+
+    }
+
+    // ------------------------------------------------------------
+    // MATERIAL RATE
+    // ------------------------------------------------------------
+
+    function getMaterialRate(
+        material
+    ) {
+
+        const rates = {
+
+            "Iron": 35,
+            "Steel": 45,
+            "Aluminium": 140,
+            "Copper": 700,
+            "Plastic": 25,
+            "Glass": 15,
+            "Books & Newspapers": 28,
+            "Printed Circuit Board": 220,
+            "Copper Cable": 380,
+            "Lithium Battery": 105,
+            "Mobile Phone": 3500,
+            "Laptop": 280,
+            "Display/LCD": 180,
+            "Electric Motor": 300,
+            "Mixed E-Waste": 120,
+            "Mixed / Other Waste": 0
+
+        };
+
+        return Number(
+            rates[material] || 0
+        );
+
+    }
+
+    // ------------------------------------------------------------
+    // ADD TO INVENTORY
+    // ------------------------------------------------------------
+
+    function addMaterialToInventory(
+        material,
+        weight,
+        rate
+    ) {
+
+        const inventory =
+            getInventory();
+
+        const existing =
+            inventory.find(
+                function (item) {
+
+                    return (
+                        item &&
+                        String(
+                            item.material
+                        ).toLowerCase() ===
+                        String(
+                            material
+                        ).toLowerCase()
+                    );
+
+                }
+            );
+
+
+        if (existing) {
+
+            const oldWeight =
+                Number(
+                    existing.weight ||
+                    existing.physicalWeight ||
+                    0
+                );
+
+            existing.weight =
+                Number(
+                    (
+                        oldWeight +
+                        Number(weight)
+                    ).toFixed(2)
+                );
+
+            existing.rate =
+                Number(rate);
+
+            existing.updatedAt =
+                new Date().toISOString();
+
+        } else {
+
+            inventory.push({
+
+                id:
+                    "INV-" +
+                    Date.now(),
+
+                material:
+                    material,
+
+                weight:
+                    Number(
+                        Number(weight)
+                            .toFixed(2)
+                    ),
+
+                rate:
+                    Number(rate),
+
+                createdAt:
+                    new Date().toISOString(),
+
+                updatedAt:
+                    new Date().toISOString()
+
+            });
+
+        }
+
+
+        saveInventory(
+            inventory
+        );
+
+
+        console.log(
+            "✅ Material added to collector inventory:",
+            material,
+            weight,
+            "kg"
+        );
+
+
+        // Refresh existing inventory UI
+        try {
+
+            if (
+                typeof window.renderCollectorInventory ===
+                "function"
+            ) {
+
+                window.renderCollectorInventory();
+
+            }
+
+        } catch (error) {
+
+            console.warn(
+                "Inventory UI refresh skipped.",
+                error
+            );
+
+        }
+
+    }
+
+    // ------------------------------------------------------------
+    // NOTIFICATION BRIDGE
+    // ------------------------------------------------------------
+
+    function addPickupNotification(
+        title,
+        message,
+        type
+    ) {
+
+        try {
+
+            if (
+                typeof window.addCollectorNotification ===
+                "function"
+            ) {
+
+                window.addCollectorNotification(
+                    title,
+                    message,
+                    type
+                );
+
+                return;
+
+            }
+
+        } catch (error) {
+
+            console.warn(
+                "Notification bridge failed.",
+                error
+            );
+
+        }
+
+        console.log(
+            "🔔",
+            title,
+            message
+        );
+
+    }
+
+    // ------------------------------------------------------------
+    // PUBLIC API
+    // ------------------------------------------------------------
+
+    window.getPickupRequests =
+        getPickupRequests;
+
+    window.savePickupRequests =
+        savePickupRequests;
+
+    window.createDemoPickupRequest =
+        createDemoPickupRequest;
+
+    window.renderPickupRequests =
+        renderPickupRequests;
+
+    window.acceptPickup =
+        acceptPickup;
+
+    window.completePickup =
+        completePickup;
+
+    window.addMaterialToCollectorInventory =
+        addMaterialToInventory;
+
+    // ------------------------------------------------------------
+    // INITIAL LOAD
+    // ------------------------------------------------------------
+
+    setTimeout(
+        function () {
+
+            renderPickupRequests();
+
+            console.log(
+                "✅ Step 5K - Pickup Request Management ready."
+            );
+
+        },
+        2200
+    );
+
+    // ------------------------------------------------------------
+    // AUTO REFRESH
+    // ------------------------------------------------------------
+
+    setInterval(
+        function () {
+
+            renderPickupRequests();
+
+        },
+        3000
+    );
+
+})();
+
+// ============================================================
+// STEP 5L - SEPARATE HOUSEHOLD & COLLECTOR DASHBOARDS
+// Household Dashboard ≠ Collector Dashboard
+// Collector flow: Household → Collector → Recycler
+// ============================================================
+
+(function () {
+
+    console.log("🚀 Step 5L - Role Based Dashboards loaded.");
+
+    // ------------------------------------------------------------
+    // ROLE STORAGE
+    // ------------------------------------------------------------
+
+    const ROLE_KEY = "kabadiSetuActiveRole";
+
+    let activeRole =
+        localStorage.getItem(ROLE_KEY) || "household";
+
+
+    // ------------------------------------------------------------
+    // SAVE ROLE
+    // ------------------------------------------------------------
+
+    function saveRole(role) {
+
+        activeRole = role;
+
+        localStorage.setItem(
+            ROLE_KEY,
+            role
+        );
+
+    }
+
+
+    // ------------------------------------------------------------
+    // GET ROLE
+    // ------------------------------------------------------------
+
+    function getRole() {
+
+        return (
+            localStorage.getItem(
+                ROLE_KEY
+            ) || "household"
+        );
+
+    }
+
+
+    // ------------------------------------------------------------
+    // FIND NAVIGATION ITEMS
+    // ------------------------------------------------------------
+
+    function getNavItems() {
+
+        return Array.from(
+            document.querySelectorAll(
+                ".nav-item"
+            )
+        );
+
+    }
+
+
+    // ------------------------------------------------------------
+    // HIDE / SHOW NAVIGATION
+    // ------------------------------------------------------------
+
+    function configureNavigation(role) {
+
+        const navItems =
+            getNavItems();
+
+        navItems.forEach(function (item) {
+
+            const text =
+                (
+                    item.innerText ||
+                    ""
+                ).toLowerCase();
+
+            item.style.display =
+                "";
+
+            // ====================================================
+            // HOUSEHOLD NAVIGATION
+            // ====================================================
+
+            if (role === "household") {
+
+                /*
+                 * Household should focus on:
+                 *
+                 * Dashboard
+                 * AI Scanner
+                 * Recycler Network
+                 * Transactions
+                 *
+                 * Collector-only features are hidden.
+                 */
+
+                if (
+                    text.includes("inventory") ||
+                    text.includes("earnings") ||
+                    text.includes("pickup request")
+                ) {
+
+                    item.style.display =
+                        "none";
+
+                }
+
+            }
+
+
+            // ====================================================
+            // COLLECTOR NAVIGATION
+            // ====================================================
+
+            if (role === "collector") {
+
+                /*
+                 * Collector should focus on:
+                 *
+                 * Dashboard
+                 * Pickup Requests
+                 * Inventory
+                 * Recycler Network
+                 * Earnings
+                 * Transactions
+                 */
+
+                if (
+                    text.includes("scanner")
+                ) {
+
+                    item.style.display =
+                        "none";
+
+                }
+
+            }
+
+        });
+
+    }
+
+
+    // ------------------------------------------------------------
+    // HIDE COLLECTOR-ONLY DASHBOARD CARDS
+    // ------------------------------------------------------------
+
+    function configureDynamicCards(role) {
+
+        const collectorCards = [
+
+            "collectorProfileCard",
+            "collectorEarningsDashboardCard",
+            "collectorNotificationsCard",
+            "collectorSalesHistoryCard",
+            "collectorPickupRequestsCard",
+            "collectorInventoryCard"
+
+        ];
+
+        collectorCards.forEach(function (id) {
+
+            const element =
+                document.getElementById(id);
+
+            if (!element) {
+                return;
+            }
+
+            if (role === "collector") {
+
+                element.style.display =
+                    "";
+
+            } else {
+
+                element.style.display =
+                    "none";
+
+            }
+
+        });
+
+    }
+
+
+    // ------------------------------------------------------------
+    // CREATE COLLECTOR DASHBOARD
+    // ------------------------------------------------------------
+
+    function createCollectorDashboard() {
+
+        const dashboard =
+            document.getElementById(
+                "dashboard"
+            );
+
+        if (!dashboard) {
+
+            console.warn(
+                "Step 5L: Dashboard section not found."
+            );
+
+            return;
+
+        }
+
+
+        dashboard.innerHTML = `
+
+            <div
+                id="collectorDashboardMain"
+                style="
+                    width:100%;
+                "
+            >
+
+                <!-- ================================================= -->
+                <!-- WELCOME -->
+                <!-- ================================================= -->
+
+                <div style="
+                    background:linear-gradient(
+                        135deg,
+                        #ecfdf5,
+                        #f0fdf4
+                    );
+                    border:1px solid #d1fae5;
+                    border-radius:20px;
+                    padding:24px;
+                    margin-bottom:20px;
+                ">
+
+                    <div style="
+                        display:flex;
+                        justify-content:space-between;
+                        align-items:flex-start;
+                        gap:15px;
+                    ">
+
+                        <div>
+
+                            <div style="
+                                font-size:12px;
+                                color:#15803d;
+                                font-weight:700;
+                                letter-spacing:.5px;
+                                margin-bottom:7px;
+                            ">
+                                COLLECTOR PORTAL
+                            </div>
+
+                            <h2 style="
+                                margin:0 0 8px;
+                                font-size:28px;
+                            ">
+                                ♻️ Collector Dashboard
+                            </h2>
+
+                            <p style="
+                                margin:0;
+                                color:#555;
+                                line-height:1.6;
+                                max-width:650px;
+                            ">
+                                Collect recyclable material from
+                                households, manage your inventory,
+                                compare authorized recyclers and
+                                sell at the best available rate.
+                            </p>
+
+                        </div>
+
+
+                        <div style="
+                            font-size:45px;
+                        ">
+                            🚚
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <!-- ================================================= -->
+                <!-- MAIN FLOW -->
+                <!-- ================================================= -->
+
+                <div style="
+                    background:#ffffff;
+                    border-radius:20px;
+                    padding:22px;
+                    margin-bottom:20px;
+                    box-shadow:0 5px 20px rgba(0,0,0,.06);
+                ">
+
+                    <div style="
+                        font-size:13px;
+                        color:#777;
+                        font-weight:700;
+                        margin-bottom:15px;
+                        letter-spacing:.4px;
+                    ">
+                        COLLECTOR TO RECYCLER JOURNEY
+                    </div>
+
+
+                    <div style="
+                        display:grid;
+                        grid-template-columns:
+                            repeat(
+                                auto-fit,
+                                minmax(140px,1fr)
+                            );
+                        gap:10px;
+                        align-items:center;
+                    ">
+
+
+                        <div style="
+                            text-align:center;
+                            padding:15px 8px;
+                        ">
+
+                            <div style="
+                                font-size:30px;
+                            ">
+                                🏠
+                            </div>
+
+                            <strong>
+                                Household
+                            </strong>
+
+                            <div style="
+                                font-size:11px;
+                                color:#777;
+                                margin-top:4px;
+                            ">
+                                Waste Request
+                            </div>
+
+                        </div>
+
+
+                        <div style="
+                            text-align:center;
+                            font-size:22px;
+                            color:#16a34a;
+                        ">
+                            →
+                        </div>
+
+
+                        <div style="
+                            text-align:center;
+                            padding:15px 8px;
+                            background:#f0fdf4;
+                            border-radius:15px;
+                        ">
+
+                            <div style="
+                                font-size:30px;
+                            ">
+                                🚚
+                            </div>
+
+                            <strong>
+                                Collector
+                            </strong>
+
+                            <div style="
+                                font-size:11px;
+                                color:#777;
+                                margin-top:4px;
+                            ">
+                                Collect & Manage
+                            </div>
+
+                        </div>
+
+
+                        <div style="
+                            text-align:center;
+                            font-size:22px;
+                            color:#16a34a;
+                        ">
+                            →
+                        </div>
+
+
+                        <div style="
+                            text-align:center;
+                            padding:15px 8px;
+                        ">
+
+                            <div style="
+                                font-size:30px;
+                            ">
+                                ♻️
+                            </div>
+
+                            <strong>
+                                Recycler
+                            </strong>
+
+                            <div style="
+                                font-size:11px;
+                                color:#777;
+                                margin-top:4px;
+                            ">
+                                Formal Recycling
+                            </div>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <!-- ================================================= -->
+                <!-- QUICK ACTIONS -->
+                <!-- ================================================= -->
+
+                <div style="
+                    margin-bottom:20px;
+                ">
+
+                    <div style="
+                        font-size:16px;
+                        font-weight:700;
+                        margin-bottom:12px;
+                    ">
+                        ⚡ Quick Actions
+                    </div>
+
+
+                    <div style="
+                        display:grid;
+                        grid-template-columns:
+                            repeat(
+                                auto-fit,
+                                minmax(180px,1fr)
+                            );
+                        gap:12px;
+                    ">
+
+
+                        <button
+                            id="collectorPickupAction"
+                            style="
+                                border:none;
+                                border-radius:15px;
+                                padding:18px;
+                                background:#eff6ff;
+                                cursor:pointer;
+                                text-align:left;
+                            "
+                        >
+
+                            <div style="
+                                font-size:26px;
+                                margin-bottom:8px;
+                            ">
+                                🚚
+                            </div>
+
+                            <strong>
+                                Pickup Requests
+                            </strong>
+
+                            <div style="
+                                font-size:12px;
+                                color:#666;
+                                margin-top:5px;
+                            ">
+                                Accept household requests
+                            </div>
+
+                        </button>
+
+
+                        <button
+                            id="collectorInventoryAction"
+                            style="
+                                border:none;
+                                border-radius:15px;
+                                padding:18px;
+                                background:#f0fdf4;
+                                cursor:pointer;
+                                text-align:left;
+                            "
+                        >
+
+                            <div style="
+                                font-size:26px;
+                                margin-bottom:8px;
+                            ">
+                                📦
+                            </div>
+
+                            <strong>
+                                My Inventory
+                            </strong>
+
+                            <div style="
+                                font-size:12px;
+                                color:#666;
+                                margin-top:5px;
+                            ">
+                                Manage collected material
+                            </div>
+
+                        </button>
+
+
+                        <button
+                            id="collectorRecyclerAction"
+                            style="
+                                border:none;
+                                border-radius:15px;
+                                padding:18px;
+                                background:#faf5ff;
+                                cursor:pointer;
+                                text-align:left;
+                            "
+                        >
+
+                            <div style="
+                                font-size:26px;
+                                margin-bottom:8px;
+                            ">
+                                ♻️
+                            </div>
+
+                            <strong>
+                                Find Recycler
+                            </strong>
+
+                            <div style="
+                                font-size:12px;
+                                color:#666;
+                                margin-top:5px;
+                            ">
+                                Compare recycler rates
+                            </div>
+
+                        </button>
+
+
+                        <button
+                            id="collectorEarningsAction"
+                            style="
+                                border:none;
+                                border-radius:15px;
+                                padding:18px;
+                                background:#fff7ed;
+                                cursor:pointer;
+                                text-align:left;
+                            "
+                        >
+
+                            <div style="
+                                font-size:26px;
+                                margin-bottom:8px;
+                            ">
+                                💰
+                            </div>
+
+                            <strong>
+                                Earnings
+                            </strong>
+
+                            <div style="
+                                font-size:12px;
+                                color:#666;
+                                margin-top:5px;
+                            ">
+                                Track your sales
+                            </div>
+
+                        </button>
+
+                    </div>
+
+                </div>
+
+
+                <!-- ================================================= -->
+                <!-- LIVE STATUS -->
+                <!-- ================================================= -->
+
+                <div style="
+                    background:#ffffff;
+                    border-radius:20px;
+                    padding:22px;
+                    box-shadow:0 5px 20px rgba(0,0,0,.06);
+                ">
+
+                    <div style="
+                        display:flex;
+                        justify-content:space-between;
+                        align-items:center;
+                        margin-bottom:15px;
+                    ">
+
+                        <div>
+
+                            <h3 style="
+                                margin:0 0 4px;
+                            ">
+                                📊 Collection Overview
+                            </h3>
+
+                            <div style="
+                                font-size:12px;
+                                color:#777;
+                            ">
+                                Your collector activity
+                            </div>
+
+                        </div>
+
+                        <span style="
+                            padding:7px 11px;
+                            border-radius:20px;
+                            background:#dcfce7;
+                            color:#15803d;
+                            font-size:11px;
+                            font-weight:700;
+                        ">
+                            ACTIVE
+                        </span>
+
+                    </div>
+
+
+                    <div style="
+                        display:grid;
+                        grid-template-columns:
+                            repeat(
+                                auto-fit,
+                                minmax(130px,1fr)
+                            );
+                        gap:10px;
+                    ">
+
+
+                        <div style="
+                            background:#f8fafc;
+                            padding:15px;
+                            border-radius:13px;
+                        ">
+
+                            <div style="
+                                font-size:11px;
+                                color:#777;
+                            ">
+                                PICKUPS
+                            </div>
+
+                            <strong
+                                id="collectorDashboardPickups"
+                                style="
+                                    font-size:22px;
+                                "
+                            >
+                                0
+                            </strong>
+
+                        </div>
+
+
+                        <div style="
+                            background:#f8fafc;
+                            padding:15px;
+                            border-radius:13px;
+                        ">
+
+                            <div style="
+                                font-size:11px;
+                                color:#777;
+                            ">
+                                INVENTORY
+                            </div>
+
+                            <strong
+                                id="collectorDashboardInventory"
+                                style="
+                                    font-size:22px;
+                                "
+                            >
+                                0 kg
+                            </strong>
+
+                        </div>
+
+
+                        <div style="
+                            background:#f8fafc;
+                            padding:15px;
+                            border-radius:13px;
+                        ">
+
+                            <div style="
+                                font-size:11px;
+                                color:#777;
+                            ">
+                                SALES
+                            </div>
+
+                            <strong
+                                id="collectorDashboardSales"
+                                style="
+                                    font-size:22px;
+                                "
+                            >
+                                0
+                            </strong>
+
+                        </div>
+
+
+                        <div style="
+                            background:#f8fafc;
+                            padding:15px;
+                            border-radius:13px;
+                        ">
+
+                            <div style="
+                                font-size:11px;
+                                color:#777;
+                            ">
+                                EARNINGS
+                            </div>
+
+                            <strong
+                                id="collectorDashboardEarnings"
+                                style="
+                                    font-size:22px;
+                                "
+                            >
+                                ₹0
+                            </strong>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <!-- ================================================= -->
+                <!-- INFO -->
+                <!-- ================================================= -->
+
+                <div style="
+                    margin-top:18px;
+                    padding:15px;
+                    background:#f8fafc;
+                    border-radius:14px;
+                    font-size:12px;
+                    color:#666;
+                    line-height:1.6;
+                ">
+
+                    🛡️ <strong>Formal Recycling Chain:</strong>
+                    Kabadi Setu helps collectors move material
+                    from household collection into the formal
+                    recycling network through verified recycler
+                    matching, transparent pricing and digital
+                    traceability.
+
+                </div>
+
+            </div>
+
+        `;
+
+
+        // --------------------------------------------------------
+        // QUICK ACTION BUTTONS
+        // --------------------------------------------------------
+
+        document
+            .getElementById(
+                "collectorPickupAction"
+            )
+            .onclick =
+                function () {
+
+                    showSectionSafe(
+                        "pickupRequests"
+                    );
+
+                };
+
+
+        document
+            .getElementById(
+                "collectorInventoryAction"
+            )
+            .onclick =
+                function () {
+
+                    showSectionSafe(
+                        "inventory"
+                    );
+
+                };
+
+
+        document
+            .getElementById(
+                "collectorRecyclerAction"
+            )
+            .onclick =
+                function () {
+
+                    showSectionSafe(
+                        "recyclers"
+                    );
+
+                };
+
+
+        document
+            .getElementById(
+                "collectorEarningsAction"
+            )
+            .onclick =
+                function () {
+
+                    showSectionSafe(
+                        "earnings"
+                    );
+
+                };
+
+
+        updateCollectorDashboardStats();
+
+    }
+
+
+    // ------------------------------------------------------------
+    // SAFE SECTION NAVIGATION
+    // ------------------------------------------------------------
+
+    function showSectionSafe(
+        sectionId
+    ) {
+
+        if (
+            typeof window.showSection ===
+            "function"
+        ) {
+
+            window.showSection(
+                sectionId
+            );
+
+        } else {
+
+            const section =
+                document.getElementById(
+                    sectionId
+                );
+
+            if (section) {
+
+                document
+                    .querySelectorAll(
+                        ".page-section"
+                    )
+                    .forEach(
+                        function (item) {
+
+                            item.classList.remove(
+                                "active-section"
+                            );
+
+                        }
+                    );
+
+                section.classList.add(
+                    "active-section"
+                );
+
+            }
+
+        }
+
+    }
+
+
+    // ------------------------------------------------------------
+    // COLLECTOR DASHBOARD STATS
+    // ------------------------------------------------------------
+
+    function updateCollectorDashboardStats() {
+
+        const dashboard =
+            document.getElementById(
+                "collectorDashboardMain"
+            );
+
+        if (!dashboard) {
+            return;
+        }
+
+
+        // --------------------------------------------------------
+        // PICKUPS
+        // --------------------------------------------------------
+
+        let pickups = [];
+
+        try {
+
+            pickups =
+                JSON.parse(
+                    localStorage.getItem(
+                        "kabadiSetuPickupRequests"
+                    ) || "[]"
+                );
+
+            if (!Array.isArray(pickups)) {
+                pickups = [];
+            }
+
+        } catch (error) {
+
+            pickups = [];
+
+        }
+
+
+        // --------------------------------------------------------
+        // INVENTORY
+        // --------------------------------------------------------
+
+        let inventory = [];
+
+        try {
+
+            inventory =
+                JSON.parse(
+                    localStorage.getItem(
+                        "kabadiSetuCollectorInventory"
+                    ) || "[]"
+                );
+
+            if (!Array.isArray(inventory)) {
+                inventory = [];
+            }
+
+        } catch (error) {
+
+            inventory = [];
+
+        }
+
+
+        let inventoryWeight = 0;
+
+        inventory.forEach(
+            function (item) {
+
+                inventoryWeight +=
+                    Number(
+                        item.weight ??
+                        item.physicalWeight ??
+                        item.quantity ??
+                        0
+                    ) || 0;
+
+            }
+        );
+
+
+        // --------------------------------------------------------
+        // SALES
+        // --------------------------------------------------------
+
+        let sales = [];
+
+        try {
+
+            sales =
+                JSON.parse(
+                    localStorage.getItem(
+                        "kabadiSetuCollectorSales"
+                    ) || "[]"
+                );
+
+            if (!Array.isArray(sales)) {
+                sales = [];
+            }
+
+        } catch (error) {
+
+            sales = [];
+
+        }
+
+
+        let earnings = 0;
+
+        sales.forEach(
+            function (sale) {
+
+                earnings +=
+                    Number(
+                        sale.finalValue ??
+                        sale.estimatedValue ??
+                        0
+                    ) || 0;
+
+            }
+        );
+
+
+        // --------------------------------------------------------
+        // UPDATE DOM
+        // --------------------------------------------------------
+
+        const pickupElement =
+            document.getElementById(
+                "collectorDashboardPickups"
+            );
+
+        const inventoryElement =
+            document.getElementById(
+                "collectorDashboardInventory"
+            );
+
+        const salesElement =
+            document.getElementById(
+                "collectorDashboardSales"
+            );
+
+        const earningsElement =
+            document.getElementById(
+                "collectorDashboardEarnings"
+            );
+
+
+        if (pickupElement) {
+
+            pickupElement.innerText =
+                pickups.filter(
+                    function (item) {
+
+                        return (
+                            item.status ===
+                            "Pending"
+                        );
+
+                    }
+                ).length;
+
+        }
+
+
+        if (inventoryElement) {
+
+            inventoryElement.innerText =
+                Number(
+                    inventoryWeight.toFixed(2)
+                ) + " kg";
+
+        }
+
+
+        if (salesElement) {
+
+            salesElement.innerText =
+                sales.length;
+
+        }
+
+
+        if (earningsElement) {
+
+            earningsElement.innerText =
+                "₹" +
+                Number(
+                    earnings.toFixed(2)
+                ).toLocaleString(
+                    "en-IN"
+                );
+
+        }
+
+    }
+
+
+    // ------------------------------------------------------------
+    // SET PAGE TITLE
+    // ------------------------------------------------------------
+
+    function setPageTitle(
+        role,
+        section
+    ) {
+
+        const title =
+            document.getElementById(
+                "pageTitle"
+            );
+
+        if (!title) {
+            return;
+        }
+
+
+        if (role === "collector") {
+
+            const collectorTitles = {
+
+                dashboard:
+                    "Collector Dashboard",
+
+                pickupRequests:
+                    "Pickup Requests",
+
+                inventory:
+                    "My Inventory",
+
+                recyclers:
+                    "Recycler Network",
+
+                earnings:
+                    "Collector Earnings",
+
+                transactions:
+                    "Collector Transactions"
+
+            };
+
+            title.innerText =
+                collectorTitles[section]
+                ||
+                "Collector Dashboard";
+
+            return;
+
+        }
+
+
+        const householdTitles = {
+
+            dashboard:
+                "Household Dashboard",
+
+            scanner:
+                "AI Waste Scanner",
+
+            recyclers:
+                "Recycler Network",
+
+            transactions:
+                "My Transactions"
+
+        };
+
+        title.innerText =
+            householdTitles[section]
+            ||
+            "Household Dashboard";
+
+    }
+
+
+    // ------------------------------------------------------------
+    // UPDATE PROFILE ROLE
+    // ------------------------------------------------------------
+
+    function updateRoleText(
+        role
+    ) {
+
+        const profileRole =
+            document.querySelector(
+                ".profile-role"
+            );
+
+        if (profileRole) {
+
+            profileRole.innerText =
+                role === "collector"
+                    ? "Collector"
+                    : "Household User";
+
+        }
+
+
+        document
+            .querySelectorAll(
+                ".profile-row"
+            )
+            .forEach(
+                function (row) {
+
+                    if (
+                        row.innerText &&
+                        row.innerText
+                            .toLowerCase()
+                            .includes("role")
+                    ) {
+
+                        const strong =
+                            row.querySelector(
+                                "strong"
+                            );
+
+                        if (strong) {
+
+                            strong.innerText =
+                                role === "collector"
+                                    ? "Collector"
+                                    : "Household";
+
+                        }
+
+                    }
+
+                }
+            );
+
+    }
+
+
+    // ------------------------------------------------------------
+    // ROLE SWITCH
+    // ------------------------------------------------------------
+
+    window.switchRole =
+        function (role) {
+
+            if (
+                role !== "household" &&
+                role !== "collector"
+            ) {
+
+                role =
+                    "household";
+
+            }
+
+
+            saveRole(role);
+
+
+            // ----------------------------------------------------
+            // ROLE BUTTONS
+            // ----------------------------------------------------
+
+            const householdButton =
+                document.getElementById(
+                    "householdRole"
+                );
+
+            const collectorButton =
+                document.getElementById(
+                    "collectorRole"
+                );
+
+
+            if (householdButton) {
+
+                householdButton.classList.toggle(
+                    "active",
+                    role === "household"
+                );
+
+            }
+
+
+            if (collectorButton) {
+
+                collectorButton.classList.toggle(
+                    "active",
+                    role === "collector"
+                );
+
+            }
+
+
+            // ----------------------------------------------------
+            // PROFILE
+            // ----------------------------------------------------
+
+            updateRoleText(
+                role
+            );
+
+
+            // ----------------------------------------------------
+            // NAVIGATION
+            // ----------------------------------------------------
+
+            configureNavigation(
+                role
+            );
+
+
+            // ----------------------------------------------------
+            // COLLECTOR MODE
+            // ----------------------------------------------------
+
+            if (role === "collector") {
+
+                createCollectorDashboard();
+
+                configureDynamicCards(
+                    "collector"
+                );
+
+                setPageTitle(
+                    "collector",
+                    "dashboard"
+                );
+
+                showCollectorDashboardSection();
+
+                updateCollectorDashboardStats();
+
+                console.log(
+                    "🚚 Collector mode active."
+                );
+
+                return;
+
+            }
+
+
+            // ----------------------------------------------------
+            // HOUSEHOLD MODE
+            // ----------------------------------------------------
+
+            configureDynamicCards(
+                "household"
+            );
+
+
+            restoreHouseholdDashboard();
+
+
+            setPageTitle(
+                "household",
+                "dashboard"
+            );
+
+
+            showHouseholdDashboardSection();
+
+
+            console.log(
+                "🏠 Household mode active."
+            );
+
+        };
+
+
+    // ------------------------------------------------------------
+    // SHOW COLLECTOR DASHBOARD
+    // ------------------------------------------------------------
+
+    function showCollectorDashboardSection() {
+
+        const sections =
+            document.querySelectorAll(
+                ".page-section"
+            );
+
+        sections.forEach(
+            function (section) {
+
+                section.classList.remove(
+                    "active-section"
+                );
+
+            }
+        );
+
+
+        const dashboard =
+            document.getElementById(
+                "dashboard"
+            );
+
+        if (dashboard) {
+
+            dashboard.classList.add(
+                "active-section"
+            );
+
+        }
+
+
+        // Remove nav active state
+        getNavItems().forEach(
+            function (item) {
+
+                item.classList.remove(
+                    "active"
+                );
+
+                const text =
+                    (
+                        item.innerText ||
+                        ""
+                    ).toLowerCase();
+
+                if (
+                    text.includes(
+                        "dashboard"
+                    )
+                ) {
+
+                    item.classList.add(
+                        "active"
+                    );
+
+                }
+
+            }
+        );
+
+    }
+
+
+    // ------------------------------------------------------------
+    // HOUSEHOLD DASHBOARD BACKUP
+    // ------------------------------------------------------------
+
+    let householdDashboardHTML =
+        null;
+
+
+    function saveHouseholdDashboard() {
+
+        const dashboard =
+            document.getElementById(
+                "dashboard"
+            );
+
+        if (
+            dashboard &&
+            householdDashboardHTML === null
+        ) {
+
+            householdDashboardHTML =
+                dashboard.innerHTML;
+
+        }
+
+    }
+
+
+    // ------------------------------------------------------------
+    // RESTORE HOUSEHOLD DASHBOARD
+    // ------------------------------------------------------------
+
+    function restoreHouseholdDashboard() {
+
+        const dashboard =
+            document.getElementById(
+                "dashboard"
+            );
+
+        if (
+            !dashboard
+        ) {
+
+            return;
+
+        }
+
+
+        if (
+            householdDashboardHTML !== null
+        ) {
+
+            dashboard.innerHTML =
+                householdDashboardHTML;
+
+        }
+
+    }
+
+
+    function showHouseholdDashboardSection() {
+
+        const sections =
+            document.querySelectorAll(
+                ".page-section"
+            );
+
+        sections.forEach(
+            function (section) {
+
+                section.classList.remove(
+                    "active-section"
+                );
+
+            }
+        );
+
+
+        const dashboard =
+            document.getElementById(
+                "dashboard"
+            );
+
+        if (dashboard) {
+
+            dashboard.classList.add(
+                "active-section"
+            );
+
+        }
+
+
+        getNavItems().forEach(
+            function (item) {
+
+                item.classList.remove(
+                    "active"
+                );
+
+                const text =
+                    (
+                        item.innerText ||
+                        ""
+                    ).toLowerCase();
+
+                if (
+                    text.includes(
+                        "dashboard"
+                    )
+                ) {
+
+                    item.classList.add(
+                        "active"
+                    );
+
+                }
+
+            }
+        );
+
+    }
+
+
+    // ------------------------------------------------------------
+    // ROLE-AWARE SECTION NAVIGATION
+    // ------------------------------------------------------------
+
+    const originalShowSection =
+        window.showSection;
+
+
+    window.showSection =
+        function (sectionId) {
+
+            const role =
+                getRole();
+
+
+            // ====================================================
+            // COLLECTOR
+            // ====================================================
+
+            if (
+                role === "collector"
+            ) {
+
+                const collectorAllowed = [
+
+                    "dashboard",
+                    "pickupRequests",
+                    "pickup",
+                    "inventory",
+                    "recyclers",
+                    "earnings",
+                    "transactions"
+
+                ];
+
+
+                if (
+                    sectionId === "scanner"
+                ) {
+
+                    console.log(
+                        "Step 5L: AI Scanner hidden from collector."
+                    );
+
+                    return;
+
+                }
+
+
+                if (
+                    typeof originalShowSection ===
+                    "function"
+                ) {
+
+                    originalShowSection(
+                        sectionId
+                    );
+
+                }
+
+
+                configureNavigation(
+                    "collector"
+                );
+
+
+                setPageTitle(
+                    "collector",
+                    sectionId
+                );
+
+
+                if (
+                    sectionId ===
+                    "dashboard"
+                ) {
+
+                    createCollectorDashboard();
+
+                    showCollectorDashboardSection();
+
+                    updateCollectorDashboardStats();
+
+                }
+
+                return;
+
+            }
+
+
+            // ====================================================
+            // HOUSEHOLD
+            // ====================================================
+
+            if (
+                typeof originalShowSection ===
+                "function"
+            ) {
+
+                originalShowSection(
+                    sectionId
+                );
+
+            }
+
+
+            configureNavigation(
+                "household"
+            );
+
+
+            setPageTitle(
+                "household",
+                sectionId
+            );
+
+        };
+
+
+    // ------------------------------------------------------------
+    // INITIALIZATION
+    // ------------------------------------------------------------
+
+    setTimeout(
+        function () {
+
+            /*
+             * Save the original household dashboard before
+             * switching it to collector mode.
+             */
+
+            saveHouseholdDashboard();
+
+
+            const savedRole =
+                getRole();
+
+
+            window.switchRole(
+                savedRole
+            );
+
+
+            console.log(
+                "✅ Step 5L - Separate dashboards initialized."
+            );
+
+        },
+        100
+    );
+
+
+    // ------------------------------------------------------------
+    // KEEP COLLECTOR STATS UPDATED
+    // ------------------------------------------------------------
+
+    setInterval(
+        function () {
+
+            if (
+                getRole() ===
+                "collector"
+            ) {
+
+                updateCollectorDashboardStats();
+
+            }
+
+        },
+        2000
+    );
+
+
+})();
+
+// ============================================================
+// STEP 5M - DEDICATED COLLECTOR PICKUP REQUEST PAGE
+// ============================================================
+
+(function () {
+
+    console.log("🚀 Step 5M - Collector Pickup Requests page loaded.");
+
+    const PICKUP_KEY = "kabadiSetuPickupRequests";
+
+    // ============================================================
+    // STORAGE
+    // ============================================================
+
+    function getRequests() {
+
+        try {
+
+            const data = JSON.parse(
+                localStorage.getItem(PICKUP_KEY) || "[]"
+            );
+
+            return Array.isArray(data) ? data : [];
+
+        } catch (error) {
+
+            console.error(
+                "Step 5M: Error reading pickup requests.",
+                error
+            );
+
+            return [];
+
+        }
+
+    }
+
+
+    // ============================================================
+    // MONEY
+    // ============================================================
+
+    function formatMoney(value) {
+
+        return "₹" +
+            Number(value || 0).toLocaleString("en-IN");
+
+    }
+
+
+    // ============================================================
+    // DATE
+    // ============================================================
+
+    function formatDate(value) {
+
+        if (!value) {
+            return "—";
+        }
+
+        const date = new Date(value);
+
+        if (isNaN(date.getTime())) {
+            return "—";
+        }
+
+        return date.toLocaleString(
+            "en-IN",
+            {
+                day: "2-digit",
+                month: "short",
+                year: "numeric",
+                hour: "2-digit",
+                minute: "2-digit"
+            }
+        );
+
+    }
+
+
+    // ============================================================
+    // CREATE SECTION
+    // ============================================================
+
+    function createPickupSection() {
+
+        let section =
+            document.getElementById(
+                "pickupRequests"
+            );
+
+        if (section) {
+            return section;
+        }
+
+
+        section =
+            document.createElement("section");
+
+        section.id =
+            "pickupRequests";
+
+        section.className =
+            "page-section";
+
+
+        section.innerHTML = `
+
+            <div
+                id="collectorPickupPage"
+                style="
+                    width:100%;
+                "
+            >
+
+                <!-- ================================================= -->
+                <!-- PAGE HEADER -->
+                <!-- ================================================= -->
+
+                <div style="
+                    background:linear-gradient(
+                        135deg,
+                        #eff6ff,
+                        #f0fdf4
+                    );
+                    border:1px solid #dbeafe;
+                    border-radius:20px;
+                    padding:24px;
+                    margin-bottom:20px;
+                ">
+
+                    <div style="
+                        display:flex;
+                        justify-content:space-between;
+                        align-items:center;
+                        gap:15px;
+                    ">
+
+                        <div>
+
+                            <div style="
+                                font-size:12px;
+                                font-weight:700;
+                                color:#2563eb;
+                                letter-spacing:.5px;
+                                margin-bottom:6px;
+                            ">
+                                COLLECTION MANAGEMENT
+                            </div>
+
+                            <h2 style="
+                                margin:0 0 7px;
+                                font-size:27px;
+                            ">
+                                🚚 Pickup Requests
+                            </h2>
+
+                            <p style="
+                                margin:0;
+                                color:#666;
+                                font-size:13px;
+                                line-height:1.5;
+                            ">
+                                Manage household pickup requests,
+                                accept collections and record
+                                the actual physical weight.
+                            </p>
+
+                        </div>
+
+
+                        <div style="
+                            font-size:46px;
+                        ">
+                            📦
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <!-- ================================================= -->
+                <!-- STATISTICS -->
+                <!-- ================================================= -->
+
+                <div
+                    id="pickupRequestStats"
+                    style="
+                        display:grid;
+                        grid-template-columns:
+                            repeat(
+                                auto-fit,
+                                minmax(140px,1fr)
+                            );
+                        gap:12px;
+                        margin-bottom:20px;
+                    "
+                >
+                </div>
+
+
+                <!-- ================================================= -->
+                <!-- FILTER -->
+                <!-- ================================================= -->
+
+                <div style="
+                    background:#ffffff;
+                    border-radius:17px;
+                    padding:16px;
+                    margin-bottom:15px;
+                    box-shadow:0 4px 15px rgba(0,0,0,.05);
+                ">
+
+                    <div style="
+                        display:flex;
+                        gap:10px;
+                        align-items:center;
+                        flex-wrap:wrap;
+                    ">
+
+                        <strong style="
+                            font-size:13px;
+                        ">
+                            Filter:
+                        </strong>
+
+
+                        <button
+                            class="pickupFilterBtn"
+                            data-filter="all"
+                            style="
+                                padding:8px 14px;
+                                border:none;
+                                border-radius:20px;
+                                cursor:pointer;
+                                background:#111827;
+                                color:white;
+                                font-size:12px;
+                            "
+                        >
+                            All
+                        </button>
+
+
+                        <button
+                            class="pickupFilterBtn"
+                            data-filter="Pending"
+                            style="
+                                padding:8px 14px;
+                                border:1px solid #fed7aa;
+                                border-radius:20px;
+                                cursor:pointer;
+                                background:#fff7ed;
+                                color:#c2410c;
+                                font-size:12px;
+                            "
+                        >
+                            Pending
+                        </button>
+
+
+                        <button
+                            class="pickupFilterBtn"
+                            data-filter="Accepted"
+                            style="
+                                padding:8px 14px;
+                                border:1px solid #bfdbfe;
+                                border-radius:20px;
+                                cursor:pointer;
+                                background:#eff6ff;
+                                color:#1d4ed8;
+                                font-size:12px;
+                            "
+                        >
+                            Accepted
+                        </button>
+
+
+                        <button
+                            class="pickupFilterBtn"
+                            data-filter="Completed"
+                            style="
+                                padding:8px 14px;
+                                border:1px solid #bbf7d0;
+                                border-radius:20px;
+                                cursor:pointer;
+                                background:#f0fdf4;
+                                color:#15803d;
+                                font-size:12px;
+                            "
+                        >
+                            Completed
+                        </button>
+
+                    </div>
+
+                </div>
+
+
+                <!-- ================================================= -->
+                <!-- REQUEST LIST -->
+                <!-- ================================================= -->
+
+                <div
+                    id="collectorPickupRequestList"
+                >
+                </div>
+
+            </div>
+
+        `;
+
+
+        const main =
+            document.querySelector(
+                ".main"
+            );
+
+
+        if (main) {
+
+            main.appendChild(
+                section
+            );
+
+        } else {
+
+            document.body.appendChild(
+                section
+            );
+
+        }
+
+
+        attachFilterButtons();
+
+        return section;
+
+    }
+
+
+    // ============================================================
+    // STATS
+    // ============================================================
+
+    function renderStats(requests) {
+
+        const container =
+            document.getElementById(
+                "pickupRequestStats"
+            );
+
+        if (!container) {
+            return;
+        }
+
+
+        const pending =
+            requests.filter(
+                r => r.status === "Pending"
+            ).length;
+
+
+        const accepted =
+            requests.filter(
+                r => r.status === "Accepted"
+            ).length;
+
+
+        const completed =
+            requests.filter(
+                r => r.status === "Completed"
+            ).length;
+
+
+        container.innerHTML = `
+
+            <div style="
+                background:#fff7ed;
+                border-radius:15px;
+                padding:17px;
+                border:1px solid #fed7aa;
+            ">
+
+                <div style="
+                    font-size:11px;
+                    color:#9a3412;
+                    font-weight:700;
+                ">
+                    PENDING
+                </div>
+
+                <div style="
+                    font-size:25px;
+                    font-weight:700;
+                    margin-top:4px;
+                ">
+                    ${pending}
+                </div>
+
+                <div style="
+                    font-size:11px;
+                    color:#777;
+                    margin-top:3px;
+                ">
+                    Need acceptance
+                </div>
+
+            </div>
+
+
+            <div style="
+                background:#eff6ff;
+                border-radius:15px;
+                padding:17px;
+                border:1px solid #bfdbfe;
+            ">
+
+                <div style="
+                    font-size:11px;
+                    color:#1d4ed8;
+                    font-weight:700;
+                ">
+                    ACCEPTED
+                </div>
+
+                <div style="
+                    font-size:25px;
+                    font-weight:700;
+                    margin-top:4px;
+                ">
+                    ${accepted}
+                </div>
+
+                <div style="
+                    font-size:11px;
+                    color:#777;
+                    margin-top:3px;
+                ">
+                    Ready for collection
+                </div>
+
+            </div>
+
+
+            <div style="
+                background:#f0fdf4;
+                border-radius:15px;
+                padding:17px;
+                border:1px solid #bbf7d0;
+            ">
+
+                <div style="
+                    font-size:11px;
+                    color:#15803d;
+                    font-weight:700;
+                ">
+                    COMPLETED
+                </div>
+
+                <div style="
+                    font-size:25px;
+                    font-weight:700;
+                    margin-top:4px;
+                ">
+                    ${completed}
+                </div>
+
+                <div style="
+                    font-size:11px;
+                    color:#777;
+                    margin-top:3px;
+                ">
+                    Successfully collected
+                </div>
+
+            </div>
+
+
+            <div style="
+                background:#f8fafc;
+                border-radius:15px;
+                padding:17px;
+                border:1px solid #e5e7eb;
+            ">
+
+                <div style="
+                    font-size:11px;
+                    color:#475569;
+                    font-weight:700;
+                ">
+                    TOTAL REQUESTS
+                </div>
+
+                <div style="
+                    font-size:25px;
+                    font-weight:700;
+                    margin-top:4px;
+                ">
+                    ${requests.length}
+                </div>
+
+                <div style="
+                    font-size:11px;
+                    color:#777;
+                    margin-top:3px;
+                ">
+                    All household requests
+                </div>
+
+            </div>
+
+        `;
+
+    }
+
+
+    // ============================================================
+    // RENDER REQUEST LIST
+    // ============================================================
+
+    let currentFilter = "all";
+
+
+    function renderRequestList() {
+
+        const container =
+            document.getElementById(
+                "collectorPickupRequestList"
+            );
+
+        if (!container) {
+            return;
+        }
+
+
+        const requests =
+            getRequests();
+
+
+        renderStats(
+            requests
+        );
+
+
+        let filtered =
+            requests;
+
+
+        if (
+            currentFilter !==
+            "all"
+        ) {
+
+            filtered =
+                requests.filter(
+                    function (request) {
+
+                        return (
+                            request.status ===
+                            currentFilter
+                        );
+
+                    }
+                );
+
+        }
+
+
+        if (
+            filtered.length === 0
+        ) {
+
+            container.innerHTML = `
+
+                <div style="
+                    background:white;
+                    border-radius:18px;
+                    padding:45px 20px;
+                    text-align:center;
+                    box-shadow:0 4px 15px rgba(0,0,0,.05);
+                ">
+
+                    <div style="
+                        font-size:48px;
+                        margin-bottom:10px;
+                    ">
+                        📭
+                    </div>
+
+                    <h3 style="
+                        margin:0 0 7px;
+                    ">
+                        No ${currentFilter === "all"
+                            ? ""
+                            : currentFilter.toLowerCase()
+                        } requests
+                    </h3>
+
+                    <p style="
+                        margin:0;
+                        color:#777;
+                        font-size:13px;
+                    ">
+                        Household pickup requests
+                        will appear here.
+                    </p>
+
+                </div>
+
+            `;
+
+            return;
+
+        }
+
+
+        container.innerHTML =
+            filtered
+                .map(
+                    renderRequestCard
+                )
+                .join("");
+
+
+        attachRequestActions();
+
+    }
+
+
+    // ============================================================
+    // REQUEST CARD
+    // ============================================================
+
+    function renderRequestCard(request) {
+
+        let statusBg =
+            "#fff7ed";
+
+        let statusColor =
+            "#c2410c";
+
+        let statusBorder =
+            "#fed7aa";
+
+
+        if (
+            request.status ===
+            "Accepted"
+        ) {
+
+            statusBg =
+                "#eff6ff";
+
+            statusColor =
+                "#1d4ed8";
+
+            statusBorder =
+                "#bfdbfe";
+
+        }
+
+
+        if (
+            request.status ===
+            "Completed"
+        ) {
+
+            statusBg =
+                "#f0fdf4";
+
+            statusColor =
+                "#15803d";
+
+            statusBorder =
+                "#bbf7d0";
+
+        }
+
+
+        const weight =
+            request.actualWeight ||
+            request.estimatedWeight ||
+            0;
+
+
+        const value =
+            request.finalValue ||
+            request.estimatedValue ||
+            0;
+
+
+        return `
+
+            <div style="
+                background:#ffffff;
+                border-radius:18px;
+                padding:20px;
+                margin-bottom:13px;
+                border:1px solid #e5e7eb;
+                box-shadow:0 4px 15px rgba(0,0,0,.05);
+            ">
+
+                <!-- TOP -->
+
+                <div style="
+                    display:flex;
+                    justify-content:space-between;
+                    align-items:flex-start;
+                    gap:15px;
+                    margin-bottom:16px;
+                ">
+
+                    <div>
+
+                        <div style="
+                            font-size:11px;
+                            color:#999;
+                            margin-bottom:5px;
+                        ">
+                            PICKUP REQUEST
+                        </div>
+
+                        <h3 style="
+                            margin:0;
+                            font-size:17px;
+                        ">
+                            ${request.id}
+                        </h3>
+
+                    </div>
+
+
+                    <span style="
+                        padding:7px 12px;
+                        border-radius:20px;
+                        background:${statusBg};
+                        color:${statusColor};
+                        border:1px solid ${statusBorder};
+                        font-size:11px;
+                        font-weight:700;
+                    ">
+                        ${request.status}
+                    </span>
+
+                </div>
+
+
+                <!-- HOUSEHOLD -->
+
+                <div style="
+                    background:#f8fafc;
+                    border-radius:14px;
+                    padding:15px;
+                    margin-bottom:13px;
+                ">
+
+                    <div style="
+                        font-size:11px;
+                        color:#777;
+                        margin-bottom:7px;
+                    ">
+                        HOUSEHOLD
+                    </div>
+
+                    <strong style="
+                        font-size:15px;
+                    ">
+                        🏠 ${request.customerName || "Household User"}
+                    </strong>
+
+                    ${
+                        request.phone
+                            ? `
+                                <div style="
+                                    font-size:12px;
+                                    color:#666;
+                                    margin-top:5px;
+                                ">
+                                    📞 ${request.phone}
+                                </div>
+                              `
+                            : ""
+                    }
+
+                </div>
+
+
+                <!-- DETAILS -->
+
+                <div style="
+                    display:grid;
+                    grid-template-columns:
+                        repeat(
+                            auto-fit,
+                            minmax(150px,1fr)
+                        );
+                    gap:10px;
+                    margin-bottom:15px;
+                ">
+
+
+                    <div style="
+                        padding:12px;
+                        background:#f8fafc;
+                        border-radius:12px;
+                    ">
+
+                        <div style="
+                            font-size:10px;
+                            color:#888;
+                        ">
+                            MATERIAL
+                        </div>
+
+                        <strong style="
+                            font-size:13px;
+                        ">
+                            ♻️ ${request.material}
+                        </strong>
+
+                    </div>
+
+
+                    <div style="
+                        padding:12px;
+                        background:#f8fafc;
+                        border-radius:12px;
+                    ">
+
+                        <div style="
+                            font-size:10px;
+                            color:#888;
+                        ">
+                            WEIGHT
+                        </div>
+
+                        <strong style="
+                            font-size:13px;
+                        ">
+                            ⚖️ ${weight} kg
+                        </strong>
+
+                    </div>
+
+
+                    <div style="
+                        padding:12px;
+                        background:#f8fafc;
+                        border-radius:12px;
+                    ">
+
+                        <div style="
+                            font-size:10px;
+                            color:#888;
+                        ">
+                            ${
+                                request.status ===
+                                "Completed"
+                                    ? "FINAL VALUE"
+                                    : "ESTIMATED VALUE"
+                            }
+                        </div>
+
+                        <strong style="
+                            font-size:13px;
+                        ">
+                            💰 ${formatMoney(value)}
+                        </strong>
+
+                    </div>
+
+
+                    <div style="
+                        padding:12px;
+                        background:#f8fafc;
+                        border-radius:12px;
+                    ">
+
+                        <div style="
+                            font-size:10px;
+                            color:#888;
+                        ">
+                            REQUESTED
+                        </div>
+
+                        <strong style="
+                            font-size:12px;
+                        ">
+                            🕒 ${formatDate(request.createdAt)}
+                        </strong>
+
+                    </div>
+
+                </div>
+
+
+                <!-- ADDRESS -->
+
+                <div style="
+                    padding:13px;
+                    border:1px dashed #d1d5db;
+                    border-radius:12px;
+                    margin-bottom:15px;
+                    font-size:12px;
+                    color:#555;
+                ">
+
+                    <strong>
+                        📍 Pickup Address
+                    </strong>
+
+                    <div style="
+                        margin-top:5px;
+                    ">
+                        ${request.address || "Address not provided"}
+                    </div>
+
+                </div>
+
+
+                <!-- ACTION -->
+
+                ${
+                    request.status ===
+                    "Pending"
+
+                    ? `
+
+                        <button
+                            class="collectorAcceptPickup"
+                            data-id="${request.id}"
+                            style="
+                                width:100%;
+                                padding:13px;
+                                border:none;
+                                border-radius:11px;
+                                background:#2563eb;
+                                color:white;
+                                cursor:pointer;
+                                font-weight:700;
+                            "
+                        >
+                            🚚 Accept Pickup Request
+                        </button>
+
+                    `
+
+                    : ""
+                }
+
+
+                ${
+                    request.status ===
+                    "Accepted"
+
+                    ? `
+
+                        <button
+                            class="collectorCompletePickup"
+                            data-id="${request.id}"
+                            style="
+                                width:100%;
+                                padding:13px;
+                                border:none;
+                                border-radius:11px;
+                                background:#16a34a;
+                                color:white;
+                                cursor:pointer;
+                                font-weight:700;
+                            "
+                        >
+                            ⚖️ Complete Pickup & Enter Weight
+                        </button>
+
+                    `
+
+                    : ""
+                }
+
+
+                ${
+                    request.status ===
+                    "Completed"
+
+                    ? `
+
+                        <div style="
+                            background:#f0fdf4;
+                            border:1px solid #bbf7d0;
+                            color:#15803d;
+                            padding:12px;
+                            border-radius:11px;
+                            font-size:12px;
+                            text-align:center;
+                            font-weight:600;
+                        ">
+                            ✅ Material collected and added
+                            to collector inventory
+                        </div>
+
+                    `
+
+                    : ""
+                }
+
+            </div>
+
+        `;
+
+    }
+
+
+    // ============================================================
+    // ACTION EVENTS
+    // ============================================================
+
+    function attachRequestActions() {
+
+        document
+            .querySelectorAll(
+                ".collectorAcceptPickup"
+            )
+            .forEach(
+                function (button) {
+
+                    button.onclick =
+                        function () {
+
+                            const id =
+                                this.getAttribute(
+                                    "data-id"
+                                );
+
+
+                            if (
+                                typeof window.acceptPickup ===
+                                "function"
+                            ) {
+
+                                window.acceptPickup(
+                                    id
+                                );
+
+                                setTimeout(
+                                    renderRequestList,
+                                    150
+                                );
+
+                            }
+
+                        };
+
+                }
+            );
+
+
+        document
+            .querySelectorAll(
+                ".collectorCompletePickup"
+            )
+            .forEach(
+                function (button) {
+
+                    button.onclick =
+                        function () {
+
+                            const id =
+                                this.getAttribute(
+                                    "data-id"
+                                );
+
+
+                            if (
+                                typeof window.openCompletePickupModal ===
+                                "function"
+                            ) {
+
+                                window.openCompletePickupModal(
+                                    id
+                                );
+
+                            } else if (
+                                typeof window.completePickup ===
+                                "function"
+                            ) {
+
+                                const weight =
+                                    prompt(
+                                        "Enter actual physical weight in kg:"
+                                    );
+
+
+                                if (
+                                    weight &&
+                                    Number(weight) > 0
+                                ) {
+
+                                    window.completePickup(
+                                        id,
+                                        Number(weight)
+                                    );
+
+                                    setTimeout(
+                                        renderRequestList,
+                                        150
+                                    );
+
+                                }
+
+                            }
+
+                        };
+
+                }
+            );
+
+    }
+
+
+    // ============================================================
+    // FILTER BUTTONS
+    // ============================================================
+
+    function attachFilterButtons() {
+
+        document
+            .querySelectorAll(
+                ".pickupFilterBtn"
+            )
+            .forEach(
+                function (button) {
+
+                    button.onclick =
+                        function () {
+
+                            currentFilter =
+                                this.getAttribute(
+                                    "data-filter"
+                                ) ||
+                                "all";
+
+
+                            document
+                                .querySelectorAll(
+                                    ".pickupFilterBtn"
+                                )
+                                .forEach(
+                                    function (btn) {
+
+                                        btn.style.fontWeight =
+                                            "400";
+
+                                    }
+                                );
+
+
+                            this.style.fontWeight =
+                                "700";
+
+
+                            renderRequestList();
+
+                        };
+
+                }
+            );
+
+    }
+
+
+    // ============================================================
+    // PUBLIC FUNCTION
+    // ============================================================
+
+    window.renderCollectorPickupPage =
+        function () {
+
+            createPickupSection();
+
+            renderRequestList();
+
+        };
+
+
+    // ============================================================
+    // ROLE-AWARE NAVIGATION BUTTON
+    // ============================================================
+
+    function addCollectorPickupNav() {
+
+        const nav =
+            document.querySelector(
+                ".sidebar nav"
+            );
+
+
+        if (!nav) {
+            return;
+        }
+
+
+        // Don't duplicate
+        if (
+            document.getElementById(
+                "collectorPickupNavItem"
+            )
+        ) {
+
+            return;
+
+        }
+
+
+        const button =
+            document.createElement(
+                "button"
+            );
+
+
+        button.id =
+            "collectorPickupNavItem";
+
+        button.className =
+            "nav-item collector-only-nav";
+
+
+        button.innerHTML = `
+            <span>🚚</span>
+            Pickup Requests
+        `;
+
+
+        button.style.display =
+            getCurrentRole() ===
+            "collector"
+                ? ""
+                : "none";
+
+
+        button.onclick =
+            function () {
+
+                if (
+                    getCurrentRole() !==
+                    "collector"
+                ) {
+
+                    return;
+
+                }
+
+
+                if (
+                    typeof window.showSection ===
+                    "function"
+                ) {
+
+                    window.showSection(
+                        "pickupRequests"
+                    );
+
+                }
+
+
+                renderRequestList();
+
+            };
+
+
+        nav.insertBefore(
+            button,
+            nav.children[1] || null
+        );
+
+    }
+
+
+    // ============================================================
+    // CURRENT ROLE
+    // ============================================================
+
+    function getCurrentRole() {
+
+        return (
+            localStorage.getItem(
+                "kabadiSetuActiveRole"
+            ) ||
+            "household"
+        );
+
+    }
+
+
+    // ============================================================
+    // ROLE BUTTON OBSERVER
+    // ============================================================
+
+    function updatePickupNavVisibility() {
+
+        const nav =
+            document.getElementById(
+                "collectorPickupNavItem"
+            );
+
+
+        if (!nav) {
+            return;
+        }
+
+
+        nav.style.display =
+            getCurrentRole() ===
+            "collector"
+                ? ""
+                : "none";
+
+    }
+
+
+    // ============================================================
+    // PATCH ROLE SWITCH
+    // ============================================================
+
+    const oldSwitchRole =
+        window.switchRole;
+
+
+    if (
+        typeof oldSwitchRole ===
+        "function"
+    ) {
+
+        window.switchRole =
+            function (role) {
+
+                oldSwitchRole(
+                    role
+                );
+
+
+                setTimeout(
+                    function () {
+
+                        updatePickupNavVisibility();
+
+                        if (
+                            role ===
+                            "collector"
+                        ) {
+
+                            createPickupSection();
+
+                        }
+
+                    },
+                    100
+                );
+
+            };
+
+    }
+
+
+    // ============================================================
+    // PATCH SHOW SECTION
+    // ============================================================
+
+    const oldShowSection =
+        window.showSection;
+
+
+    if (
+        typeof oldShowSection ===
+        "function"
+    ) {
+
+        window.showSection =
+            function (sectionId) {
+
+                oldShowSection(
+                    sectionId
+                );
+
+
+                if (
+                    sectionId ===
+                    "pickupRequests"
+                ) {
+
+                    createPickupSection();
+
+                    renderRequestList();
+
+                }
+
+
+                updatePickupNavVisibility();
+
+            };
+
+    }
+
+
+    // ============================================================
+    // INITIALIZATION
+    // ============================================================
+
+    setTimeout(
+        function () {
+
+            addCollectorPickupNav();
+
+            if (
+                getCurrentRole() ===
+                "collector"
+            ) {
+
+                createPickupSection();
+
+            }
+
+
+            console.log(
+                "✅ Step 5M - Dedicated Collector Pickup Requests ready."
+            );
+
+        },
+        1000
+    );
+
+
+    // ============================================================
+    // AUTO REFRESH
+    // ============================================================
+
+    setInterval(
+        function () {
+
+            if (
+                getCurrentRole() ===
+                "collector"
+            ) {
+
+                const section =
+                    document.getElementById(
+                        "pickupRequests"
+                    );
+
+
+                if (
+                    section &&
+                    section.classList.contains(
+                        "active-section"
+                    )
+                ) {
+
+                    renderRequestList();
+
+                }
+
+            }
+
+        },
+        2500
+    );
+
+})();
+
+// ============================================================
+// STEP 5M FIX
+// HOUSEHOLD PICKUP REQUEST → COLLECTOR DASHBOARD BRIDGE
+// ============================================================
+
+(function () {
+
+    console.log(
+        "🚀 Step 5M FIX - Household → Collector pickup bridge loaded."
+    );
+
+    const PICKUP_KEY =
+        "kabadiSetuPickupRequests";
+
+
+    // ============================================================
+    // STORAGE HELPERS
+    // ============================================================
+
+    function getStoredPickupRequests() {
+
+        try {
+
+            const data =
+                JSON.parse(
+                    localStorage.getItem(
+                        PICKUP_KEY
+                    ) || "[]"
+                );
+
+            return Array.isArray(data)
+                ? data
+                : [];
+
+        } catch (error) {
+
+            console.error(
+                "Step 5M FIX: Could not read pickup storage.",
+                error
+            );
+
+            return [];
+
+        }
+
+    }
+
+
+    function saveStoredPickupRequests(
+        requests
+    ) {
+
+        localStorage.setItem(
+            PICKUP_KEY,
+            JSON.stringify(
+                requests
+            )
+        );
+
+    }
+
+
+    // ============================================================
+    // GENERATE FALLBACK REQUEST ID
+    // ============================================================
+
+    function generateRequestId() {
+
+        const now =
+            new Date();
+
+        const date =
+            now.getFullYear().toString() +
+            String(
+                now.getMonth() + 1
+            ).padStart(2, "0") +
+            String(
+                now.getDate()
+            ).padStart(2, "0");
+
+
+        const random =
+            Math.floor(
+                100000 +
+                Math.random() * 900000
+            );
+
+
+        return (
+            "PK-" +
+            date +
+            "-" +
+            random
+        );
+
+    }
+
+
+    // ============================================================
+    // ADD HOUSEHOLD REQUEST TO SHARED STORAGE
+    // ============================================================
+
+    function saveHouseholdPickupToCollector(
+        material,
+        weight,
+        address,
+        requestId
+    ) {
+
+        const requests =
+            getStoredPickupRequests();
+
+
+        /*
+         * Prevent duplicate requests.
+         */
+
+        const alreadyExists =
+            requests.some(
+                function (request) {
+
+                    return (
+                        request &&
+                        request.id ===
+                        requestId
+                    );
+
+                }
+            );
+
+
+        if (alreadyExists) {
+
+            console.log(
+                "ℹ️ Pickup request already exists:",
+                requestId
+            );
+
+            return;
+
+        }
+
+
+        // --------------------------------------------------------
+        // FIND CURRENT PRICE
+        // --------------------------------------------------------
+
+        let rate = 0;
+
+
+        try {
+
+            if (
+                typeof currentPrice !==
+                "undefined"
+            ) {
+
+                rate =
+                    Number(
+                        currentPrice
+                    ) || 0;
+
+            }
+
+        } catch (error) {
+
+            rate = 0;
+
+        }
+
+
+        // --------------------------------------------------------
+        // CREATE SHARED REQUEST
+        // --------------------------------------------------------
+
+        const request = {
+
+            id:
+                requestId ||
+                generateRequestId(),
+
+            customerName:
+                "Household User",
+
+            phone:
+                "",
+
+            address:
+                address ||
+                "Address not provided",
+
+            material:
+                material ||
+                "Recyclable Material",
+
+            estimatedWeight:
+                Number(weight) || 0,
+
+            weight:
+                Number(weight) || 0,
+
+            estimatedValue:
+                rate > 0
+                    ? Number(weight) * rate
+                    : 0,
+
+            indicativeRate:
+                rate,
+
+            status:
+                "Pending",
+
+            createdAt:
+                new Date().toISOString(),
+
+            acceptedAt:
+                null,
+
+            completedAt:
+                null
+
+        };
+
+
+        requests.unshift(
+            request
+        );
+
+
+        saveStoredPickupRequests(
+            requests
+        );
+
+
+        console.log(
+            "✅ HOUSEHOLD REQUEST SAVED FOR COLLECTOR"
+        );
+
+        console.log(
+            request
+        );
+
+
+        // --------------------------------------------------------
+        // NOTIFICATION
+        // --------------------------------------------------------
+
+        try {
+
+            if (
+                typeof window.addCollectorNotification ===
+                "function"
+            ) {
+
+                window.addCollectorNotification(
+                    "New Pickup Request",
+                    `${request.material} pickup requested for ${request.estimatedWeight} kg.`,
+                    "pickup"
+                );
+
+            }
+
+        } catch (error) {
+
+            console.warn(
+                "Notification could not be created.",
+                error
+            );
+
+        }
+
+
+        // --------------------------------------------------------
+        // REFRESH COLLECTOR UI
+        // --------------------------------------------------------
+
+        refreshCollectorPickupUI();
+
+    }
+
+
+    // ============================================================
+    // REFRESH COLLECTOR UI
+    // ============================================================
+
+    function refreshCollectorPickupUI() {
+
+        try {
+
+            if (
+                typeof window.renderCollectorPickupPage ===
+                "function"
+            ) {
+
+                window.renderCollectorPickupPage();
+
+            }
+
+        } catch (error) {
+
+            console.warn(
+                "Collector pickup page refresh skipped.",
+                error
+            );
+
+        }
+
+
+        try {
+
+            if (
+                typeof window.renderPickupRequests ===
+                "function"
+            ) {
+
+                window.renderPickupRequests();
+
+            }
+
+        } catch (error) {
+
+            console.warn(
+                "Pickup request card refresh skipped.",
+                error
+            );
+
+        }
+
+    }
+
+
+    // ============================================================
+    // REPLACE OLD HOUSEHOLD → COLLECTOR FUNCTION
+    // ============================================================
+
+    window.addPickupToCollectorQueue =
+        function (
+            material,
+            weight,
+            address,
+            requestId
+        ) {
+
+            console.log(
+                "📦 Household → Collector request received."
+            );
+
+            saveHouseholdPickupToCollector(
+                material,
+                weight,
+                address,
+                requestId
+            );
+
+        };
+
+
+    // ============================================================
+    // SYNC OLD IN-MEMORY REQUESTS
+    // ============================================================
+
+    /*
+     * This is important.
+     *
+     * If you already created a pickup request before
+     * installing this fix, the old request may still
+     * exist in the original collectorRequests array.
+     *
+     * We copy those requests into localStorage once.
+     */
+
+    function syncExistingCollectorRequests() {
+
+        try {
+
+            if (
+                typeof collectorRequests ===
+                "undefined"
+            ) {
+
+                console.log(
+                    "No old collector request array found."
+                );
+
+                return;
+
+            }
+
+
+            if (
+                !Array.isArray(
+                    collectorRequests
+                )
+            ) {
+
+                return;
+
+            }
+
+
+            const stored =
+                getStoredPickupRequests();
+
+
+            let added =
+                0;
+
+
+            collectorRequests.forEach(
+                function (oldRequest) {
+
+                    if (!oldRequest) {
+                        return;
+                    }
+
+
+                    const exists =
+                        stored.some(
+                            function (item) {
+
+                                return (
+                                    item.id ===
+                                    oldRequest.id
+                                );
+
+                            }
+                        );
+
+
+                    if (exists) {
+                        return;
+                    }
+
+
+                    stored.push({
+
+                        id:
+                            oldRequest.id ||
+                            generateRequestId(),
+
+                        customerName:
+                            oldRequest.customerName ||
+                            "Household User",
+
+                        phone:
+                            oldRequest.phone ||
+                            "",
+
+                        address:
+                            oldRequest.address ||
+                            "Address not provided",
+
+                        material:
+                            oldRequest.material ||
+                            "Recyclable Material",
+
+                        estimatedWeight:
+                            Number(
+                                oldRequest.weight
+                            ) || 0,
+
+                        weight:
+                            Number(
+                                oldRequest.weight
+                            ) || 0,
+
+                        estimatedValue:
+                            Number(
+                                oldRequest.estimatedValue
+                            ) ||
+                            (
+                                Number(
+                                    oldRequest.indicativeRate
+                                ) *
+                                Number(
+                                    oldRequest.weight
+                                )
+                            ) ||
+                            0,
+
+                        indicativeRate:
+                            Number(
+                                oldRequest.indicativeRate
+                            ) || 0,
+
+                        status:
+                            oldRequest.status ||
+                            "Pending",
+
+                        createdAt:
+                            oldRequest.createdAt ||
+                            new Date().toISOString(),
+
+                        acceptedAt:
+                            oldRequest.acceptedAt ||
+                            null,
+
+                        completedAt:
+                            oldRequest.completedAt ||
+                            null
+
+                    });
+
+
+                    added++;
+
+                }
+            );
+
+
+            if (added > 0) {
+
+                saveStoredPickupRequests(
+                    stored
+                );
+
+
+                console.log(
+                    `✅ Synced ${added} old pickup request(s) to collector storage.`
+                );
+
+            }
+
+        } catch (error) {
+
+            console.error(
+                "Step 5M FIX: Existing request sync failed.",
+                error
+            );
+
+        }
+
+    }
+
+
+    // ============================================================
+    // PATCH ACCEPT PICKUP
+    // ============================================================
+
+    const oldAcceptPickup =
+        window.acceptPickup;
+
+
+    if (
+        typeof oldAcceptPickup ===
+        "function"
+    ) {
+
+        window.acceptPickup =
+            function (
+                requestId
+            ) {
+
+                const requests =
+                    getStoredPickupRequests();
+
+
+                const request =
+                    requests.find(
+                        function (item) {
+
+                            return (
+                                item.id ===
+                                requestId
+                            );
+
+                        }
+                    );
+
+
+                if (request) {
+
+                    request.status =
+                        "Accepted";
+
+                    request.acceptedAt =
+                        new Date().toISOString();
+
+
+                    saveStoredPickupRequests(
+                        requests
+                    );
+
+
+                    console.log(
+                        "✅ Pickup accepted:",
+                        requestId
+                    );
+
+
+                    try {
+
+                        if (
+                            typeof window.addCollectorNotification ===
+                            "function"
+                        ) {
+
+                            window.addCollectorNotification(
+                                "Pickup Accepted",
+                                `Pickup ${requestId} has been accepted.`,
+                                "pickup"
+                            );
+
+                        }
+
+                    } catch (error) {}
+
+
+
+                    refreshCollectorPickupUI();
+
+                    return;
+
+                }
+
+
+                /*
+                 * If it isn't in localStorage, preserve
+                 * the old function.
+                 */
+
+                return oldAcceptPickup(
+                    requestId
+                );
+
+            };
+
+    }
+
+
+    // ============================================================
+    // PATCH COMPLETE PICKUP
+    // ============================================================
+
+    const oldCompletePickup =
+        window.completePickup;
+
+
+    if (
+        typeof oldCompletePickup ===
+        "function"
+    ) {
+
+        window.completePickup =
+            function (
+                requestId,
+                actualWeight
+            ) {
+
+                const requests =
+                    getStoredPickupRequests();
+
+
+                const request =
+                    requests.find(
+                        function (item) {
+
+                            return (
+                                item.id ===
+                                requestId
+                            );
+
+                        }
+                    );
+
+
+                if (!request) {
+
+                    return oldCompletePickup(
+                        requestId,
+                        actualWeight
+                    );
+
+                }
+
+
+                const finalWeight =
+                    Number(
+                        actualWeight
+                    );
+
+
+                if (
+                    !finalWeight ||
+                    finalWeight <= 0
+                ) {
+
+                    alert(
+                        "Please enter a valid physical weight."
+                    );
+
+                    return;
+
+                }
+
+
+                const rate =
+                    Number(
+                        request.indicativeRate
+                    ) || 0;
+
+
+                const finalValue =
+                    rate *
+                    finalWeight;
+
+
+                request.actualWeight =
+                    finalWeight;
+
+                request.weight =
+                    finalWeight;
+
+                request.finalRate =
+                    rate;
+
+                request.finalValue =
+                    Number(
+                        finalValue.toFixed(2)
+                    );
+
+                request.status =
+                    "Completed";
+
+                request.completedAt =
+                    new Date().toISOString();
+
+
+                saveStoredPickupRequests(
+                    requests
+                );
+
+
+                // ------------------------------------------------
+                // ADD TO INVENTORY
+                // ------------------------------------------------
+
+                try {
+
+                    if (
+                        typeof window.addMaterialToCollectorInventory ===
+                        "function"
+                    ) {
+
+                        window.addMaterialToCollectorInventory(
+                            request.material,
+                            finalWeight,
+                            rate
+                        );
+
+                    }
+
+                } catch (error) {
+
+                    console.warn(
+                        "Inventory update failed.",
+                        error
+                    );
+
+                }
+
+
+                // ------------------------------------------------
+                // NOTIFICATION
+                // ------------------------------------------------
+
+                try {
+
+                    if (
+                        typeof window.addCollectorNotification ===
+                        "function"
+                    ) {
+
+                        window.addCollectorNotification(
+                            "Pickup Completed",
+                            `${request.material} (${finalWeight} kg) was collected and added to inventory.`,
+                            "success"
+                        );
+
+                    }
+
+                } catch (error) {}
+
+
+
+                refreshCollectorPickupUI();
+
+
+                alert(
+                    "Pickup completed successfully.\n\n" +
+                    "Material: " +
+                    request.material +
+                    "\nWeight: " +
+                    finalWeight +
+                    " kg\nIndicative Value: " +
+                    "₹" +
+                    finalValue.toLocaleString(
+                        "en-IN"
+                    )
+                );
+
+            };
+
+    }
+
+
+    // ============================================================
+    // INITIAL SYNC
+    // ============================================================
+
+    setTimeout(
+        function () {
+
+            syncExistingCollectorRequests();
+
+            refreshCollectorPickupUI();
+
+            console.log(
+                "========================================"
+            );
+
+            console.log(
+                "✅ STEP 5M FIX COMPLETE"
+            );
+
+            console.log(
+                "Household → Collector storage connected."
+            );
+
+            console.log(
+                "========================================"
+            );
+
+        },
+        800
+    );
+
+
+    // ============================================================
+    // AUTO SYNC
+    // ============================================================
+
+    setInterval(
+        function () {
+
+            syncExistingCollectorRequests();
+
+        },
+        3000
+    );
+
+
+})();
+
+// ============================================================
+// FINAL FIX
+// HOUSEHOLD PICKUP → COLLECTOR DASHBOARD
+// PERSISTENT REQUEST SYNC
+// ============================================================
+
+(function () {
+
+    console.log(
+        "🚀 Final Pickup Sync Fix loaded."
+    );
+
+
+    const PICKUP_STORAGE_KEY =
+        "kabadiSetuPickupRequests";
+
+
+    // ============================================================
+    // GET REQUESTS
+    // ============================================================
+
+    function getPickupRequests() {
+
+        try {
+
+            const saved =
+                localStorage.getItem(
+                    PICKUP_STORAGE_KEY
+                );
+
+            if (!saved) {
+                return [];
+            }
+
+            const data =
+                JSON.parse(saved);
+
+            return Array.isArray(data)
+                ? data
+                : [];
+
+        } catch (error) {
+
+            console.error(
+                "Pickup storage read error:",
+                error
+            );
+
+            return [];
+
+        }
+
+    }
+
+
+    // ============================================================
+    // SAVE REQUESTS
+    // ============================================================
+
+    function savePickupRequests(
+        requests
+    ) {
+
+        try {
+
+            localStorage.setItem(
+                PICKUP_STORAGE_KEY,
+                JSON.stringify(
+                    requests
+                )
+            );
+
+            console.log(
+                "💾 Pickup requests saved:",
+                requests
+            );
+
+        } catch (error) {
+
+            console.error(
+                "Pickup storage save error:",
+                error
+            );
+
+        }
+
+    }
+
+
+    // ============================================================
+    // ADD REQUEST
+    // ============================================================
+
+    function createCollectorPickupRequest(
+        data
+    ) {
+
+        const requests =
+            getPickupRequests();
+
+
+        const requestId =
+            data.request_id ||
+            (
+                "PK-" +
+                Date.now()
+            );
+
+
+        // Prevent duplicate request
+        const alreadyExists =
+            requests.some(
+                function (request) {
+
+                    return (
+                        request &&
+                        request.id ===
+                        requestId
+                    );
+
+                }
+            );
+
+
+        if (alreadyExists) {
+
+            console.log(
+                "ℹ️ Request already stored:",
+                requestId
+            );
+
+            return;
+
+        }
+
+
+        const material =
+            data.material ||
+            "Recyclable Material";
+
+
+        const weight =
+            Number(
+                data.weight
+            ) || 0;
+
+
+        const address =
+            data.address ||
+            "Address not provided";
+
+
+        let rate = 0;
+
+
+        try {
+
+            if (
+                typeof currentPrice !==
+                "undefined"
+            ) {
+
+                rate =
+                    Number(
+                        currentPrice
+                    ) || 0;
+
+            }
+
+        } catch (error) {
+
+            rate = 0;
+
+        }
+
+
+        const request = {
+
+            id:
+                requestId,
+
+            customerName:
+                "Household User",
+
+            phone:
+                "",
+
+            material:
+                material,
+
+            category:
+                "Household Pickup",
+
+            estimatedWeight:
+                weight,
+
+            weight:
+                weight,
+
+            address:
+                address,
+
+            indicativeRate:
+                rate,
+
+            estimatedValue:
+                Number(
+                    (
+                        weight *
+                        rate
+                    ).toFixed(2)
+                ),
+
+            status:
+                "Pending",
+
+            createdAt:
+                new Date().toISOString(),
+
+            acceptedAt:
+                null,
+
+            completedAt:
+                null
+
+        };
+
+
+        requests.unshift(
+            request
+        );
+
+
+        savePickupRequests(
+            requests
+        );
+
+
+        console.log(
+            "========================================"
+        );
+
+        console.log(
+            "✅ NEW HOUSEHOLD PICKUP SAVED"
+        );
+
+        console.log(
+            "Request ID:",
+            request.id
+        );
+
+        console.log(
+            "Material:",
+            request.material
+        );
+
+        console.log(
+            "Weight:",
+            request.weight
+        );
+
+        console.log(
+            "Address:",
+            request.address
+        );
+
+        console.log(
+            "========================================"
+        );
+
+
+        // Refresh collector page
+        refreshCollectorPage();
+
+    }
+
+
+    // ============================================================
+    // PATCH FETCH
+    //
+    // This is the important part.
+    //
+    // Whenever /pickup succeeds, we automatically save
+    // the request to collector storage.
+    // ============================================================
+
+    const originalFetch =
+        window.fetch;
+
+
+    window.fetch =
+        async function (
+            input,
+            init
+        ) {
+
+            const response =
+                await originalFetch(
+                    input,
+                    init
+                );
+
+
+            try {
+
+                let url = "";
+
+
+                if (
+                    typeof input ===
+                    "string"
+                ) {
+
+                    url = input;
+
+                } else if (
+                    input &&
+                    input.url
+                ) {
+
+                    url = input.url;
+
+                }
+
+
+                // Only intercept household pickup API
+                if (
+                    url.includes(
+                        "/pickup"
+                    )
+                ) {
+
+                    // Clone because response.json()
+                    // can only normally be read once.
+                    const clone =
+                        response.clone();
+
+
+                    const result =
+                        await clone.json();
+
+
+                    if (
+                        response.ok &&
+                        result &&
+                        result.success
+                    ) {
+
+                        let body = {};
+
+
+                        try {
+
+                            if (
+                                init &&
+                                init.body
+                            ) {
+
+                                body =
+                                    JSON.parse(
+                                        init.body
+                                    );
+
+                            }
+
+                        } catch (error) {
+
+                            console.warn(
+                                "Could not parse pickup request body."
+                            );
+
+                        }
+
+
+                        createCollectorPickupRequest({
+
+                            request_id:
+                                result.request_id,
+
+                            material:
+                                result.material ||
+                                body.material,
+
+                            weight:
+                                result.weight ||
+                                body.weight,
+
+                            address:
+                                body.address
+
+                        });
+
+                    }
+
+                }
+
+            } catch (error) {
+
+                console.warn(
+                    "Pickup sync processing error:",
+                    error
+                );
+
+            }
+
+
+            return response;
+
+        };
+
+
+    // ============================================================
+    // REFRESH COLLECTOR PAGE
+    // ============================================================
+
+    function refreshCollectorPage() {
+
+        try {
+
+            if (
+                typeof window.renderCollectorPickupPage ===
+                "function"
+            ) {
+
+                window.renderCollectorPickupPage();
+
+            }
+
+        } catch (error) {
+
+            console.warn(
+                "Collector pickup page refresh skipped."
+            );
+
+        }
+
+    }
+
+
+    // ============================================================
+    // PATCH COLLECTOR ACCEPT
+    // ============================================================
+
+    const oldAccept =
+        window.acceptPickup;
+
+
+    window.acceptPickup =
+        function (
+            requestId
+        ) {
+
+            const requests =
+                getPickupRequests();
+
+
+            const request =
+                requests.find(
+                    function (item) {
+
+                        return (
+                            item.id ===
+                            requestId
+                        );
+
+                    }
+                );
+
+
+            if (request) {
+
+                request.status =
+                    "Accepted";
+
+
+                request.acceptedAt =
+                    new Date().toISOString();
+
+
+                savePickupRequests(
+                    requests
+                );
+
+
+                console.log(
+                    "✅ Collector accepted pickup:",
+                    requestId
+                );
+
+
+                refreshCollectorPage();
+
+                return;
+
+            }
+
+
+            // Fallback to existing function
+            if (
+                typeof oldAccept ===
+                "function"
+            ) {
+
+                return oldAccept(
+                    requestId
+                );
+
+            }
+
+        };
+
+
+    // ============================================================
+    // PATCH COMPLETE PICKUP
+    // ============================================================
+
+    const oldComplete =
+        window.completePickup;
+
+
+    window.completePickup =
+        function (
+            requestId,
+            actualWeight
+        ) {
+
+            const requests =
+                getPickupRequests();
+
+
+            const request =
+                requests.find(
+                    function (item) {
+
+                        return (
+                            item.id ===
+                            requestId
+                        );
+
+                    }
+                );
+
+
+            if (!request) {
+
+                if (
+                    typeof oldComplete ===
+                    "function"
+                ) {
+
+                    return oldComplete(
+                        requestId,
+                        actualWeight
+                    );
+
+                }
+
+                return;
+
+            }
+
+
+            const finalWeight =
+                Number(
+                    actualWeight
+                );
+
+
+            if (
+                !finalWeight ||
+                finalWeight <= 0
+            ) {
+
+                alert(
+                    "Please enter a valid physical weight."
+                );
+
+                return;
+
+            }
+
+
+            const rate =
+                Number(
+                    request.indicativeRate
+                ) || 0;
+
+
+            request.actualWeight =
+                finalWeight;
+
+
+            request.weight =
+                finalWeight;
+
+
+            request.finalValue =
+                Number(
+                    (
+                        finalWeight *
+                        rate
+                    ).toFixed(2)
+                );
+
+
+            request.status =
+                "Completed";
+
+
+            request.completedAt =
+                new Date().toISOString();
+
+
+            savePickupRequests(
+                requests
+            );
+
+
+            console.log(
+                "✅ Pickup completed:",
+                requestId
+            );
+
+
+            // ====================================================
+            // ADD MATERIAL TO INVENTORY
+            // ====================================================
+
+            try {
+
+                if (
+                    typeof window.addMaterialToCollectorInventory ===
+                    "function"
+                ) {
+
+                    window.addMaterialToCollectorInventory(
+                        request.material,
+                        finalWeight,
+                        rate
+                    );
+
+                }
+
+            } catch (error) {
+
+                console.warn(
+                    "Inventory update skipped:",
+                    error
+                );
+
+            }
+
+
+            refreshCollectorPage();
+
+
+            alert(
+                "Pickup completed successfully!\n\n" +
+                "Material: " +
+                request.material +
+                "\n" +
+                "Actual Weight: " +
+                finalWeight +
+                " kg\n" +
+                "Indicative Value: ₹" +
+                request.finalValue.toLocaleString(
+                    "en-IN"
+                )
+            );
+
+        };
+
+
+    // ============================================================
+    // SYNC OLD IN-MEMORY REQUESTS
+    // ============================================================
+
+    function syncOldRequests() {
+
+        try {
+
+            if (
+                typeof collectorRequests ===
+                "undefined"
+            ) {
+
+                return;
+
+            }
+
+
+            if (
+                !Array.isArray(
+                    collectorRequests
+                )
+            ) {
+
+                return;
+
+            }
+
+
+            const stored =
+                getPickupRequests();
+
+
+            let added =
+                0;
+
+
+            collectorRequests.forEach(
+                function (
+                    oldRequest
+                ) {
+
+                    if (!oldRequest) {
+                        return;
+                    }
+
+
+                    const exists =
+                        stored.some(
+                            function (
+                                savedRequest
+                            ) {
+
+                                return (
+                                    savedRequest.id ===
+                                    oldRequest.id
+                                );
+
+                            }
+                        );
+
+
+                    if (exists) {
+                        return;
+                    }
+
+
+                    stored.push({
+
+                        id:
+                            oldRequest.id ||
+                            (
+                                "PK-" +
+                                Date.now() +
+                                "-" +
+                                Math.random()
+                                    .toString(36)
+                                    .slice(2, 7)
+                            ),
+
+                        customerName:
+                            "Household User",
+
+                        phone:
+                            "",
+
+                        material:
+                            oldRequest.material ||
+                            "Recyclable Material",
+
+                        category:
+                            oldRequest.category ||
+                            "Household Pickup",
+
+                        estimatedWeight:
+                            Number(
+                                oldRequest.weight
+                            ) || 0,
+
+                        weight:
+                            Number(
+                                oldRequest.weight
+                            ) || 0,
+
+                        address:
+                            oldRequest.address ||
+                            "Address not provided",
+
+                        indicativeRate:
+                            Number(
+                                oldRequest.indicativeRate
+                            ) || 0,
+
+                        estimatedValue:
+                            (
+                                Number(
+                                    oldRequest.weight
+                                ) || 0
+                            ) *
+                            (
+                                Number(
+                                    oldRequest.indicativeRate
+                                ) || 0
+                            ),
+
+                        status:
+                            oldRequest.status ||
+                            "Pending",
+
+                        createdAt:
+                            oldRequest.createdAt ||
+                            new Date().toISOString(),
+
+                        acceptedAt:
+                            oldRequest.acceptedAt ||
+                            null,
+
+                        completedAt:
+                            oldRequest.completedAt ||
+                            null
+
+                    });
+
+
+                    added++;
+
+                }
+            );
+
+
+            if (
+                added > 0
+            ) {
+
+                savePickupRequests(
+                    stored
+                );
+
+
+                console.log(
+                    "✅ Old collector requests synced:",
+                    added
+                );
+
+            }
+
+        } catch (error) {
+
+            console.error(
+                "Old request sync error:",
+                error
+            );
+
+        }
+
+    }
+
+
+    // ============================================================
+    // INITIALIZE
+    // ============================================================
+
+    setTimeout(
+        function () {
+
+            syncOldRequests();
+
+
+            console.log(
+                "📦 Current stored pickup requests:",
+                getPickupRequests()
+            );
+
+
+            refreshCollectorPage();
+
+
+            console.log(
+                "========================================"
+            );
+
+            console.log(
+                "✅ FINAL PICKUP SYNC ACTIVE"
+            );
+
+            console.log(
+                "Household → Backend → localStorage → Collector"
+            );
+
+            console.log(
+                "========================================"
+            );
+
+        },
+        1000
+    );
+
+
+})();
