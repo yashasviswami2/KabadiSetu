@@ -36051,3 +36051,1479 @@ console.log(
 
 
 })();
+
+/* =========================================================
+   STEP 5R — COLLECTOR PICKUP REQUEST MANAGEMENT
+   ========================================================= */
+
+(function () {
+
+    console.log("🚀 Step 5R - Collector Pickup Management loaded.");
+
+    const PICKUP_KEY = "kabadiSetuPickupRequests";
+
+    /* ---------------------------------------------------------
+       STORAGE
+       --------------------------------------------------------- */
+
+    function getPickupRequests() {
+
+        try {
+
+            const data =
+                JSON.parse(
+                    localStorage.getItem(PICKUP_KEY) || "[]"
+                );
+
+            return Array.isArray(data) ? data : [];
+
+        } catch (error) {
+
+            console.error(
+                "Error reading pickup requests:",
+                error
+            );
+
+            return [];
+        }
+    }
+
+
+    function savePickupRequests(requests) {
+
+        localStorage.setItem(
+            PICKUP_KEY,
+            JSON.stringify(requests)
+        );
+
+    }
+
+
+    /* ---------------------------------------------------------
+       HELPERS
+       --------------------------------------------------------- */
+
+    function escapeHTML(value) {
+
+        return String(value ?? "")
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#039;");
+    }
+
+
+    function getStatus(request) {
+
+        return String(
+            request.status ||
+            request.pickupStatus ||
+            "pending"
+        ).toLowerCase();
+
+    }
+
+
+    function getMaterial(request) {
+
+        return (
+            request.material ||
+            request.category ||
+            "Unknown Material"
+        );
+
+    }
+
+
+    function getWeight(request) {
+
+        return Number(
+            request.weight ||
+            request.estimatedWeight ||
+            request.actualWeight ||
+            0
+        ) || 0;
+
+    }
+
+
+    function getAddress(request) {
+
+        return (
+            request.address ||
+            request.pickupAddress ||
+            request.location ||
+            "Address not provided"
+        );
+
+    }
+
+
+    function getRequestId(request) {
+
+        return (
+            request.request_id ||
+            request.requestId ||
+            request.id ||
+            "KS-PICKUP"
+        );
+
+    }
+
+
+    function getDate(request) {
+
+        const value =
+            request.createdAt ||
+            request.requestedAt ||
+            request.date ||
+            request.timestamp;
+
+        if (!value) {
+            return new Date();
+        }
+
+        const date = new Date(value);
+
+        return isNaN(date.getTime())
+            ? new Date()
+            : date;
+
+    }
+
+
+    function formatDate(request) {
+
+        return getDate(request)
+            .toLocaleString("en-IN", {
+                dateStyle: "medium",
+                timeStyle: "short"
+            });
+
+    }
+
+
+    /* ---------------------------------------------------------
+       STATUS CONFIG
+       --------------------------------------------------------- */
+
+    function getStatusConfig(status) {
+
+        const configs = {
+
+            pending: {
+                label: "New Request",
+                icon: "🆕"
+            },
+
+            accepted: {
+                label: "Accepted",
+                icon: "✅"
+            },
+
+            on_the_way: {
+                label: "On the Way",
+                icon: "🚚"
+            },
+
+            collected: {
+                label: "Collected",
+                icon: "📦"
+            },
+
+            completed: {
+                label: "Completed",
+                icon: "♻️"
+            },
+
+            cancelled: {
+                label: "Cancelled",
+                icon: "❌"
+            }
+
+        };
+
+
+        return (
+            configs[status] ||
+            configs.pending
+        );
+
+    }
+
+
+    /* ---------------------------------------------------------
+       UPDATE REQUEST STATUS
+       --------------------------------------------------------- */
+
+    function updatePickupStatus(
+        requestId,
+        newStatus
+    ) {
+
+        const requests =
+            getPickupRequests();
+
+        const index =
+            requests.findIndex(function (request) {
+
+                return String(
+                    getRequestId(request)
+                ) === String(requestId);
+
+            });
+
+
+        if (index === -1) {
+
+            alert(
+                "Pickup request not found."
+            );
+
+            return false;
+        }
+
+
+        const request =
+            requests[index];
+
+
+        request.status =
+            newStatus;
+
+
+        request.pickupStatus =
+            newStatus;
+
+
+        const now =
+            new Date().toISOString();
+
+
+        if (newStatus === "accepted") {
+
+            request.acceptedAt = now;
+
+        }
+
+
+        if (newStatus === "on_the_way") {
+
+            request.onTheWayAt = now;
+
+        }
+
+
+        if (newStatus === "collected") {
+
+            request.collectedAt = now;
+
+        }
+
+
+        if (newStatus === "completed") {
+
+            request.completedAt = now;
+
+        }
+
+
+        request.updatedAt = now;
+
+
+        savePickupRequests(requests);
+
+
+        console.log(
+            "✅ Pickup status updated:",
+            requestId,
+            newStatus
+        );
+
+
+        renderCollectorPickupRequests();
+
+
+        return true;
+
+    }
+
+
+    /* ---------------------------------------------------------
+       NEXT STATUS
+       --------------------------------------------------------- */
+
+    function getNextStatus(status) {
+
+        const flow = {
+
+            pending: "accepted",
+
+            accepted: "on_the_way",
+
+            on_the_way: "collected",
+
+            collected: "completed"
+
+        };
+
+
+        return flow[status] || null;
+
+    }
+
+
+    /* ---------------------------------------------------------
+       BUTTON LABEL
+       --------------------------------------------------------- */
+
+    function getNextButtonLabel(status) {
+
+        const labels = {
+
+            pending:
+                "✅ Accept Pickup",
+
+            accepted:
+                "🚚 Start Pickup",
+
+            on_the_way:
+                "📦 Mark Collected",
+
+            collected:
+                "♻️ Complete Pickup"
+
+        };
+
+
+        return labels[status] || "";
+
+    }
+
+
+    /* ---------------------------------------------------------
+       CREATE SECTION
+       --------------------------------------------------------- */
+
+    function createCollectorPickupSection() {
+
+        if (
+            document.getElementById(
+                "collectorPickupRequests"
+            )
+        ) {
+
+            return;
+        }
+
+
+        const section =
+            document.createElement("section");
+
+
+        section.id =
+            "collectorPickupRequests";
+
+
+        section.className =
+            "page-section";
+
+
+        section.innerHTML = `
+
+            <div style="
+                max-width:1200px;
+                margin:0 auto;
+                padding:20px;
+            ">
+
+
+                <!-- HEADER -->
+
+                <div style="
+                    display:flex;
+                    justify-content:space-between;
+                    align-items:center;
+                    gap:15px;
+                    flex-wrap:wrap;
+                    margin-bottom:22px;
+                ">
+
+                    <div>
+
+                        <h2 style="
+                            margin:0;
+                            font-size:28px;
+                        ">
+                            🚚 Pickup Requests
+                        </h2>
+
+                        <p style="
+                            margin:7px 0 0;
+                            opacity:0.65;
+                        ">
+                            Manage household pickup requests
+                            from acceptance to collection.
+                        </p>
+
+                    </div>
+
+
+                    <button
+                        id="refreshCollectorPickup"
+                        style="
+                            padding:10px 16px;
+                            border:none;
+                            border-radius:10px;
+                            cursor:pointer;
+                            font-weight:700;
+                        "
+                    >
+                        🔄 Refresh
+                    </button>
+
+                </div>
+
+
+                <!-- SUMMARY -->
+
+                <div
+                    id="collectorPickupSummary"
+                    style="
+                        display:grid;
+                        grid-template-columns:
+                            repeat(auto-fit,minmax(180px,1fr));
+                        gap:15px;
+                        margin-bottom:22px;
+                    "
+                ></div>
+
+
+                <!-- FILTER -->
+
+                <div style="
+                    padding:15px;
+                    border-radius:14px;
+                    background:var(--card-bg,#fff);
+                    border:1px solid rgba(0,0,0,0.08);
+                    margin-bottom:20px;
+                ">
+
+                    <div style="
+                        display:flex;
+                        gap:8px;
+                        flex-wrap:wrap;
+                    ">
+
+                        <button
+                            class="collectorPickupFilter"
+                            data-filter="all"
+                        >
+                            All
+                        </button>
+
+                        <button
+                            class="collectorPickupFilter"
+                            data-filter="pending"
+                        >
+                            🆕 New
+                        </button>
+
+                        <button
+                            class="collectorPickupFilter"
+                            data-filter="accepted"
+                        >
+                            ✅ Accepted
+                        </button>
+
+                        <button
+                            class="collectorPickupFilter"
+                            data-filter="on_the_way"
+                        >
+                            🚚 On the Way
+                        </button>
+
+                        <button
+                            class="collectorPickupFilter"
+                            data-filter="collected"
+                        >
+                            📦 Collected
+                        </button>
+
+                        <button
+                            class="collectorPickupFilter"
+                            data-filter="completed"
+                        >
+                            ♻️ Completed
+                        </button>
+
+                    </div>
+
+                </div>
+
+
+                <!-- REQUESTS -->
+
+                <div
+                    id="collectorPickupList"
+                ></div>
+
+            </div>
+
+        `;
+
+
+        document.body.appendChild(section);
+
+
+        const refreshButton =
+            document.getElementById(
+                "refreshCollectorPickup"
+            );
+
+
+        if (refreshButton) {
+
+            refreshButton.addEventListener(
+                "click",
+                renderCollectorPickupRequests
+            );
+
+        }
+
+
+        document
+            .querySelectorAll(
+                ".collectorPickupFilter"
+            )
+            .forEach(function(button) {
+
+                button.addEventListener(
+                    "click",
+                    function() {
+
+                        window.collectorPickupFilter =
+                            this.dataset.filter;
+
+                        renderCollectorPickupRequests();
+
+                    }
+                );
+
+            });
+
+    }
+
+
+    /* ---------------------------------------------------------
+       SUMMARY
+       --------------------------------------------------------- */
+
+    function renderPickupSummary(requests) {
+
+        const summary =
+            document.getElementById(
+                "collectorPickupSummary"
+            );
+
+
+        if (!summary) return;
+
+
+        const counts = {
+
+            pending: 0,
+
+            accepted: 0,
+
+            on_the_way: 0,
+
+            collected: 0,
+
+            completed: 0
+
+        };
+
+
+        requests.forEach(function(request) {
+
+            const status =
+                getStatus(request);
+
+            if (
+                Object.prototype.hasOwnProperty
+                    .call(counts, status)
+            ) {
+
+                counts[status]++;
+
+            }
+
+        });
+
+
+        summary.innerHTML = `
+
+            <div style="
+                padding:18px;
+                border-radius:14px;
+                background:var(--card-bg,#fff);
+                border:1px solid rgba(0,0,0,0.08);
+            ">
+
+                <div style="
+                    font-size:25px;
+                ">
+                    🆕
+                </div>
+
+                <div style="
+                    font-size:12px;
+                    opacity:0.6;
+                    margin-top:5px;
+                ">
+                    New Requests
+                </div>
+
+                <strong style="
+                    font-size:24px;
+                ">
+                    ${counts.pending}
+                </strong>
+
+            </div>
+
+
+            <div style="
+                padding:18px;
+                border-radius:14px;
+                background:var(--card-bg,#fff);
+                border:1px solid rgba(0,0,0,0.08);
+            ">
+
+                <div style="
+                    font-size:25px;
+                ">
+                    🚚
+                </div>
+
+                <div style="
+                    font-size:12px;
+                    opacity:0.6;
+                    margin-top:5px;
+                ">
+                    Active Pickups
+                </div>
+
+                <strong style="
+                    font-size:24px;
+                ">
+                    ${
+                        counts.accepted +
+                        counts.on_the_way +
+                        counts.collected
+                    }
+                </strong>
+
+            </div>
+
+
+            <div style="
+                padding:18px;
+                border-radius:14px;
+                background:var(--card-bg,#fff);
+                border:1px solid rgba(0,0,0,0.08);
+            ">
+
+                <div style="
+                    font-size:25px;
+                ">
+                    📦
+                </div>
+
+                <div style="
+                    font-size:12px;
+                    opacity:0.6;
+                    margin-top:5px;
+                ">
+                    Collected
+                </div>
+
+                <strong style="
+                    font-size:24px;
+                ">
+                    ${counts.collected}
+                </strong>
+
+            </div>
+
+
+            <div style="
+                padding:18px;
+                border-radius:14px;
+                background:var(--card-bg,#fff);
+                border:1px solid rgba(0,0,0,0.08);
+            ">
+
+                <div style="
+                    font-size:25px;
+                ">
+                    ♻️
+                </div>
+
+                <div style="
+                    font-size:12px;
+                    opacity:0.6;
+                    margin-top:5px;
+                ">
+                    Completed
+                </div>
+
+                <strong style="
+                    font-size:24px;
+                ">
+                    ${counts.completed}
+                </strong>
+
+            </div>
+
+        `;
+
+    }
+
+
+    /* ---------------------------------------------------------
+       REQUEST CARD
+       --------------------------------------------------------- */
+
+    function renderRequestCard(request) {
+
+        const status =
+            getStatus(request);
+
+
+        const config =
+            getStatusConfig(status);
+
+
+        const requestId =
+            getRequestId(request);
+
+
+        const material =
+            getMaterial(request);
+
+
+        const weight =
+            getWeight(request);
+
+
+        const address =
+            getAddress(request);
+
+
+        const nextStatus =
+            getNextStatus(status);
+
+
+        return `
+
+            <div style="
+                padding:20px;
+                border-radius:17px;
+                background:var(--card-bg,#fff);
+                border:1px solid rgba(0,0,0,0.08);
+                box-shadow:0 4px 16px rgba(0,0,0,0.05);
+                margin-bottom:15px;
+            ">
+
+
+                <!-- TOP -->
+
+                <div style="
+                    display:flex;
+                    justify-content:space-between;
+                    gap:15px;
+                    flex-wrap:wrap;
+                ">
+
+
+                    <div>
+
+                        <div style="
+                            font-size:18px;
+                            font-weight:800;
+                        ">
+                            ♻️
+                            ${escapeHTML(material)}
+                        </div>
+
+                        <div style="
+                            font-size:12px;
+                            opacity:0.6;
+                            margin-top:5px;
+                        ">
+                            Request ID:
+                            <strong>
+                                ${escapeHTML(requestId)}
+                            </strong>
+                        </div>
+
+                    </div>
+
+
+                    <div style="
+                        padding:7px 12px;
+                        border-radius:20px;
+                        font-size:12px;
+                        font-weight:700;
+                        background:rgba(0,0,0,0.05);
+                    ">
+                        ${config.icon}
+                        ${config.label}
+                    </div>
+
+
+                </div>
+
+
+                <!-- DETAILS -->
+
+                <div style="
+                    display:grid;
+                    grid-template-columns:
+                        repeat(auto-fit,minmax(200px,1fr));
+                    gap:14px;
+                    margin-top:20px;
+                ">
+
+
+                    <div>
+
+                        <div style="
+                            font-size:11px;
+                            opacity:0.55;
+                        ">
+                            Estimated Weight
+                        </div>
+
+                        <strong>
+                            ${weight > 0
+                                ? escapeHTML(weight) + " kg"
+                                : "To be weighed"}
+                        </strong>
+
+                    </div>
+
+
+                    <div>
+
+                        <div style="
+                            font-size:11px;
+                            opacity:0.55;
+                        ">
+                            Pickup Address
+                        </div>
+
+                        <strong>
+                            ${escapeHTML(address)}
+                        </strong>
+
+                    </div>
+
+
+                    <div>
+
+                        <div style="
+                            font-size:11px;
+                            opacity:0.55;
+                        ">
+                            Requested
+                        </div>
+
+                        <strong>
+                            ${escapeHTML(
+                                formatDate(request)
+                            )}
+                        </strong>
+
+                    </div>
+
+
+                    <div>
+
+                        <div style="
+                            font-size:11px;
+                            opacity:0.55;
+                        ">
+                            Current Stage
+                        </div>
+
+                        <strong>
+                            ${config.label}
+                        </strong>
+
+                    </div>
+
+                </div>
+
+
+                <!-- PROGRESS -->
+
+                <div style="
+                    margin-top:22px;
+                ">
+
+                    <div style="
+                        display:flex;
+                        justify-content:space-between;
+                        font-size:11px;
+                        opacity:0.6;
+                        margin-bottom:7px;
+                    ">
+
+                        <span>
+                            Request
+                        </span>
+
+                        <span>
+                            Collection
+                        </span>
+
+                        <span>
+                            Complete
+                        </span>
+
+                    </div>
+
+
+                    <div style="
+                        height:7px;
+                        border-radius:20px;
+                        background:rgba(0,0,0,0.08);
+                        overflow:hidden;
+                    ">
+
+                        <div style="
+                            width:${
+                                status === "pending"
+                                    ? "10%"
+                                    : status === "accepted"
+                                        ? "35%"
+                                        : status === "on_the_way"
+                                            ? "60%"
+                                            : status === "collected"
+                                                ? "82%"
+                                                : status === "completed"
+                                                    ? "100%"
+                                                    : "0%"
+                            };
+                            height:100%;
+                            border-radius:20px;
+                            background:currentColor;
+                        "></div>
+
+                    </div>
+
+                </div>
+
+
+                <!-- ACTION -->
+
+                ${
+                    nextStatus
+                        ? `
+
+                            <div style="
+                                margin-top:20px;
+                                display:flex;
+                                gap:10px;
+                                flex-wrap:wrap;
+                            ">
+
+                                <button
+                                    class="collectorPickupAction"
+                                    data-request-id="${escapeHTML(
+                                        requestId
+                                    )}"
+                                    data-next-status="${nextStatus}"
+                                    style="
+                                        padding:11px 17px;
+                                        border:none;
+                                        border-radius:10px;
+                                        cursor:pointer;
+                                        font-weight:700;
+                                    "
+                                >
+                                    ${getNextButtonLabel(status)}
+                                </button>
+
+                            </div>
+
+                        `
+                        : `
+
+                            <div style="
+                                margin-top:20px;
+                                padding:12px;
+                                border-radius:10px;
+                                background:rgba(0,0,0,0.04);
+                                font-size:13px;
+                            ">
+                                ${
+                                    status === "completed"
+                                        ? "✅ Pickup completed successfully."
+                                        : "No further action required."
+                                }
+                            </div>
+
+                        `
+                }
+
+            </div>
+
+        `;
+
+    }
+
+
+    /* ---------------------------------------------------------
+       MAIN RENDER
+       --------------------------------------------------------- */
+
+    function renderCollectorPickupRequests() {
+
+        createCollectorPickupSection();
+
+
+        const requests =
+            getPickupRequests();
+
+
+        renderPickupSummary(
+            requests
+        );
+
+
+        const list =
+            document.getElementById(
+                "collectorPickupList"
+            );
+
+
+        if (!list) return;
+
+
+        const filter =
+            window.collectorPickupFilter ||
+            "all";
+
+
+        let filtered =
+            requests;
+
+
+        if (filter !== "all") {
+
+            filtered =
+                requests.filter(
+                    function(request) {
+
+                        return (
+                            getStatus(request) ===
+                            filter
+                        );
+
+                    }
+                );
+
+        }
+
+
+        filtered.sort(
+            function(a, b) {
+
+                return (
+                    getDate(b) -
+                    getDate(a)
+                );
+
+            }
+        );
+
+
+        if (!filtered.length) {
+
+            list.innerHTML = `
+
+                <div style="
+                    padding:50px 20px;
+                    text-align:center;
+                    border-radius:16px;
+                    border:1px dashed rgba(0,0,0,0.15);
+                    opacity:0.7;
+                ">
+
+                    <div style="
+                        font-size:45px;
+                        margin-bottom:12px;
+                    ">
+                        📭
+                    </div>
+
+                    <h3>
+                        No pickup requests
+                    </h3>
+
+                    <p>
+                        ${
+                            filter === "all"
+                                ? "New household pickup requests will appear here."
+                                : "There are no requests in this status."
+                        }
+                    </p>
+
+                </div>
+
+            `;
+
+            return;
+
+        }
+
+
+        list.innerHTML =
+            filtered
+                .map(renderRequestCard)
+                .join("");
+
+
+        /* -----------------------------------------------------
+           ACTION BUTTONS
+           ----------------------------------------------------- */
+
+        list
+            .querySelectorAll(
+                ".collectorPickupAction"
+            )
+            .forEach(function(button) {
+
+                button.addEventListener(
+                    "click",
+                    function() {
+
+                        const requestId =
+                            this.dataset.requestId;
+
+
+                        const nextStatus =
+                            this.dataset.nextStatus;
+
+
+                        updatePickupStatus(
+                            requestId,
+                            nextStatus
+                        );
+
+                    }
+                );
+
+            });
+
+    }
+
+
+    /* ---------------------------------------------------------
+       NAVIGATION
+       --------------------------------------------------------- */
+
+    function createCollectorPickupNav() {
+
+        if (
+            document.getElementById(
+                "collectorPickupNav"
+            )
+        ) {
+
+            return;
+
+        }
+
+
+        const nav =
+            document.createElement("div");
+
+
+        nav.id =
+            "collectorPickupNav";
+
+
+        nav.className =
+            "nav-item";
+
+
+        nav.style.display =
+            "none";
+
+
+        nav.innerHTML = `
+
+            <span>
+                🚚
+            </span>
+
+            <span>
+                Pickup Requests
+            </span>
+
+        `;
+
+
+        nav.addEventListener(
+            "click",
+            function() {
+
+                if (
+                    typeof window.showSection ===
+                    "function"
+                ) {
+
+                    window.showSection(
+                        "collectorPickupRequests"
+                    );
+
+                }
+
+
+                renderCollectorPickupRequests();
+
+            }
+        );
+
+
+        const navItems =
+            document.querySelectorAll(
+                ".nav-item"
+            );
+
+
+        let insertTarget =
+            null;
+
+
+        navItems.forEach(function(item) {
+
+            const text =
+                item.innerText
+                    .toLowerCase();
+
+
+            if (
+                text.includes("dashboard") ||
+                text.includes("inventory")
+            ) {
+
+                insertTarget =
+                    item;
+
+            }
+
+        });
+
+
+        if (
+            insertTarget &&
+            insertTarget.parentNode
+        ) {
+
+            insertTarget.parentNode.insertBefore(
+                nav,
+                insertTarget.nextSibling
+            );
+
+        }
+
+    }
+
+
+    /* ---------------------------------------------------------
+       ROLE VISIBILITY
+       --------------------------------------------------------- */
+
+    function updateCollectorPickupNav() {
+
+        const nav =
+            document.getElementById(
+                "collectorPickupNav"
+            );
+
+
+        if (!nav) return;
+
+
+        const role =
+            String(
+                window.currentRole ||
+                window.userRole ||
+                localStorage.getItem(
+                    "kabadiSetuRole"
+                ) ||
+                ""
+            ).toLowerCase();
+
+
+        nav.style.display =
+            role.includes("collector")
+                ? ""
+                : "none";
+
+    }
+
+
+    /* ---------------------------------------------------------
+       WRAP SWITCH ROLE
+       --------------------------------------------------------- */
+
+    const originalSwitchRole =
+        window.switchRole;
+
+
+    if (
+        typeof originalSwitchRole ===
+        "function"
+    ) {
+
+        window.switchRole =
+            function() {
+
+                const result =
+                    originalSwitchRole.apply(
+                        this,
+                        arguments
+                    );
+
+
+                setTimeout(function() {
+
+                    createCollectorPickupSection();
+                    createCollectorPickupNav();
+                    updateCollectorPickupNav();
+
+                }, 350);
+
+
+                return result;
+
+            };
+
+    }
+
+
+    /* ---------------------------------------------------------
+       WRAP SHOW SECTION
+       --------------------------------------------------------- */
+
+    const originalShowSection =
+        window.showSection;
+
+
+    if (
+        typeof originalShowSection ===
+        "function"
+    ) {
+
+        window.showSection =
+            function(sectionId) {
+
+                const result =
+                    originalShowSection.apply(
+                        this,
+                        arguments
+                    );
+
+
+                if (
+                    sectionId ===
+                    "collectorPickupRequests"
+                ) {
+
+                    setTimeout(
+                        renderCollectorPickupRequests,
+                        50
+                    );
+
+                }
+
+
+                return result;
+
+            };
+
+    }
+
+
+    /* ---------------------------------------------------------
+       PUBLIC FUNCTIONS
+       --------------------------------------------------------- */
+
+    window.renderCollectorPickupRequests =
+        renderCollectorPickupRequests;
+
+
+    window.updatePickupStatus =
+        updatePickupStatus;
+
+
+    window.getCollectorPickupRequests =
+        getPickupRequests;
+
+
+    /* ---------------------------------------------------------
+       INITIALIZE
+       --------------------------------------------------------- */
+
+    setTimeout(function() {
+
+        createCollectorPickupSection();
+        createCollectorPickupNav();
+        updateCollectorPickupNav();
+        renderCollectorPickupRequests();
+
+        console.log(
+            "✅ Step 5R - Collector Pickup Management ready."
+        );
+
+    }, 900);
+
+
+    /* ---------------------------------------------------------
+       AUTO REFRESH
+       --------------------------------------------------------- */
+
+    setInterval(function() {
+
+        updateCollectorPickupNav();
+
+
+        const section =
+            document.getElementById(
+                "collectorPickupRequests"
+            );
+
+
+        if (
+            section &&
+            section.classList.contains(
+                "active-section"
+            )
+        ) {
+
+            renderCollectorPickupRequests();
+
+        }
+
+    }, 3000);
+
+
+})();
