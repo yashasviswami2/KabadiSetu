@@ -7678,3 +7678,2878 @@ window.requestPickup = function () {
     }
 
 })();
+
+// =========================================================
+// KABADI SETU - UNIFIED WASTE JOURNEY TRACKING
+// STEP 1A
+// =========================================================
+
+let wasteJourneyTransactions = [];
+
+/*
+    Create one unified journey for every household pickup.
+*/
+function createWasteJourney(request) {
+
+    if (!request) {
+        return null;
+    }
+
+    const journeyId =
+        request.transactionId ||
+        (
+            "KS-TXN-" +
+            new Date().getFullYear() +
+            String(new Date().getMonth() + 1).padStart(2, "0") +
+            String(new Date().getDate()).padStart(2, "0") +
+            "-" +
+            String(Date.now()).slice(-6)
+        );
+
+    const journey = {
+        id: journeyId,
+
+        requestId: request.id || "",
+
+        material: request.material || "Unknown",
+
+        category: request.category || "Recyclable",
+
+        estimatedWeight:
+            Number(request.weight) || 0,
+
+        actualWeight: null,
+
+        householdPayment: 0,
+
+        householdPaymentMethod: "",
+
+        recycler: null,
+
+        recyclerRate: 0,
+
+        recyclerPayment: 0,
+
+        status: "Pickup Requested",
+
+        createdAt:
+            new Date().toLocaleString(),
+
+        timeline: [
+            {
+                key: "pickup_requested",
+                title: "Pickup Requested",
+                description:
+                    "Household created a collector pickup request.",
+                completed: true,
+                time:
+                    new Date().toLocaleString()
+            },
+
+            {
+                key: "collector_accepted",
+                title: "Collector Accepted",
+                description:
+                    "Waiting for collector to accept the pickup.",
+                completed: false,
+                time: null
+            },
+
+            {
+                key: "weight_recorded",
+                title: "Weight Recorded",
+                description:
+                    "Physical weight will be recorded by the collector.",
+                completed: false,
+                time: null
+            },
+
+            {
+                key: "household_paid",
+                title: "Household Payment",
+                description:
+                    "Payment to the household will be recorded.",
+                completed: false,
+                time: null
+            },
+
+            {
+                key: "inventory_added",
+                title: "Added to Collector Inventory",
+                description:
+                    "Collected material will appear in collector inventory.",
+                completed: false,
+                time: null
+            },
+
+            {
+                key: "recycler_selected",
+                title: "Recycler Selected",
+                description:
+                    "Collector will select the best available recycler.",
+                completed: false,
+                time: null
+            },
+
+            {
+                key: "handover_prepared",
+                title: "Handover Prepared",
+                description:
+                    "Material is prepared for verified recycler handover.",
+                completed: false,
+                time: null
+            },
+
+            {
+                key: "recycler_confirmed",
+                title: "Recycler Confirmed",
+                description:
+                    "Recycler confirmation is pending.",
+                completed: false,
+                time: null
+            },
+
+            {
+                key: "completed",
+                title: "Recycling Completed",
+                description:
+                    "Waste journey successfully completed.",
+                completed: false,
+                time: null
+            }
+        ]
+    };
+
+    wasteJourneyTransactions.unshift(journey);
+
+    return journey;
+}
+
+
+/*
+    Find a journey using the original pickup request ID.
+*/
+function findWasteJourneyByRequestId(requestId) {
+
+    return wasteJourneyTransactions.find(
+        journey =>
+            journey.requestId === requestId
+    );
+}
+
+
+/*
+    Find a journey using transaction ID.
+*/
+function findWasteJourney(transactionId) {
+
+    return wasteJourneyTransactions.find(
+        journey =>
+            journey.id === transactionId
+    );
+}
+
+
+/*
+    Mark a journey step as completed.
+*/
+function completeWasteJourneyStep(
+    journey,
+    stepKey,
+    extraData = {}
+) {
+
+    if (!journey) {
+        return;
+    }
+
+    const step =
+        journey.timeline.find(
+            item =>
+                item.key === stepKey
+        );
+
+    if (step) {
+
+        step.completed = true;
+
+        step.time =
+            new Date().toLocaleString();
+
+        if (extraData.description) {
+            step.description =
+                extraData.description;
+        }
+    }
+
+    Object.assign(
+        journey,
+        extraData
+    );
+}
+
+
+/*
+    Get the current journey status.
+*/
+function getWasteJourneyStatus(journey) {
+
+    if (!journey) {
+        return "Unknown";
+    }
+
+    const completed =
+        journey.timeline.filter(
+            step => step.completed
+        ).length;
+
+    const total =
+        journey.timeline.length;
+
+    if (completed === total) {
+        return "Recycling Completed";
+    }
+
+    const lastCompleted =
+        [...journey.timeline]
+            .reverse()
+            .find(
+                step => step.completed
+            );
+
+    return lastCompleted
+        ? lastCompleted.title
+        : "Pickup Requested";
+}
+
+
+/*
+    Debug helper.
+    We will connect the existing collection,
+    recycler and QR functions to this journey
+    in the next steps.
+*/
+window.getWasteJourney =
+    function(transactionId) {
+
+        const journey =
+            findWasteJourney(transactionId);
+
+        if (!journey) {
+            console.warn(
+                "Waste journey not found:",
+                transactionId
+            );
+
+            return null;
+        }
+
+        console.log(
+            "KABADI SETU WASTE JOURNEY:",
+            journey
+        );
+
+        return journey;
+    };
+
+
+console.log(
+    "✅ Kabadi Setu unified waste journey system loaded."
+);
+// =========================================================
+// STEP 1B - CONNECT PICKUP TO WASTE JOURNEY
+// =========================================================
+
+(function () {
+
+    const originalAddPickupToCollectorQueue =
+        window.addPickupToCollectorQueue;
+
+    window.addPickupToCollectorQueue = function (
+        material,
+        weight,
+        address,
+        requestId
+    ) {
+
+        // Run the existing working collector queue logic first
+        if (
+            typeof originalAddPickupToCollectorQueue ===
+            "function"
+        ) {
+            originalAddPickupToCollectorQueue(
+                material,
+                weight,
+                address,
+                requestId
+            );
+        }
+
+        // Prevent duplicate journeys
+        const existingJourney =
+            findWasteJourneyByRequestId(
+                requestId
+            );
+
+        if (existingJourney) {
+
+            console.log(
+                "Existing waste journey found:",
+                existingJourney.id
+            );
+
+            return;
+        }
+
+        // Create unified waste journey
+        const journey =
+            createWasteJourney({
+
+                id: requestId,
+
+                material: material,
+
+                category: "Household Pickup",
+
+                weight: Number(weight) || 0
+
+            });
+
+        if (!journey) {
+            return;
+        }
+
+        // Store pickup details
+        journey.address =
+            address || "";
+
+        journey.requestId =
+            requestId || "";
+
+        journey.status =
+            "Pickup Requested";
+
+        console.log(
+            "✅ Waste journey created:",
+            journey.id
+        );
+
+        console.log(
+            journey
+        );
+
+    };
+
+})();
+
+
+// =========================================================
+// STEP 1B TEST HELPER
+// =========================================================
+
+window.showWasteJourneys = function () {
+
+    console.table(
+        wasteJourneyTransactions.map(
+            journey => ({
+                Transaction:
+                    journey.id,
+
+                Request:
+                    journey.requestId,
+
+                Material:
+                    journey.material,
+
+                Status:
+                    getWasteJourneyStatus(
+                        journey
+                    ),
+
+                StepsCompleted:
+                    journey.timeline.filter(
+                        step =>
+                            step.completed
+                    ).length,
+
+                TotalSteps:
+                    journey.timeline.length
+            })
+        )
+    );
+
+    return wasteJourneyTransactions;
+};
+
+
+console.log(
+    "✅ Step 1B - Pickup journey connection loaded."
+);
+
+// =========================================================
+// STEP 1C - COLLECTOR ACCEPTS PICKUP
+// =========================================================
+
+(function () {
+
+    const originalAcceptCollectorRequest =
+        window.acceptCollectorRequest;
+
+    window.acceptCollectorRequest = function (requestId) {
+
+        // Run the existing collector acceptance flow
+        if (
+            typeof originalAcceptCollectorRequest ===
+            "function"
+        ) {
+            originalAcceptCollectorRequest(requestId);
+        }
+
+        // Find the unified waste journey
+        const journey =
+            findWasteJourneyByRequestId(
+                requestId
+            );
+
+        if (!journey) {
+
+            console.warn(
+                "No unified waste journey found for:",
+                requestId
+            );
+
+            return;
+        }
+
+        // Update journey
+        completeWasteJourneyStep(
+            journey,
+            "collector_accepted",
+            {
+                status: "Collector Accepted",
+
+                collectorAcceptedAt:
+                    new Date().toLocaleString(),
+
+                description:
+                    "Collector accepted the household pickup request."
+            }
+        );
+
+        console.log(
+            "✅ Collector accepted waste journey:",
+            journey.id
+        );
+
+        console.log(
+            journey
+        );
+    };
+
+})();
+
+
+// =========================================================
+// STEP 1C TEST HELPER
+// =========================================================
+
+window.checkWasteJourney =
+    function (transactionId) {
+
+        const journey =
+            findWasteJourney(
+                transactionId
+            );
+
+        if (!journey) {
+
+            console.warn(
+                "Transaction not found:",
+                transactionId
+            );
+
+            return null;
+        }
+
+        console.table(
+            journey.timeline.map(
+                step => ({
+                    Step: step.title,
+                    Completed: step.completed,
+                    Time: step.time || "-"
+                })
+            )
+        );
+
+        return journey;
+    };
+
+
+console.log(
+    "✅ Step 1C - Collector acceptance tracking loaded."
+);
+
+// =========================================================
+// STEP 1D - WEIGHT + PAYMENT + INVENTORY TRACKING
+// =========================================================
+
+(function () {
+
+    const originalCompleteCollectorCollection =
+        window.completeCollectorCollection ||
+        completeCollectorCollection;
+
+    window.completeCollectorCollection = function () {
+
+        // Save the active request BEFORE the existing
+        // function clears activeCollectorRequest.
+        const requestBeforeCompletion =
+            activeCollectorRequest;
+
+        // Run the existing working collection process
+        originalCompleteCollectorCollection();
+
+        // Nothing to connect if there was no request
+        if (!requestBeforeCompletion) {
+            console.warn(
+                "Step 1D: No active collector request found."
+            );
+            return;
+        }
+
+        // Find the unified journey using pickup request ID
+        const journey =
+            findWasteJourneyByRequestId(
+                requestBeforeCompletion.id
+            );
+
+        if (!journey) {
+
+            console.warn(
+                "Step 1D: No unified journey found for:",
+                requestBeforeCompletion.id
+            );
+
+            return;
+        }
+
+        // -------------------------------------------------
+        // 1. ACTUAL PHYSICAL WEIGHT
+        // -------------------------------------------------
+
+        const actualWeight =
+            Number(
+                requestBeforeCompletion.finalWeight
+            ) || 0;
+
+        completeWasteJourneyStep(
+            journey,
+            "weight_recorded",
+            {
+                actualWeight:
+                    actualWeight,
+
+                description:
+                    "Collector physically weighed the material and recorded the actual weight."
+            }
+        );
+
+
+        // -------------------------------------------------
+        // 2. PAYMENT TO HOUSEHOLD
+        // -------------------------------------------------
+
+        const householdPayment =
+            Number(
+                requestBeforeCompletion.finalValue
+            ) || 0;
+
+        completeWasteJourneyStep(
+            journey,
+            "household_paid",
+            {
+                householdPayment:
+                    householdPayment,
+
+                householdPaymentMethod:
+                    requestBeforeCompletion.payment ||
+                    "UPI",
+
+                description:
+                    "Collector recorded payment to the household."
+            }
+        );
+
+
+        // -------------------------------------------------
+        // 3. ADD TO COLLECTOR INVENTORY
+        // -------------------------------------------------
+
+        completeWasteJourneyStep(
+            journey,
+            "inventory_added",
+            {
+                inventoryAddedAt:
+                    new Date().toLocaleString(),
+
+                description:
+                    "Collected material was added to the collector's inventory."
+            }
+        );
+
+
+        // -------------------------------------------------
+        // UPDATE JOURNEY STATUS
+        // -------------------------------------------------
+
+        journey.status =
+            "Added to Collector Inventory";
+
+
+        // Link the existing collector transaction
+        // without replacing the unified KS-TXN ID.
+        if (requestBeforeCompletion.transactionId) {
+
+            journey.collectorTransactionId =
+                requestBeforeCompletion.transactionId;
+        }
+
+
+        // Store final collection information
+        journey.actualWeight =
+            actualWeight;
+
+        journey.householdPayment =
+            householdPayment;
+
+        journey.householdPaymentMethod =
+            requestBeforeCompletion.payment ||
+            "UPI";
+
+
+        console.log(
+            "✅ STEP 1D COMPLETE:",
+            journey.id
+        );
+
+        console.log(
+            "Actual weight:",
+            actualWeight,
+            "kg"
+        );
+
+        console.log(
+            "Household payment:",
+            householdPayment
+        );
+
+        console.log(
+            "Payment method:",
+            requestBeforeCompletion.payment ||
+            "UPI"
+        );
+
+        console.log(
+            "Journey status:",
+            journey.status
+        );
+
+    };
+
+})();
+
+
+console.log(
+    "✅ Step 1D - Weight, payment and inventory tracking loaded."
+);
+
+// =========================================================
+// STEP 1E - RECYCLER SELECTION TRACKING
+// CORRECTED VERSION
+// =========================================================
+
+(function () {
+
+        // -------------------------------------------------
+        // FIND THE ORIGINAL HOUSEHOLD JOURNEY
+        // -------------------------------------------------
+
+        let journey = null;
+
+
+        // First try to find it through the inventory item
+        // represented by the active handover.
+        if (
+    activeHandover &&
+    activeHandover.material &&
+    activeHandover.weight
+) {
+        journey =
+    wasteJourneyTransactions.find(
+        item => {
+
+            if (!item) {
+                return false;
+            }
+
+            return (
+                item.material ===
+                    activeHandover.material &&
+
+                Number(
+                    item.actualWeight
+                ) ===
+                    Number(
+                        activeHandover.weight
+                    ) &&
+
+                item.status ===
+                    "Recycler Selected"
+            );
+        }
+    );
+
+        }
+
+        // -------------------------------------------------
+        // FALLBACK:
+        // FIND THE MOST RECENT JOURNEY THAT REACHED
+        // COLLECTOR INVENTORY
+        // -------------------------------------------------
+
+        if (!journey) {
+
+            journey =
+                wasteJourneyTransactions.find(
+                    item =>
+                        item.status ===
+                        "Added to Collector Inventory"
+                );
+        }
+
+
+        if (!journey) {
+
+            console.warn(
+                "Step 1E: Could not find the household waste journey."
+            );
+
+            return;
+        }
+
+
+        // -------------------------------------------------
+        // STORE SELECTED RECYCLER
+        // -------------------------------------------------
+
+        journey.recycler = {
+
+            name:
+                activeHandover.recycler,
+
+            rate:
+                Number(
+                    activeHandover.recyclerRate
+                ) || 0,
+
+            estimatedValue:
+                Number(
+                    activeHandover.value
+                ) || 0,
+
+            distance:
+                activeHandover.distance,
+
+            rating:
+                activeHandover.rating
+        };
+
+
+        // -------------------------------------------------
+        // MARK RECYCLER SELECTED
+        // -------------------------------------------------
+
+        completeWasteJourneyStep(
+            journey,
+            "recycler_selected",
+            {
+                status:
+                    "Recycler Selected",
+
+                recyclerSelectedAt:
+                    new Date().toLocaleString(),
+
+                description:
+                    "Best available verified recycler selected based on recycler rate."
+            }
+        );
+
+
+        // -------------------------------------------------
+        // LINK HANDOVER
+        // -------------------------------------------------
+
+        journey.handoverId =
+            activeHandover.id;
+
+        journey.handoverStatus =
+            activeHandover.status;
+
+
+        // -------------------------------------------------
+        // LOG
+        // -------------------------------------------------
+
+        console.log(
+            "✅ STEP 1E COMPLETE"
+        );
+
+        console.log(
+            "Transaction:",
+            journey.id
+        );
+
+        console.log(
+            "Recycler:",
+            activeHandover.recycler
+        );
+
+        console.log(
+            "Recycler rate:",
+            activeHandover.recyclerRate
+        );
+
+        console.log(
+            "Estimated value:",
+            activeHandover.value
+        );
+
+        console.log(
+            "Journey status:",
+            journey.status
+        );
+
+    }
+
+
+)();
+
+
+console.log(
+    "✅ Step 1E - Recycler selection tracking loaded."
+);
+
+// ============================================================
+// STEP 1F - HANDOVER PREPARED TRACKING
+// ============================================================
+
+(function () {
+
+    const originalGenerateHandoverQR =
+        window.generateHandoverQR;
+
+    if (typeof originalGenerateHandoverQR !== "function") {
+        console.warn(
+            "Step 1F: generateHandoverQR function not found."
+        );
+        return;
+    }
+
+    window.generateHandoverQR = function () {
+
+        // Run the existing QR/token generation first
+        originalGenerateHandoverQR();
+
+        if (!activeHandover) {
+            console.warn(
+                "Step 1F: No active handover found."
+            );
+            return;
+        }
+
+        // Find the corresponding household journey
+        let journey = null;
+
+        // Best match: handover ID created during Step 1E
+        journey = wasteJourneyTransactions.find(
+            item =>
+                item.handoverId === activeHandover.id
+        );
+
+        // Fallback match using material + actual weight
+        if (!journey) {
+            journey = wasteJourneyTransactions.find(
+                item =>
+                    item.material === activeHandover.material &&
+                    Number(item.actualWeight) ===
+                        Number(activeHandover.weight) &&
+                    item.status === "Recycler Selected"
+            );
+        }
+
+        if (!journey) {
+            console.warn(
+                "Step 1F: Could not find corresponding waste journey."
+            );
+            return;
+        }
+
+        // Save secure handover information
+        journey.handoverId =
+            activeHandover.id;
+
+        journey.handoverToken =
+            activeHandover.token || "";
+
+        journey.handoverPreparedAt =
+            new Date().toLocaleString();
+
+        journey.handoverRecycler =
+            activeHandover.recycler;
+
+        journey.handoverWeight =
+            Number(activeHandover.weight) || 0;
+
+        journey.handoverValue =
+            Number(activeHandover.value) || 0;
+
+        // Complete Step 1F
+        completeWasteJourneyStep(
+            journey,
+            "handover_prepared",
+            {
+                status: "Handover Prepared",
+                description:
+                    "Handover token generated and material prepared for verified recycler receipt."
+            }
+        );
+
+        console.log(
+            "✅ STEP 1F COMPLETE"
+        );
+
+        console.log(
+            "Transaction:",
+            journey.id
+        );
+
+        console.log(
+            "Handover ID:",
+            journey.handoverId
+        );
+
+        console.log(
+            "Secure Token:",
+            journey.handoverToken
+        );
+
+        console.log(
+            "Recycler:",
+            journey.handoverRecycler
+        );
+
+        console.log(
+            "Journey status:",
+            journey.status
+        );
+    };
+
+})();
+
+console.log(
+    "✅ Step 1F - Handover preparation tracking loaded."
+);
+// ============================================================
+// STEP 1G - RECYCLER CONFIRMS RECEIPT
+// ============================================================
+
+(function () {
+
+    const originalConfirmRecyclerReceipt =
+        window.confirmRecyclerReceipt;
+
+    if (
+        typeof originalConfirmRecyclerReceipt !== "function"
+    ) {
+        console.warn(
+            "Step 1G: confirmRecyclerReceipt function not found."
+        );
+        return;
+    }
+
+    window.confirmRecyclerReceipt = function () {
+
+        // Save the active handover before the existing
+        // function modifies it.
+        const handoverBeforeConfirmation =
+            activeHandover
+                ? { ...activeHandover }
+                : null;
+
+        // Run the existing recycler confirmation
+        originalConfirmRecyclerReceipt();
+
+        if (!handoverBeforeConfirmation) {
+            console.warn(
+                "Step 1G: No active handover found."
+            );
+            return;
+        }
+
+        // Find the corresponding unified journey
+        const journey =
+            wasteJourneyTransactions.find(
+                item =>
+                    item.handoverId ===
+                    handoverBeforeConfirmation.id
+            );
+
+        if (!journey) {
+            console.warn(
+                "Step 1G: Could not find corresponding waste journey."
+            );
+            return;
+        }
+
+        // Save recycler confirmation details
+        journey.recyclerConfirmedAt =
+            new Date().toLocaleString();
+
+        journey.recyclerConfirmationId =
+            handoverBeforeConfirmation.id;
+
+        journey.recyclerConfirmationStatus =
+            "Confirmed";
+
+        journey.finalRecyclerValue =
+    Number(
+        handoverBeforeConfirmation.recycler?.estimated_value
+    ) ||
+    (
+        Number(
+            handoverBeforeConfirmation.recycler?.rate
+        ) *
+        Number(
+            handoverBeforeConfirmation.weight
+        )
+    ) ||
+    0;
+
+        // Complete Step 1G
+        completeWasteJourneyStep(
+            journey,
+            "recycler_confirmed",
+            {
+                status: "Recycler Confirmed",
+                description:
+                    "Authorized recycler confirmed receipt of the material."
+            }
+        );
+
+        console.log(
+            "========================================"
+        );
+
+        console.log(
+            "✅ STEP 1G COMPLETE"
+        );
+
+        console.log(
+            "Transaction:",
+            journey.id
+        );
+
+        console.log(
+            "Recycler:",
+            handoverBeforeConfirmation.recycler
+        );
+
+        console.log(
+            "Material:",
+            handoverBeforeConfirmation.material
+        );
+
+        console.log(
+            "Weight:",
+            handoverBeforeConfirmation.weight,
+            "kg"
+        );
+
+        console.log(
+            "Recycler Value:",
+            handoverBeforeConfirmation.value
+        );
+
+        console.log(
+            "Confirmation Time:",
+            journey.recyclerConfirmedAt
+        );
+
+        console.log(
+            "Journey status:",
+            journey.status
+        );
+
+        console.log(
+            "========================================"
+        );
+    };
+
+})();
+
+console.log(
+    "✅ Step 1G - Recycler receipt tracking loaded."
+);
+
+// ============================================================
+// STEP 1F - HANDOVER PREPARED TRACKING
+// ============================================================
+
+(function () {
+
+    const originalGenerateHandoverQR =
+        window.generateHandoverQR;
+
+    if (
+        typeof originalGenerateHandoverQR !==
+        "function"
+    ) {
+        console.warn(
+            "Step 1F: generateHandoverQR function not found."
+        );
+        return;
+    }
+
+    window.generateHandoverQR =
+        function () {
+
+            // Run the existing QR/token system first
+            originalGenerateHandoverQR();
+
+            if (!activeHandover) {
+                console.warn(
+                    "Step 1F: No active handover found."
+                );
+                return;
+            }
+
+            // ------------------------------------------------
+            // Get the correct handover ID
+            // ------------------------------------------------
+
+            const handoverId =
+                activeHandover.handoverId ||
+                activeHandover.id ||
+                "";
+
+            const token =
+                activeHandover.token ||
+                "";
+
+            // ------------------------------------------------
+            // Find the corresponding waste journey
+            // ------------------------------------------------
+
+            let journey = null;
+
+            // First try the handover ID
+            if (handoverId) {
+
+                journey =
+                    wasteJourneyTransactions.find(
+                        item =>
+                            item.handoverId ===
+                            handoverId
+                    );
+            }
+
+            // Fallback: material + actual weight
+            if (!journey) {
+
+                journey =
+                    wasteJourneyTransactions.find(
+                        item =>
+                            item.material ===
+                                activeHandover.material &&
+
+                            Number(
+                                item.actualWeight
+                            ) ===
+                                Number(
+                                    activeHandover.weight
+                                ) &&
+
+                            item.status ===
+                                "Recycler Selected"
+                    );
+            }
+
+            // Final fallback: latest Recycler Selected journey
+            if (!journey) {
+
+                journey =
+                    [...wasteJourneyTransactions]
+                        .reverse()
+                        .find(
+                            item =>
+                                item.status ===
+                                "Recycler Selected"
+                        );
+            }
+
+            if (!journey) {
+
+                console.warn(
+                    "Step 1F: Could not find corresponding waste journey."
+                );
+
+                return;
+            }
+
+            // ------------------------------------------------
+            // Save handover information
+            // ------------------------------------------------
+
+            journey.handoverId =
+                handoverId;
+
+            journey.handoverToken =
+                token;
+
+            journey.handoverPreparedAt =
+                new Date().toLocaleString();
+
+            journey.handoverRecycler =
+                activeHandover.recycler;
+
+            journey.handoverWeight =
+                Number(
+                    activeHandover.weight
+                ) || 0;
+
+            journey.handoverValue =
+                Number(
+                    activeHandover.value
+                ) ||
+                Number(
+                    activeHandover.recycler?.estimated_value
+                ) ||
+                0;
+
+            // ------------------------------------------------
+            // Complete Step 1F
+            // ------------------------------------------------
+
+            completeWasteJourneyStep(
+                journey,
+                "handover_prepared",
+                {
+                    status:
+                        "Handover Prepared",
+
+                    description:
+                        "Handover token generated and material prepared for verified recycler receipt."
+                }
+            );
+
+            // ------------------------------------------------
+            // Console verification
+            // ------------------------------------------------
+
+            console.log(
+                "========================================"
+            );
+
+            console.log(
+                "✅ STEP 1F COMPLETE"
+            );
+
+            console.log(
+                "Transaction:",
+                journey.id
+            );
+
+            console.log(
+                "Handover ID:",
+                journey.handoverId
+            );
+
+            console.log(
+                "Secure Token:",
+                journey.handoverToken
+            );
+
+            console.log(
+                "Recycler:",
+                activeHandover.recycler
+            );
+
+            console.log(
+                "Material:",
+                activeHandover.material
+            );
+
+            console.log(
+                "Weight:",
+                activeHandover.weight,
+                "kg"
+            );
+
+            console.log(
+                "Journey status:",
+                journey.status
+            );
+
+            console.log(
+                "========================================"
+            );
+        };
+
+})();
+
+console.log(
+    "✅ Step 1F - Handover preparation tracking loaded."
+);
+
+// ============================================================
+// STEP 1G - RECYCLER CONFIRMS RECEIPT
+// ============================================================
+
+(function () {
+
+    const originalConfirmRecyclerReceipt =
+        window.confirmRecyclerReceipt;
+
+    if (
+        typeof originalConfirmRecyclerReceipt !== "function"
+    ) {
+        console.warn(
+            "Step 1G: confirmRecyclerReceipt function not found."
+        );
+        return;
+    }
+
+    window.confirmRecyclerReceipt = function () {
+
+        // Save active handover before existing function changes it
+        const handoverBeforeConfirmation =
+            activeHandover
+                ? { ...activeHandover }
+                : null;
+
+        // Run existing confirmation logic
+        originalConfirmRecyclerReceipt();
+
+        if (!handoverBeforeConfirmation) {
+            console.warn(
+                "Step 1G: No active handover found."
+            );
+            return;
+        }
+
+        // Find matching unified journey
+        const journey =
+            wasteJourneyTransactions.find(
+                item =>
+                    item &&
+                    (
+                        item.handoverId ===
+                        handoverBeforeConfirmation.id ||
+
+                        item.handoverId ===
+                        handoverBeforeConfirmation.handoverId
+                    )
+            );
+
+        if (!journey) {
+            console.warn(
+                "Step 1G: Could not find corresponding waste journey."
+            );
+            return;
+        }
+
+        // Save recycler confirmation information
+        journey.recyclerConfirmedAt =
+            new Date().toLocaleString();
+
+        journey.recyclerConfirmationId =
+            handoverBeforeConfirmation.handoverId ||
+            handoverBeforeConfirmation.id ||
+            "";
+
+        journey.recyclerConfirmationStatus =
+            "Confirmed";
+
+       
+       journey.finalRecyclerValue =
+    Number(
+        handoverBeforeConfirmation.recycler?.estimated_value
+    ) ||
+    (
+        Number(
+            handoverBeforeConfirmation.recycler?.rate
+        ) *
+        Number(
+            handoverBeforeConfirmation.weight
+        )
+    ) ||
+    0;
+
+        // Complete Step 1G
+        completeWasteJourneyStep(
+            journey,
+            "recycler_confirmed",
+            {
+                status: "Recycler Confirmed",
+
+                description:
+                    "Authorized recycler confirmed receipt of the material."
+            }
+        );
+
+        console.log(
+            "========================================"
+        );
+
+        console.log(
+            "✅ STEP 1G COMPLETE"
+        );
+
+        console.log(
+            "Transaction:",
+            journey.id
+        );
+
+        console.log(
+            "Recycler:",
+            handoverBeforeConfirmation.recycler
+        );
+
+        console.log(
+            "Material:",
+            handoverBeforeConfirmation.material
+        );
+
+        console.log(
+            "Weight:",
+            handoverBeforeConfirmation.weight,
+            "kg"
+        );
+
+        console.log(
+            "Recycler Value:",
+            handoverBeforeConfirmation.value
+        );
+
+        console.log(
+            "Confirmation Time:",
+            journey.recyclerConfirmedAt
+        );
+
+        console.log(
+            "Journey status:",
+            journey.status
+        );
+
+        console.log(
+            "========================================"
+        );
+    };
+
+})();
+
+console.log(
+    "✅ Step 1G - Recycler receipt tracking loaded."
+);
+
+// ============================================================
+// STEP 1H - RECYCLING COMPLETED
+// ============================================================
+// ============================================================
+// STEP 1H - RECYCLING COMPLETED
+// ============================================================
+
+(function () {
+
+    const previousConfirmRecyclerReceipt =
+        window.confirmRecyclerReceipt;
+
+    if (
+        typeof previousConfirmRecyclerReceipt !==
+        "function"
+    ) {
+        console.warn(
+            "Step 1H: confirmRecyclerReceipt function not found."
+        );
+        return;
+    }
+
+    window.confirmRecyclerReceipt =
+        function () {
+
+            // Save the handover BEFORE the existing
+            // confirmation function changes anything.
+            const savedHandover =
+                activeHandover
+                    ? {
+                        ...activeHandover
+                    }
+                    : null;
+
+            if (!savedHandover) {
+
+                console.warn(
+                    "Step 1H: No active handover found."
+                );
+
+                return;
+            }
+
+            // Run the existing Step 1G confirmation.
+            previousConfirmRecyclerReceipt();
+
+            // ------------------------------------------------
+            // FIND THE UNIFIED WASTE JOURNEY
+            // ------------------------------------------------
+
+            let journey = null;
+
+            const savedHandoverId =
+                savedHandover.handoverId ||
+                savedHandover.id ||
+                "";
+
+            if (savedHandoverId) {
+
+                journey =
+                    wasteJourneyTransactions.find(
+                        item =>
+                            item &&
+                            item.handoverId ===
+                                savedHandoverId
+                    );
+            }
+
+            // Fallback: find the journey that was just
+            // confirmed by Step 1G.
+
+            if (!journey) {
+
+                journey =
+                    wasteJourneyTransactions.find(
+                        item =>
+                            item &&
+                            item.status ===
+                                "Recycler Confirmed" &&
+
+                            item.material ===
+                                savedHandover.material
+                    );
+            }
+
+            // Final fallback: most recent journey that
+            // reached Recycler Confirmed.
+
+            if (!journey) {
+
+                journey =
+                    [...wasteJourneyTransactions]
+                        .reverse()
+                        .find(
+                            item =>
+                                item &&
+                                item.status ===
+                                    "Recycler Confirmed"
+                        );
+            }
+
+            if (!journey) {
+
+                console.warn(
+                    "Step 1H: Could not find waste journey."
+                );
+
+                return;
+            }
+
+            // ------------------------------------------------
+            // CALCULATE FINAL RECYCLER VALUE
+            // ------------------------------------------------
+
+            let finalRecyclerValue = 0;
+
+            if (
+                savedHandover.recycler &&
+                typeof savedHandover.recycler ===
+                    "object"
+            ) {
+
+                finalRecyclerValue =
+                    Number(
+                        savedHandover.recycler
+                            .estimated_value
+                    ) || 0;
+
+                if (!finalRecyclerValue) {
+
+                    finalRecyclerValue =
+                        Number(
+                            savedHandover.recycler.rate
+                        ) *
+                        Number(
+                            savedHandover.weight
+                        );
+                }
+            }
+
+            if (!finalRecyclerValue) {
+
+                finalRecyclerValue =
+                    Number(
+                        savedHandover.value
+                    ) || 0;
+            }
+
+            // ------------------------------------------------
+            // SAVE FINAL JOURNEY INFORMATION
+            // ------------------------------------------------
+
+            journey.finalRecycler =
+                savedHandover.recycler;
+
+            journey.finalWeight =
+                Number(
+                    savedHandover.weight
+                ) || 0;
+
+            journey.finalRecyclerValue =
+                finalRecyclerValue;
+
+            journey.finalHandoverId =
+                savedHandoverId;
+
+            journey.recyclingCompletedAt =
+                new Date().toLocaleString();
+
+            // ------------------------------------------------
+            // COMPLETE FINAL STEP
+            // ------------------------------------------------
+
+            completeWasteJourneyStep(
+                journey,
+                "completed",
+                {
+                    status:
+                        "Recycling Completed",
+
+                    description:
+                        "Recycler confirmed receipt and the waste journey was completed successfully."
+                }
+            );
+
+            // ------------------------------------------------
+            // FINAL LOG
+            // ------------------------------------------------
+
+            console.log(
+                "========================================"
+            );
+
+            console.log(
+                "🎉 STEP 1H COMPLETE"
+            );
+
+            console.log(
+                "♻️ RECYCLING COMPLETED"
+            );
+
+            console.log(
+                "Transaction:",
+                journey.id
+            );
+
+            console.log(
+                "Material:",
+                journey.material
+            );
+
+            console.log(
+                "Final Weight:",
+                journey.finalWeight,
+                "kg"
+            );
+
+            console.log(
+                "Recycler:",
+                journey.finalRecycler
+            );
+
+            console.log(
+                "Final Recycler Value:",
+                journey.finalRecyclerValue
+            );
+
+            console.log(
+                "Handover ID:",
+                journey.finalHandoverId
+            );
+
+            console.log(
+                "Completed At:",
+                journey.recyclingCompletedAt
+            );
+
+            console.log(
+                "Journey status:",
+                journey.status
+            );
+
+            console.log(
+                "========================================"
+            );
+        };
+
+})();
+
+console.log(
+    "✅ Step 1H - Recycling completion tracking loaded."
+);
+
+// ============================================================
+// STEP 2A - WASTE JOURNEY TRACKING UI
+// ============================================================
+
+(function () {
+
+    // ----------------------------------------------------------
+    // GET RECYCLER NAME
+    // ----------------------------------------------------------
+
+    function getJourneyRecyclerName(journey) {
+
+        if (!journey) {
+            return "Not assigned";
+        }
+
+        if (
+            journey.finalRecycler &&
+            typeof journey.finalRecycler === "object"
+        ) {
+            return (
+                journey.finalRecycler.name ||
+                "Verified Recycler"
+            );
+        }
+
+        if (
+            journey.finalRecycler &&
+            typeof journey.finalRecycler === "string"
+        ) {
+            return journey.finalRecycler;
+        }
+
+        if (
+            journey.recycler &&
+            typeof journey.recycler === "object"
+        ) {
+            return (
+                journey.recycler.name ||
+                "Verified Recycler"
+            );
+        }
+
+        if (
+            journey.recycler &&
+            typeof journey.recycler === "string"
+        ) {
+            return journey.recycler;
+        }
+
+        return "Not assigned";
+    }
+
+
+    // ----------------------------------------------------------
+    // GET RECYCLER RATE
+    // ----------------------------------------------------------
+
+    function getJourneyRecyclerRate(journey) {
+
+        if (!journey) {
+            return 0;
+        }
+
+        if (
+            journey.recycler &&
+            typeof journey.recycler === "object"
+        ) {
+            return (
+                Number(
+                    journey.recycler.rate
+                ) || 0
+            );
+        }
+
+        return (
+            Number(
+                journey.recyclerRate
+            ) || 0
+        );
+    }
+
+
+    // ----------------------------------------------------------
+    // GET RECYCLER VALUE
+    // ----------------------------------------------------------
+
+    function getJourneyRecyclerValue(journey) {
+
+        if (!journey) {
+            return 0;
+        }
+
+        // Final value saved by Step 1H
+        if (
+            Number(
+                journey.finalRecyclerValue
+            ) > 0
+        ) {
+            return Number(
+                journey.finalRecyclerValue
+            );
+        }
+
+        // Recycler object estimated value
+        if (
+            journey.recycler &&
+            typeof journey.recycler === "object"
+        ) {
+
+            const estimatedValue =
+                Number(
+                    journey.recycler.estimated_value
+                ) || 0;
+
+            if (estimatedValue > 0) {
+                return estimatedValue;
+            }
+        }
+
+        // Calculate from rate × weight
+        const rate =
+            getJourneyRecyclerRate(
+                journey
+            );
+
+        const weight =
+            Number(
+                journey.finalWeight ||
+                journey.actualWeight ||
+                journey.estimatedWeight
+            ) || 0;
+
+        return rate * weight;
+    }
+
+
+    // ----------------------------------------------------------
+    // GET WEIGHT
+    // ----------------------------------------------------------
+
+    function getJourneyWeight(journey) {
+
+        if (!journey) {
+            return 0;
+        }
+
+        return (
+            Number(
+                journey.finalWeight ||
+                journey.actualWeight ||
+                journey.estimatedWeight
+            ) || 0
+        );
+    }
+
+
+    // ----------------------------------------------------------
+    // RENDER WASTE JOURNEY PANEL
+    // ----------------------------------------------------------
+
+    function renderWasteJourneyTracking() {
+
+        const section =
+            document.getElementById(
+                "transactions"
+            );
+
+        if (!section) {
+            return;
+        }
+
+
+        let panel =
+            document.getElementById(
+                "wasteJourneyTrackingPanel"
+            );
+
+
+        if (!panel) {
+
+            panel =
+                document.createElement(
+                    "div"
+                );
+
+            panel.id =
+                "wasteJourneyTrackingPanel";
+
+            section.appendChild(
+                panel
+            );
+        }
+
+
+        const journeys =
+            Array.isArray(
+                wasteJourneyTransactions
+            )
+                ? wasteJourneyTransactions.filter(
+                    journey =>
+                        journey !== null &&
+                        journey !== undefined
+                )
+                : [];
+
+
+        // ------------------------------------------------------
+        // NO JOURNEYS
+        // ------------------------------------------------------
+
+        if (journeys.length === 0) {
+
+            panel.innerHTML = `
+
+                <div style="
+                    background:white;
+                    border:1px solid #e5e7eb;
+                    border-radius:20px;
+                    padding:30px;
+                    margin-top:20px;
+                    text-align:center;
+                    box-shadow:0 6px 20px rgba(0,0,0,.05);
+                ">
+
+                    <div style="
+                        font-size:45px;
+                        margin-bottom:10px;
+                    ">
+                        🔗
+                    </div>
+
+                    <h2 style="
+                        margin:0;
+                    ">
+                        Waste Journey Tracking
+                    </h2>
+
+                    <p style="
+                        color:#6b7280;
+                        margin-top:8px;
+                    ">
+                        Complete a pickup request to see
+                        its complete recycling journey.
+                    </p>
+
+                </div>
+
+            `;
+
+            return;
+        }
+
+
+        // ------------------------------------------------------
+        // JOURNEY CARDS
+        // ------------------------------------------------------
+
+        panel.innerHTML = `
+
+            <div style="
+                margin-top:25px;
+            ">
+
+                <!-- SECTION HEADER -->
+
+                <div style="
+                    display:flex;
+                    justify-content:space-between;
+                    align-items:center;
+                    gap:15px;
+                    flex-wrap:wrap;
+                    margin-bottom:18px;
+                ">
+
+                    <div>
+
+                        <div style="
+                            color:#159570;
+                            font-size:12px;
+                            font-weight:800;
+                            letter-spacing:1px;
+                        ">
+                            TRACEABILITY
+                        </div>
+
+                        <h2 style="
+                            margin:5px 0 0;
+                        ">
+                            🔗 Waste Journey Tracking
+                        </h2>
+
+                        <p style="
+                            margin:5px 0 0;
+                            color:#6b7280;
+                        ">
+                            From household pickup to formal recycling.
+                        </p>
+
+                    </div>
+
+
+                    <div style="
+                        background:#ecfdf5;
+                        color:#047857;
+                        padding:9px 14px;
+                        border-radius:12px;
+                        font-weight:800;
+                    ">
+                        ${journeys.length}
+                        Journey${journeys.length === 1 ? "" : "s"}
+                    </div>
+
+                </div>
+
+
+                ${journeys.map(
+                    journey => {
+
+                        const completedSteps =
+                            journey.timeline
+                                ? journey.timeline.filter(
+                                    step =>
+                                        step &&
+                                        step.completed
+                                ).length
+                                : 0;
+
+
+                        const totalSteps =
+                            journey.timeline
+                                ? journey.timeline.length
+                                : 9;
+
+
+                        const progress =
+                            Math.round(
+                                (
+                                    completedSteps /
+                                    totalSteps
+                                ) * 100
+                            );
+
+
+                        const weight =
+                            getJourneyWeight(
+                                journey
+                            );
+
+
+                        const recyclerName =
+                            getJourneyRecyclerName(
+                                journey
+                            );
+
+
+                        const recyclerRate =
+                            getJourneyRecyclerRate(
+                                journey
+                            );
+
+
+                        const recyclerValue =
+                            getJourneyRecyclerValue(
+                                journey
+                            );
+
+
+                        const isCompleted =
+                            journey.status ===
+                            "Recycling Completed";
+
+
+                        return `
+
+                            <div style="
+                                background:white;
+                                border:1px solid #e5e7eb;
+                                border-radius:20px;
+                                padding:22px;
+                                margin-bottom:20px;
+                                box-shadow:0 6px 20px rgba(0,0,0,.05);
+                            ">
+
+                                <!-- TRANSACTION HEADER -->
+
+                                <div style="
+                                    display:flex;
+                                    justify-content:space-between;
+                                    align-items:flex-start;
+                                    gap:15px;
+                                    flex-wrap:wrap;
+                                ">
+
+                                    <div>
+
+                                        <div style="
+                                            font-size:19px;
+                                            font-weight:800;
+                                        ">
+                                            ${journey.material}
+                                        </div>
+
+                                        <div style="
+                                            color:#6b7280;
+                                            margin-top:5px;
+                                        ">
+                                            ${weight.toFixed(2)} kg
+                                            •
+                                            ${journey.id}
+                                        </div>
+
+                                    </div>
+
+
+                                    <div style="
+                                        background:${
+                                            isCompleted
+                                                ? "#ecfdf5"
+                                                : "#fff7ed"
+                                        };
+                                        color:${
+                                            isCompleted
+                                                ? "#047857"
+                                                : "#c2410c"
+                                        };
+                                        padding:9px 13px;
+                                        border-radius:10px;
+                                        font-size:12px;
+                                        font-weight:800;
+                                    ">
+                                        ${
+                                            journey.status ||
+                                            "In Progress"
+                                        }
+                                    </div>
+
+                                </div>
+
+
+                                <!-- PROGRESS -->
+
+                                <div style="
+                                    margin-top:20px;
+                                ">
+
+                                    <div style="
+                                        display:flex;
+                                        justify-content:space-between;
+                                        margin-bottom:7px;
+                                        font-size:13px;
+                                    ">
+
+                                        <strong>
+                                            Journey Progress
+                                        </strong>
+
+                                        <strong>
+                                            ${completedSteps}/${totalSteps}
+                                        </strong>
+
+                                    </div>
+
+
+                                    <div style="
+                                        width:100%;
+                                        height:9px;
+                                        background:#e5e7eb;
+                                        border-radius:20px;
+                                        overflow:hidden;
+                                    ">
+
+                                        <div style="
+                                            width:${progress}%;
+                                            height:100%;
+                                            background:#159570;
+                                            border-radius:20px;
+                                        "></div>
+
+                                    </div>
+
+                                </div>
+
+
+                                <!-- TIMELINE -->
+
+                                <div style="
+                                    margin-top:25px;
+                                ">
+
+                                    ${
+                                        journey.timeline
+                                            ? journey.timeline
+                                                .map(
+                                                    (
+                                                        step,
+                                                        index
+                                                    ) => `
+
+                                                        <div style="
+                                                            display:flex;
+                                                            gap:14px;
+                                                        ">
+
+                                                            <!-- ICON -->
+
+                                                            <div style="
+                                                                display:flex;
+                                                                flex-direction:column;
+                                                                align-items:center;
+                                                                min-width:30px;
+                                                            ">
+
+                                                                <div style="
+                                                                    width:30px;
+                                                                    height:30px;
+                                                                    border-radius:50%;
+                                                                    display:flex;
+                                                                    align-items:center;
+                                                                    justify-content:center;
+                                                                    background:${
+                                                                        step.completed
+                                                                            ? "#159570"
+                                                                            : "#e5e7eb"
+                                                                    };
+                                                                    color:${
+                                                                        step.completed
+                                                                            ? "white"
+                                                                            : "#9ca3af"
+                                                                    };
+                                                                    font-size:13px;
+                                                                    font-weight:800;
+                                                                ">
+                                                                    ${
+                                                                        step.completed
+                                                                            ? "✓"
+                                                                            : index + 1
+                                                                    }
+                                                                </div>
+
+
+                                                                ${
+                                                                    index <
+                                                                    journey.timeline.length - 1
+                                                                        ? `
+                                                                            <div style="
+                                                                                width:2px;
+                                                                                height:32px;
+                                                                                background:${
+                                                                                    step.completed
+                                                                                        ? "#9dd8c5"
+                                                                                        : "#e5e7eb"
+                                                                                };
+                                                                            "></div>
+                                                                        `
+                                                                        : ""
+                                                                }
+
+                                                            </div>
+
+
+                                                            <!-- STEP TEXT -->
+
+                                                            <div style="
+                                                                padding-bottom:13px;
+                                                            ">
+
+                                                                <div style="
+                                                                    font-size:14px;
+                                                                    font-weight:800;
+                                                                ">
+                                                                    ${
+                                                                        step.title
+                                                                    }
+                                                                </div>
+
+
+                                                                <div style="
+                                                                    font-size:12px;
+                                                                    color:#6b7280;
+                                                                    margin-top:3px;
+                                                                ">
+                                                                    ${
+                                                                        step.description ||
+                                                                        ""
+                                                                    }
+                                                                </div>
+
+
+                                                                ${
+                                                                    step.time
+                                                                        ? `
+                                                                            <div style="
+                                                                                font-size:11px;
+                                                                                color:#9ca3af;
+                                                                                margin-top:3px;
+                                                                            ">
+                                                                                ${step.time}
+                                                                            </div>
+                                                                        `
+                                                                        : ""
+                                                                }
+
+                                                            </div>
+
+                                                        </div>
+
+                                                    `
+                                                )
+                                                .join("")
+                                            : ""
+                                    }
+
+                                </div>
+
+
+                                <!-- DETAILS -->
+
+                                <div style="
+                                    margin-top:8px;
+                                    padding:17px;
+                                    background:#f8fafc;
+                                    border-radius:15px;
+                                    display:grid;
+                                    grid-template-columns:
+                                        repeat(
+                                            auto-fit,
+                                            minmax(145px,1fr)
+                                        );
+                                    gap:16px;
+                                ">
+
+
+                                    <div>
+
+                                        <div style="
+                                            color:#6b7280;
+                                            font-size:11px;
+                                        ">
+                                            HOUSEHOLD PAYMENT
+                                        </div>
+
+                                        <div style="
+                                            font-size:16px;
+                                            font-weight:800;
+                                            margin-top:4px;
+                                        ">
+                                            ₹${
+                                                Number(
+                                                    journey.householdPayment
+                                                ).toFixed(2)
+                                            }
+                                        </div>
+
+                                    </div>
+
+
+                                    <div>
+
+                                        <div style="
+                                            color:#6b7280;
+                                            font-size:11px;
+                                        ">
+                                            RECYCLER
+                                        </div>
+
+                                        <div style="
+                                            font-size:14px;
+                                            font-weight:800;
+                                            margin-top:4px;
+                                        ">
+                                            ${recyclerName}
+                                        </div>
+
+                                    </div>
+
+
+                                    <div>
+
+                                        <div style="
+                                            color:#6b7280;
+                                            font-size:11px;
+                                        ">
+                                            RECYCLER RATE
+                                        </div>
+
+                                        <div style="
+                                            font-size:16px;
+                                            font-weight:800;
+                                            margin-top:4px;
+                                        ">
+                                            ₹${recyclerRate.toFixed(2)}/kg
+                                        </div>
+
+                                    </div>
+
+
+                                    <div>
+
+                                        <div style="
+                                            color:#6b7280;
+                                            font-size:11px;
+                                        ">
+                                            RECYCLER VALUE
+                                        </div>
+
+                                        <div style="
+                                            font-size:16px;
+                                            font-weight:800;
+                                            margin-top:4px;
+                                        ">
+                                            ₹${recyclerValue.toFixed(2)}
+                                        </div>
+
+                                    </div>
+
+
+                                    <div>
+
+                                        <div style="
+                                            color:#6b7280;
+                                            font-size:11px;
+                                        ">
+                                            HANDOVER ID
+                                        </div>
+
+                                        <div style="
+                                            font-size:13px;
+                                            font-weight:800;
+                                            margin-top:4px;
+                                            word-break:break-all;
+                                        ">
+                                            ${
+                                                journey.finalHandoverId ||
+                                                journey.handoverId ||
+                                                "Pending"
+                                            }
+                                        </div>
+
+                                    </div>
+
+
+                                </div>
+
+
+                                ${
+                                    isCompleted
+                                        ? `
+                                            <div style="
+                                                margin-top:16px;
+                                                padding:12px 15px;
+                                                background:#ecfdf5;
+                                                border-radius:12px;
+                                                color:#047857;
+                                                font-size:13px;
+                                                font-weight:800;
+                                                text-align:center;
+                                            ">
+                                                ♻️ Recycling completed successfully
+                                            </div>
+                                        `
+                                        : ""
+                                }
+
+
+                            </div>
+
+                        `;
+                    }
+                ).join("")}
+
+            </div>
+
+        `;
+    }
+
+
+    // ----------------------------------------------------------
+    // MAKE JOURNEY UI UPDATE AUTOMATICALLY
+    // ----------------------------------------------------------
+
+    const originalCompleteJourneyStep =
+        window.completeWasteJourneyStep;
+
+
+    if (
+        typeof originalCompleteJourneyStep ===
+        "function"
+    ) {
+
+        window.completeWasteJourneyStep =
+            function (
+                journey,
+                stepKey,
+                extraData = {}
+            ) {
+
+                originalCompleteJourneyStep(
+                    journey,
+                    stepKey,
+                    extraData
+                );
+
+                renderWasteJourneyTracking();
+            };
+    }
+
+
+    // ----------------------------------------------------------
+    // GLOBAL ACCESS
+    // ----------------------------------------------------------
+
+    window.renderWasteJourneyTracking =
+        renderWasteJourneyTracking;
+
+
+    // ----------------------------------------------------------
+    // INITIAL RENDER
+    // ----------------------------------------------------------
+
+    setTimeout(
+        function () {
+
+            renderWasteJourneyTracking();
+
+        },
+        500
+    );
+
+
+    console.log(
+        "✅ Step 2A - Waste Journey Tracking UI loaded."
+    );
+
+})();
+
+// ============================================================
+// STEP 2C - FIX RECYCLER SELECTED TIMELINE
+// ============================================================
+
+(function () {
+
+    function fixRecyclerSelectedStep() {
+
+        if (
+            !Array.isArray(
+                wasteJourneyTransactions
+            )
+        ) {
+            return;
+        }
+
+        wasteJourneyTransactions.forEach(
+            function (journey) {
+
+                if (
+                    !journey ||
+                    !Array.isArray(
+                        journey.timeline
+                    )
+                ) {
+                    return;
+                }
+
+                const recyclerStep =
+                    journey.timeline.find(
+                        function (step) {
+                            return (
+                                step &&
+                                step.key ===
+                                    "recycler_selected"
+                            );
+                        }
+                    );
+
+                if (!recyclerStep) {
+                    return;
+                }
+
+                const handoverPrepared =
+                    journey.timeline.find(
+                        function (step) {
+                            return (
+                                step &&
+                                step.key ===
+                                    "handover_prepared" &&
+                                step.completed === true
+                            );
+                        }
+                    );
+
+                const recyclerConfirmed =
+                    journey.timeline.find(
+                        function (step) {
+                            return (
+                                step &&
+                                step.key ===
+                                    "recycler_confirmed" &&
+                                step.completed === true
+                            );
+                        }
+                    );
+
+                const recyclingCompleted =
+                    journey.timeline.find(
+                        function (step) {
+                            return (
+                                step &&
+                                step.key ===
+                                    "completed" &&
+                                step.completed === true
+                            );
+                        }
+                    );
+
+                // If any later recycler/handover step is
+                // completed, Recycler Selected definitely
+                // happened first.
+
+                if (
+                    (
+                        handoverPrepared ||
+                        recyclerConfirmed ||
+                        recyclingCompleted
+                    ) &&
+                    !recyclerStep.completed
+                ) {
+
+                    recyclerStep.completed =
+                        true;
+
+                    recyclerStep.time =
+                        journey.recyclerSelectedAt ||
+                        (
+                            handoverPrepared
+                                ? handoverPrepared.time
+                                : new Date().toLocaleString()
+                        );
+
+                    recyclerStep.description =
+                        "Verified recycler selected for the collected material.";
+
+                    console.log(
+                        "✅ Fixed Recycler Selected:",
+                        journey.id
+                    );
+                }
+
+            }
+        );
+
+        // Refresh the visible Transactions UI
+
+        if (
+            typeof renderWasteJourneyTracking ===
+            "function"
+        ) {
+            renderWasteJourneyTracking();
+        }
+
+    }
+
+
+    window.fixRecyclerSelectedStep =
+        fixRecyclerSelectedStep;
+
+
+    // Run automatically
+
+    setTimeout(
+        fixRecyclerSelectedStep,
+        500
+    );
+
+
+    console.log(
+        "✅ Step 2C - Recycler Selected timeline fix loaded."
+    );
+
+})();
+
+// ============================================================
+// STEP 3 - PERSIST WASTE JOURNEY TRANSACTIONS
+// ============================================================
+
+(function () {
+
+    const STORAGE_KEY =
+        "kabadiSetuWasteJourneyTransactions";
+
+
+    // --------------------------------------------------------
+    // LOAD SAVED JOURNEYS
+    // --------------------------------------------------------
+
+    try {
+
+        const saved =
+            localStorage.getItem(
+                STORAGE_KEY
+            );
+
+        if (saved) {
+
+            const parsed =
+                JSON.parse(saved);
+
+            if (
+                Array.isArray(parsed)
+            ) {
+
+                wasteJourneyTransactions.length = 0;
+
+                parsed.forEach(
+                    function (journey) {
+
+                        if (journey) {
+                            wasteJourneyTransactions.push(
+                                journey
+                            );
+                        }
+
+                    }
+                );
+
+                console.log(
+                    "📂 Restored saved waste journeys:",
+                    wasteJourneyTransactions.length
+                );
+
+            }
+
+        } else {
+
+            console.log(
+                "ℹ️ No saved waste journeys found."
+            );
+
+        }
+
+    } catch (error) {
+
+        console.error(
+            "❌ Could not load saved journeys:",
+            error
+        );
+
+    }
+
+
+    // --------------------------------------------------------
+    // SAVE FUNCTION
+    // --------------------------------------------------------
+
+    function saveWasteJourneys() {
+
+        try {
+
+            localStorage.setItem(
+                STORAGE_KEY,
+                JSON.stringify(
+                    wasteJourneyTransactions
+                )
+            );
+
+        } catch (error) {
+
+            console.error(
+                "❌ Could not save waste journeys:",
+                error
+            );
+
+        }
+
+    }
+
+
+    // --------------------------------------------------------
+    // MAKE SAVE FUNCTION AVAILABLE
+    // --------------------------------------------------------
+
+    window.saveWasteJourneys =
+        saveWasteJourneys;
+
+
+    // --------------------------------------------------------
+    // AUTO-SAVE
+    //
+    // This checks the actual array directly.
+    // Therefore it works even when other functions call
+    // createWasteJourney() or completeWasteJourneyStep()
+    // directly.
+    // --------------------------------------------------------
+
+    setInterval(
+        function () {
+
+            if (
+                Array.isArray(
+                    wasteJourneyTransactions
+                )
+            ) {
+
+                saveWasteJourneys();
+
+            }
+
+        },
+        500
+    );
+
+
+    // --------------------------------------------------------
+    // REFRESH JOURNEY UI
+    // --------------------------------------------------------
+
+    setTimeout(
+        function () {
+
+            if (
+                typeof window.renderWasteJourneyTracking ===
+                "function"
+            ) {
+
+                window.renderWasteJourneyTracking();
+
+            }
+
+        },
+        800
+    );
+
+
+    console.log(
+        "✅ Step 3 - Persistent waste journey storage loaded."
+    );
+
+})();
