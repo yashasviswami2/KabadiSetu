@@ -1475,3 +1475,1427 @@ nav {
     }
 
 }
+
+/* =========================================================
+   KABADI SETU - COLLECTOR DASHBOARD VISUAL THEME
+   ========================================================= */
+
+/* Collector page background */
+
+body.collector-mode {
+    background: #f5f8f6;
+}
+
+
+/* Main content */
+
+body.collector-mode .main-content {
+    background: #f5f8f6;
+}
+
+
+/* =========================================================
+   COLLECTOR HERO
+   ========================================================= */
+
+body.collector-mode .hero {
+    background: linear-gradient(
+        135deg,
+        #ecfff4 0%,
+        #f4fff8 55%,
+        #e9f8ef 100%
+    );
+
+    border: 1px solid #cdeed9;
+
+    box-shadow:
+        0 10px 30px rgba(23,107,58,0.06);
+}
+
+
+/* Hero tag */
+
+body.collector-mode .hero-tag {
+    color: #087443;
+}
+
+
+/* Hero heading */
+
+body.collector-mode .hero h1,
+body.collector-mode .hero h2 {
+    color: #123b25;
+}
+
+
+/* =========================================================
+   COLLECTOR CARDS
+   ========================================================= */
+
+body.collector-mode .card,
+body.collector-mode .dashboard-card,
+body.collector-mode .stat-card {
+
+    border: 1px solid #e0ebe4;
+
+    box-shadow:
+        0 8px 25px rgba(23,107,58,0.05);
+}
+
+
+/* =========================================================
+   COLOURED STAT CARDS
+   ========================================================= */
+
+body.collector-mode .stat-card:nth-child(1) {
+
+    background: #eefbf2;
+    border-color: #d2f0dc;
+
+}
+
+
+body.collector-mode .stat-card:nth-child(2) {
+
+    background: #eef5ff;
+    border-color: #d8e6fb;
+
+}
+
+
+body.collector-mode .stat-card:nth-child(3) {
+
+    background: #f7f0ff;
+    border-color: #e7dafa;
+
+}
+
+
+body.collector-mode .stat-card:nth-child(4) {
+
+    background: #fff7eb;
+    border-color: #f7e4c6;
+
+}
+
+
+/* =========================================================
+   COLLECTOR JOURNEY
+   ========================================================= */
+
+body.collector-mode .journey-card {
+
+    background: #ffffff;
+
+    border: 1px solid #e1ebe4;
+
+    box-shadow:
+        0 8px 24px rgba(23,107,58,0.05);
+
+}
+
+
+body.collector-mode .journey-step.active {
+
+    background: #effbf3;
+
+    border: 1px solid #cdebd7;
+
+}
+
+
+/* Journey arrows */
+
+body.collector-mode .journey-arrow {
+
+    color: #16845b;
+
+    font-weight: 800;
+}
+
+
+/* =========================================================
+   COLLECTOR SECTION HEADINGS
+   ========================================================= */
+
+body.collector-mode .section-heading h2,
+body.collector-mode .section-title {
+
+    color: #173b26;
+
+}
+
+
+body.collector-mode .small-text {
+
+    color: #16845b;
+
+}
+
+
+/* =========================================================
+   SIDEBAR
+   ========================================================= */
+
+body.collector-mode .sidebar {
+
+    background: #ffffff;
+
+    border-right: 1px solid #dfe9e2;
+
+}
+
+
+body.collector-mode .nav-item.active {
+
+    background: #e8f6ee;
+
+    color: #176b3a;
+
+    font-weight: 700;
+
+}
+
+
+body.collector-mode .nav-item:hover {
+
+    background: #f0faf4;
+
+    color: #176b3a;
+
+}
+
+
+/* =========================================================
+   COLLECTOR ROLE BUTTON
+   ========================================================= */
+
+body.collector-mode #collectorRole.active {
+
+    background: #e8f6ee;
+
+    color: #176b3a;
+
+    border-color: #d5ebdd;
+
+}
+
+
+/* =========================================================
+   BUTTONS
+   ========================================================= */
+
+body.collector-mode .primary-btn {
+
+    background: #176b3a;
+
+    border-color: #176b3a;
+
+}
+
+
+body.collector-mode .primary-btn:hover {
+
+    background: #0f572d;
+
+}
+
+
+/* =========================================================
+   INVENTORY
+   ========================================================= */
+
+body.collector-mode .inventory-card {
+
+    background: #ffffff;
+
+    border: 1px solid #dfe9e2;
+
+}
+
+
+body.collector-mode .inventory-card:hover {
+
+    border-color: #b8ddc5;
+
+    box-shadow:
+        0 8px 25px rgba(23,107,58,0.08);
+
+}
+
+
+/* =========================================================
+   PICKUP REQUESTS
+   ========================================================= */
+
+body.collector-mode .pickup-card {
+
+    background: #ffffff;
+
+    border: 1px solid #dfe9e2;
+
+}
+
+
+body.collector-mode .pickup-card.pending {
+
+    background: #fff8ec;
+
+    border-color: #f3dfb9;
+
+}
+
+
+body.collector-mode .pickup-card.accepted {
+
+    background: #eef7ff;
+
+    border-color: #d3e5f7;
+
+}
+
+
+body.collector-mode .pickup-card.completed {
+
+    background: #edf9f1;
+
+    border-color: #cdebd6;
+
+}
+
+
+/* =========================================================
+   RECYCLER CARDS
+   ========================================================= */
+
+body.collector-mode .recycler-card {
+
+    background: #ffffff;
+
+    border: 1px solid #dfe9e2;
+
+}
+
+
+body.collector-mode .recycler-card.best {
+
+    background: #effbf3;
+
+    border-color: #a9d9b8;
+
+}
+
+
+/* =========================================================
+   EARNINGS
+   ========================================================= */
+
+body.collector-mode #collectorEarningsPanel {
+
+    background: transparent !important;
+
+    box-shadow: none !important;
+
+}
+
+
+body.collector-mode #collectorEarningsPanel > div {
+
+    background: linear-gradient(
+        135deg,
+        #effbf3,
+        #ffffff
+    ) !important;
+
+    border: 1px solid #cfe8d7;
+
+}
+
+
+/* =========================================================
+   TRANSACTIONS
+   ========================================================= */
+
+body.collector-mode #collectorTransactionsPanel {
+
+    background: transparent !important;
+
+    box-shadow: none !important;
+
+}
+
+
+body.collector-mode #collectorTransactionsPanel > div {
+
+    background: #ffffff !important;
+
+    border: 1px solid #dfe9e2;
+
+}
+
+
+/* =========================================================
+   PROFILE
+   ========================================================= */
+
+#collectorTopProfile {
+
+    background: #16845b !important;
+
+    color: #ffffff !important;
+
+}
+
+
+#collectorTopProfile:hover {
+
+    transform: translateY(-1px);
+
+    box-shadow:
+        0 5px 14px rgba(22,132,91,0.25);
+
+}
+
+
+/* =========================================================
+   SCROLLBAR
+   ========================================================= */
+
+body.collector-mode ::-webkit-scrollbar {
+
+    width: 8px;
+
+}
+
+
+body.collector-mode ::-webkit-scrollbar-thumb {
+
+    background: #b9d8c2;
+
+    border-radius: 10px;
+
+}
+
+
+body.collector-mode ::-webkit-scrollbar-thumb:hover {
+
+    background: #8fbd9d;
+
+}
+/* ============================================================
+   KABADI SETU - COLLECTOR DASHBOARD
+   MATCH HOUSEHOLD VISUAL STYLE
+   ============================================================ */
+
+/* ---------- PAGE ---------- */
+
+body.collector-mode {
+    background: #f5f7f5;
+}
+
+body.collector-mode .main-content {
+    background: #f5f7f5;
+}
+
+
+/* ---------- TOP HEADER ---------- */
+
+body.collector-mode .page-header h1,
+body.collector-mode #pageTitle {
+    color: #101b14;
+}
+
+
+/* ---------- COLLECTOR HERO ---------- */
+
+body.collector-mode .collector-dashboard-hero {
+    background: linear-gradient(
+        135deg,
+        #087443 0%,
+        #159565 55%,
+        #1b9d69 100%
+    ) !important;
+
+    color: white !important;
+    border: none !important;
+
+    box-shadow:
+        0 12px 30px rgba(8,116,67,0.15);
+}
+
+
+/* If existing collector hero uses .hero */
+
+body.collector-mode .hero {
+    background: linear-gradient(
+        135deg,
+        #087443 0%,
+        #159565 55%,
+        #1b9d69 100%
+    ) !important;
+
+    color: white !important;
+
+    border: none !important;
+
+    box-shadow:
+        0 12px 30px rgba(8,116,67,0.15);
+}
+
+
+body.collector-mode .hero h1,
+body.collector-mode .hero h2,
+body.collector-mode .hero p {
+    color: white !important;
+}
+
+
+body.collector-mode .hero-tag {
+    background: rgba(255,255,255,0.18) !important;
+    color: white !important;
+    border: 1px solid rgba(255,255,255,0.18);
+}
+
+
+/* ---------- HERO BUTTON ---------- */
+
+body.collector-mode .hero button,
+body.collector-mode .hero .primary-btn {
+
+    background: white !important;
+
+    color: #087443 !important;
+
+    border: none !important;
+
+    box-shadow:
+        0 5px 15px rgba(0,0,0,0.10);
+
+}
+
+
+body.collector-mode .hero button:hover,
+body.collector-mode .hero .primary-btn:hover {
+
+    background: #f2fff7 !important;
+
+    color: #075c36 !important;
+
+}
+
+
+/* ---------- STAT CARDS ---------- */
+
+body.collector-mode .collector-stat-grid {
+
+    display: grid;
+
+    grid-template-columns:
+        repeat(4, minmax(0, 1fr));
+
+    gap: 18px;
+
+    margin: 20px 0;
+
+}
+
+
+/* All stat cards */
+
+body.collector-mode .collector-stat-card {
+
+    min-height: 105px;
+
+    padding: 20px;
+
+    border-radius: 18px;
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 15px;
+
+    box-sizing: border-box;
+
+    background: white;
+
+    border: 1px solid #e2e9e4;
+
+    box-shadow:
+        0 8px 22px rgba(23,107,58,0.05);
+
+}
+
+
+/* Green */
+
+body.collector-mode
+.collector-stat-card:nth-child(1) {
+
+    background: #effbf3;
+
+    border-color: #ccebd7;
+
+}
+
+
+/* Blue */
+
+body.collector-mode
+.collector-stat-card:nth-child(2) {
+
+    background: #eef6ff;
+
+    border-color: #d4e5f8;
+
+}
+
+
+/* Purple */
+
+body.collector-mode
+.collector-stat-card:nth-child(3) {
+
+    background: #f7f0ff;
+
+    border-color: #e5d8f7;
+
+}
+
+
+/* Orange */
+
+body.collector-mode
+.collector-stat-card:nth-child(4) {
+
+    background: #fff7ec;
+
+    border-color: #f3dfc3;
+
+}
+
+
+/* ---------- STAT ICON ---------- */
+
+body.collector-mode .collector-stat-icon {
+
+    width: 52px;
+
+    height: 52px;
+
+    min-width: 52px;
+
+    border-radius: 15px;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    font-size: 25px;
+
+}
+
+
+body.collector-mode
+.collector-stat-card:nth-child(1)
+.collector-stat-icon {
+
+    background: #d9f5e3;
+
+}
+
+
+body.collector-mode
+.collector-stat-card:nth-child(2)
+.collector-stat-icon {
+
+    background: #dcecff;
+
+}
+
+
+body.collector-mode
+.collector-stat-card:nth-child(3)
+.collector-stat-icon {
+
+    background: #eadcff;
+
+}
+
+
+body.collector-mode
+.collector-stat-card:nth-child(4)
+.collector-stat-icon {
+
+    background: #ffe8c7;
+
+}
+
+
+/* ---------- STAT TEXT ---------- */
+
+body.collector-mode .collector-stat-label {
+
+    font-size: 12px;
+
+    color: #64736a;
+
+    text-transform: uppercase;
+
+    letter-spacing: .4px;
+
+}
+
+
+body.collector-mode .collector-stat-value {
+
+    font-size: 25px;
+
+    font-weight: 800;
+
+    color: #111b15;
+
+    margin-top: 3px;
+
+}
+
+
+/* ---------- GREEN ACCENT ---------- */
+
+body.collector-mode .green-accent {
+
+    color: #087443 !important;
+
+}
+
+
+/* ---------- JOURNEY CARD ---------- */
+
+body.collector-mode .collector-journey-card {
+
+    background: #ffffff;
+
+    border: 1px solid #e1e8e3;
+
+    border-radius: 20px;
+
+    padding: 24px;
+
+    box-shadow:
+        0 8px 25px rgba(23,107,58,0.05);
+
+}
+
+
+body.collector-mode
+.collector-journey-card h2 {
+
+    color: #526057;
+
+    font-size: 16px;
+
+    text-transform: uppercase;
+
+    letter-spacing: .3px;
+
+}
+
+
+/* ---------- JOURNEY ACTIVE STEP ---------- */
+
+body.collector-mode
+.collector-journey-step.active {
+
+    background: #edfaf2;
+
+    border: 1px solid #ccebd7;
+
+    border-radius: 18px;
+
+}
+
+
+/* ---------- JOURNEY ICON ---------- */
+
+body.collector-mode
+.collector-journey-step .journey-icon {
+
+    background: #e4f7eb;
+
+}
+
+
+/* ---------- JOURNEY ARROWS ---------- */
+
+body.collector-mode
+.collector-journey-arrow {
+
+    color: #0c9458;
+
+    font-size: 25px;
+
+    font-weight: 700;
+
+}
+
+
+/* ---------- GENERAL CARDS ---------- */
+
+body.collector-mode .card {
+
+    border-radius: 18px;
+
+    border: 1px solid #e1e8e3;
+
+    box-shadow:
+        0 8px 25px rgba(23,107,58,0.05);
+
+}
+
+
+/* ---------- PICKUP REQUESTS ---------- */
+
+body.collector-mode .pickup-request-card {
+
+    background: white;
+
+    border: 1px solid #e1e8e3;
+
+    border-radius: 16px;
+
+}
+
+
+body.collector-mode
+.pickup-request-card.pending {
+
+    background: #fff8ec;
+
+    border-color: #f2dfbd;
+
+}
+
+
+body.collector-mode
+.pickup-request-card.accepted {
+
+    background: #eef6ff;
+
+    border-color: #d7e7f8;
+
+}
+
+
+body.collector-mode
+.pickup-request-card.completed {
+
+    background: #effbf3;
+
+    border-color: #cdebd8;
+
+}
+
+
+/* ---------- INVENTORY ---------- */
+
+body.collector-mode .inventory-card {
+
+    background: white;
+
+    border: 1px solid #e1e8e3;
+
+    border-radius: 16px;
+
+}
+
+
+body.collector-mode .inventory-card:hover {
+
+    border-color: #9ed2ae;
+
+    box-shadow:
+        0 10px 28px rgba(23,107,58,0.09);
+
+}
+
+
+/* ---------- RECYCLER ---------- */
+
+body.collector-mode .recycler-card {
+
+    background: white;
+
+    border: 1px solid #e1e8e3;
+
+    border-radius: 16px;
+
+}
+
+
+body.collector-mode .recycler-card.best {
+
+    background: #effbf3;
+
+    border-color: #9fd4ae;
+
+}
+
+
+/* ---------- BUTTONS ---------- */
+
+body.collector-mode .btn-primary,
+body.collector-mode .primary-btn {
+
+    background: #087443;
+
+    color: white;
+
+    border-color: #087443;
+
+}
+
+
+body.collector-mode .btn-primary:hover,
+body.collector-mode .primary-btn:hover {
+
+    background: #075d36;
+
+}
+
+
+/* ---------- SIDEBAR ---------- */
+
+body.collector-mode .sidebar {
+
+    background: white;
+
+}
+
+
+body.collector-mode .nav-item {
+
+    color: #64736a;
+
+}
+
+
+body.collector-mode .nav-item.active {
+
+    background: #e9f6ee;
+
+    color: #087443;
+
+    font-weight: 700;
+
+}
+
+
+body.collector-mode .nav-item:hover {
+
+    background: #f0faf4;
+
+    color: #087443;
+
+}
+
+
+/* ---------- COLLECTOR ROLE ---------- */
+
+body.collector-mode #collectorRole.active {
+
+    background: #e9f6ee !important;
+
+    color: #087443 !important;
+
+}
+
+
+/* ---------- PROFILE ---------- */
+
+body.collector-mode #collectorTopProfile {
+
+    background: #16845b !important;
+
+    color: white !important;
+
+}
+
+
+/* ---------- RESPONSIVE ---------- */
+
+@media (max-width: 1000px) {
+
+    body.collector-mode
+    .collector-stat-grid {
+
+        grid-template-columns:
+            repeat(2, minmax(0, 1fr));
+
+    }
+
+}
+
+
+@media (max-width: 600px) {
+
+    body.collector-mode
+    .collector-stat-grid {
+
+        grid-template-columns: 1fr;
+
+    }
+
+}
+/* ============================================================
+   KABADI SETU
+   COLLECTOR DASHBOARD - HOUSEHOLD STYLE
+   ============================================================ */
+
+/* Collector dashboard page */
+
+#inventory {
+    background: transparent !important;
+}
+
+
+/* ============================================================
+   MAIN COLLECTOR PANEL
+   ============================================================ */
+
+#collectorPanel {
+    width: 100%;
+}
+
+
+/* ============================================================
+   FIRST PANEL = COLLECTOR HERO
+   ============================================================ */
+
+#collectorPanel > div:first-child {
+
+    background:
+        linear-gradient(
+            135deg,
+            #087443 0%,
+            #11915e 55%,
+            #1b9b68 100%
+        ) !important;
+
+    color: #ffffff !important;
+
+    border: none !important;
+
+    border-radius: 24px !important;
+
+    padding: 38px 34px !important;
+
+    margin-bottom: 22px !important;
+
+    box-shadow:
+        0 14px 35px rgba(8,116,67,0.16) !important;
+
+}
+
+
+/* Hero heading */
+
+#collectorPanel > div:first-child h2 {
+
+    color: #ffffff !important;
+
+    font-size: 32px !important;
+
+    font-weight: 800 !important;
+
+    margin: 0 0 8px !important;
+
+}
+
+
+/* Hero paragraph */
+
+#collectorPanel > div:first-child p {
+
+    color: rgba(255,255,255,0.90) !important;
+
+    font-size: 16px !important;
+
+    line-height: 1.6 !important;
+
+}
+
+
+/* Today's earnings badge */
+
+#collectorPanel > div:first-child > div > div:last-child {
+
+    background: rgba(255,255,255,0.15) !important;
+
+    color: #ffffff !important;
+
+    border: 1px solid rgba(255,255,255,0.20);
+
+}
+
+
+/* ============================================================
+   ADD COLLECTOR HERO LOOK
+   ============================================================ */
+
+#collectorPanel > div:first-child::after {
+
+    content: "♻";
+
+    position: absolute;
+
+    right: 55px;
+
+    top: 35px;
+
+    width: 120px;
+
+    height: 120px;
+
+    border: 2px solid rgba(255,255,255,0.28);
+
+    border-radius: 50%;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    color: white;
+
+    font-size: 55px;
+
+    pointer-events: none;
+
+}
+
+
+/* Make hero relative */
+
+#collectorPanel > div:first-child {
+
+    position: relative;
+
+    overflow: hidden;
+
+}
+
+
+/* ============================================================
+   PICKUP REQUEST SECTION
+   ============================================================ */
+
+#collectorPanel > div:nth-child(2) {
+
+    background: #ffffff !important;
+
+    border: 1px solid #e2ebe5 !important;
+
+    border-radius: 20px !important;
+
+    padding: 26px !important;
+
+    margin-bottom: 22px !important;
+
+    box-shadow:
+        0 8px 25px rgba(23,107,58,0.06) !important;
+
+}
+
+
+/* Pickup heading */
+
+#collectorPanel > div:nth-child(2) h3 {
+
+    color: #17231c !important;
+
+    font-size: 20px !important;
+
+}
+
+
+/* ============================================================
+   PICKUP REQUEST CARDS
+   ============================================================ */
+
+#collectorRequests > div {
+
+    background: #eef6ff !important;
+
+    border: 1px solid #d5e6f8 !important;
+
+    border-radius: 15px !important;
+
+    padding: 18px !important;
+
+}
+
+
+/* Pickup button */
+
+#collectorRequests button {
+
+    background: #087443 !important;
+
+    color: white !important;
+
+    border: none !important;
+
+    border-radius: 10px !important;
+
+    padding: 11px 18px !important;
+
+    font-weight: 700 !important;
+
+}
+
+
+/* ============================================================
+   INVENTORY SECTION
+   ============================================================ */
+
+#collectorInventorySummary {
+
+    background: #ffffff !important;
+
+    border: 1px solid #e2ebe5 !important;
+
+    border-radius: 20px !important;
+
+    padding: 26px !important;
+
+    box-shadow:
+        0 8px 25px rgba(23,107,58,0.06) !important;
+
+}
+
+
+/* Inventory heading */
+
+#collectorInventorySummary h3 {
+
+    color: #17231c !important;
+
+}
+
+
+/* Item count badge */
+
+#collectorInventorySummary > div:first-child
+div[style*="background:#eefbf3"] {
+
+    background: #e9f6ee !important;
+
+    color: #176b3a !important;
+
+}
+
+
+/* ============================================================
+   INVENTORY ITEM
+   ============================================================ */
+
+#collectorInventorySummary [id^="inventoryItem-"] {
+
+    background: #f8fbf9 !important;
+
+    border: 1px solid #dce9e1 !important;
+
+    border-radius: 15px !important;
+
+}
+
+
+/* ============================================================
+   BEST RECYCLER BOX
+   ============================================================ */
+
+#collectorInventorySummary [id^="bestRecycler-"] {
+
+    background: #f0faf4 !important;
+
+    border: 1px solid #cfe7d7 !important;
+
+}
+
+
+/* ============================================================
+   COMPARE RECYCLER BUTTON
+   ============================================================ */
+
+#collectorInventorySummary button {
+
+    background: #087443 !important;
+
+    color: white !important;
+
+    border: none !important;
+
+}
+
+
+#collectorInventorySummary button:hover {
+
+    background: #075c36 !important;
+
+}
+
+
+/* ============================================================
+   COLLECTOR DASHBOARD SECTION LABELS
+   ============================================================ */
+
+#collectorPanel .section-header h2,
+#collectorPanel h2,
+#collectorPanel h3 {
+
+    color: #17231c;
+
+}
+
+
+/* ============================================================
+   GREEN TEXT
+   ============================================================ */
+
+#collectorPanel strong {
+
+    color: #17231c;
+
+}
+
+
+/* ============================================================
+   SIDEBAR
+   ============================================================ */
+
+.sidebar {
+
+    background: #ffffff !important;
+
+}
+
+
+/* Collector active role */
+
+#collectorRole.active {
+
+    background: #e9f6ee !important;
+
+    color: #176b3a !important;
+
+}
+
+
+/* Active dashboard */
+
+.nav-item.active {
+
+    background: #e9f6ee !important;
+
+    color: #176b3a !important;
+
+}
+
+
+/* ============================================================
+   MAIN BACKGROUND
+   ============================================================ */
+
+.main {
+
+    background: #f5f7f5 !important;
+
+}
+
+
+/* ============================================================
+   TOP HEADER
+   ============================================================ */
+
+.topbar {
+
+    background: transparent !important;
+
+}
+
+
+/* ============================================================
+   PROFILE BUTTON
+   ============================================================ */
+
+#collectorTopProfile {
+
+    background: #16845b !important;
+
+    color: white !important;
+
+}
+
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+
+@media (max-width: 900px) {
+
+    #collectorPanel > div:first-child::after {
+
+        display: none;
+
+    }
+
+    #collectorPanel > div:first-child {
+
+        padding: 28px 24px !important;
+
+    }
+
+}
+/* =========================================================
+   COLLECTOR HERO - GREEN LIKE HOUSEHOLD
+   ========================================================= */
+
+#collectorPanel > div:first-child {
+    background: linear-gradient(
+        135deg,
+        #087f5b 0%,
+        #159570 55%,
+        #2aa876 100%
+    ) !important;
+
+    border-radius: 24px !important;
+    color: white !important;
+    border: none !important;
+    box-shadow: 0 12px 30px rgba(8, 127, 91, 0.18) !important;
+}
+
+/* Collector Dashboard title */
+#collectorPanel > div:first-child h2 {
+    color: white !important;
+}
+
+/* Description */
+#collectorPanel > div:first-child p {
+    color: rgba(255, 255, 255, 0.9) !important;
+}
+
+/* Today's Earnings box */
+#collectorPanel > div:first-child > div > div:last-child {
+    background: rgba(255, 255, 255, 0.15) !important;
+    border: 1px solid rgba(255, 255, 255, 0.2) !important;
+}
+
+/* Earnings text */
+#collectorPanel > div:first-child > div > div:last-child small,
+#collectorPanel > div:first-child > div > div:last-child strong {
+    color: white !important;
+}

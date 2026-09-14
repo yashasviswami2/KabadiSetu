@@ -37527,3 +37527,3998 @@ console.log(
 
 
 })();
+
+/* =========================================================
+   STEP 5S — HOUSEHOLD PICKUP TRACKING
+   ========================================================= */
+
+(function () {
+
+    console.log("🚀 Step 5S - Household Pickup Tracking loaded.");
+
+    const PICKUP_KEY = "kabadiSetuPickupRequests";
+
+    /* ---------------------------------------------------------
+       STORAGE
+       --------------------------------------------------------- */
+
+    function getPickupRequests() {
+
+        try {
+
+            const data = JSON.parse(
+                localStorage.getItem(PICKUP_KEY) || "[]"
+            );
+
+            return Array.isArray(data) ? data : [];
+
+        } catch (error) {
+
+            console.error(
+                "Error reading pickup requests:",
+                error
+            );
+
+            return [];
+
+        }
+
+    }
+
+
+    /* ---------------------------------------------------------
+       HELPERS
+       --------------------------------------------------------- */
+
+    function escapeHTML(value) {
+
+        return String(value ?? "")
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#039;");
+
+    }
+
+
+    function getStatus(request) {
+
+        return String(
+            request.status ||
+            request.pickupStatus ||
+            "pending"
+        ).toLowerCase();
+
+    }
+
+
+    function getRequestId(request) {
+
+        return (
+            request.request_id ||
+            request.requestId ||
+            request.id ||
+            "KS-PICKUP"
+        );
+
+    }
+
+
+    function getMaterial(request) {
+
+        return (
+            request.material ||
+            request.category ||
+            "Unknown Material"
+        );
+
+    }
+
+
+    function getWeight(request) {
+
+        return Number(
+            request.weight ||
+            request.estimatedWeight ||
+            request.actualWeight ||
+            0
+        ) || 0;
+
+    }
+
+
+    function getAddress(request) {
+
+        return (
+            request.address ||
+            request.pickupAddress ||
+            request.location ||
+            "Address not provided"
+        );
+
+    }
+
+
+    function getDate(request) {
+
+        const value =
+            request.createdAt ||
+            request.requestedAt ||
+            request.date ||
+            request.timestamp;
+
+        if (!value) {
+            return new Date();
+        }
+
+        const date = new Date(value);
+
+        return isNaN(date.getTime())
+            ? new Date()
+            : date;
+
+    }
+
+
+    function formatDate(request) {
+
+        return getDate(request)
+            .toLocaleString("en-IN", {
+                dateStyle: "medium",
+                timeStyle: "short"
+            });
+
+    }
+
+
+    /* ---------------------------------------------------------
+       STATUS CONFIG
+       --------------------------------------------------------- */
+
+    function statusConfig(status) {
+
+        const configs = {
+
+            pending: {
+                label: "Pickup Requested",
+                icon: "📝",
+                step: 1
+            },
+
+            accepted: {
+                label: "Collector Accepted",
+                icon: "✅",
+                step: 2
+            },
+
+            on_the_way: {
+                label: "Collector On The Way",
+                icon: "🚚",
+                step: 3
+            },
+
+            collected: {
+                label: "Waste Collected",
+                icon: "📦",
+                step: 4
+            },
+
+            completed: {
+                label: "Pickup Completed",
+                icon: "♻️",
+                step: 5
+            },
+
+            cancelled: {
+                label: "Pickup Cancelled",
+                icon: "❌",
+                step: 0
+            }
+
+        };
+
+        return (
+            configs[status] ||
+            configs.pending
+        );
+
+    }
+
+
+    /* ---------------------------------------------------------
+       FIND HOUSEHOLD REQUESTS
+       --------------------------------------------------------- */
+
+    function getHouseholdRequests() {
+
+        const requests =
+            getPickupRequests();
+
+        /*
+         * In the current prototype there is no real
+         * authenticated household account yet.
+         *
+         * Therefore all saved pickup requests are shown
+         * to the User dashboard.
+         */
+
+        return requests;
+
+    }
+
+
+    /* ---------------------------------------------------------
+       CREATE SECTION
+       --------------------------------------------------------- */
+
+    function createHouseholdTrackingSection() {
+
+        if (
+            document.getElementById(
+                "householdPickupTracking"
+            )
+        ) {
+
+            return;
+
+        }
+
+
+        const section =
+            document.createElement("section");
+
+
+        section.id =
+            "householdPickupTracking";
+
+
+        section.className =
+            "page-section";
+
+
+        section.innerHTML = `
+
+            <div style="
+                max-width:1100px;
+                margin:0 auto;
+                padding:20px;
+            ">
+
+
+                <!-- HEADER -->
+
+                <div style="
+                    display:flex;
+                    justify-content:space-between;
+                    align-items:center;
+                    gap:15px;
+                    flex-wrap:wrap;
+                    margin-bottom:24px;
+                ">
+
+                    <div>
+
+                        <h2 style="
+                            margin:0;
+                            font-size:28px;
+                        ">
+                            🚚 My Pickup Tracking
+                        </h2>
+
+                        <p style="
+                            margin:7px 0 0;
+                            opacity:0.65;
+                        ">
+                            Track your household waste pickup
+                            from request to collection.
+                        </p>
+
+                    </div>
+
+
+                    <button
+                        id="refreshHouseholdPickup"
+                        style="
+                            padding:10px 16px;
+                            border:none;
+                            border-radius:10px;
+                            cursor:pointer;
+                            font-weight:700;
+                        "
+                    >
+                        🔄 Refresh
+                    </button>
+
+                </div>
+
+
+                <!-- ACTIVE REQUEST -->
+
+                <div id="householdActivePickup"></div>
+
+
+                <!-- HISTORY -->
+
+                <div style="
+                    margin-top:25px;
+                ">
+
+                    <h3>
+                        📋 Pickup History
+                    </h3>
+
+                    <div
+                        id="householdPickupHistory"
+                    ></div>
+
+                </div>
+
+            </div>
+
+        `;
+
+
+        document.body.appendChild(section);
+
+
+        const refresh =
+            document.getElementById(
+                "refreshHouseholdPickup"
+            );
+
+
+        if (refresh) {
+
+            refresh.addEventListener(
+                "click",
+                renderHouseholdPickupTracking
+            );
+
+        }
+
+    }
+
+
+    /* ---------------------------------------------------------
+       PROGRESS TRACKER
+       --------------------------------------------------------- */
+
+    function renderProgress(status) {
+
+        const config =
+            statusConfig(status);
+
+        const currentStep =
+            config.step;
+
+
+        const steps = [
+
+            {
+                label: "Requested",
+                icon: "📝"
+            },
+
+            {
+                label: "Accepted",
+                icon: "✅"
+            },
+
+            {
+                label: "On the Way",
+                icon: "🚚"
+            },
+
+            {
+                label: "Collected",
+                icon: "📦"
+            },
+
+            {
+                label: "Completed",
+                icon: "♻️"
+            }
+
+        ];
+
+
+        return `
+
+            <div style="
+                display:flex;
+                justify-content:space-between;
+                align-items:flex-start;
+                gap:4px;
+                margin:25px 0 10px;
+            ">
+
+                ${
+                    steps.map(function(step, index) {
+
+                        const stepNumber =
+                            index + 1;
+
+                        const active =
+                            stepNumber <= currentStep;
+
+                        return `
+
+                            <div style="
+                                flex:1;
+                                text-align:center;
+                                position:relative;
+                            ">
+
+                                <div style="
+                                    width:40px;
+                                    height:40px;
+                                    margin:0 auto;
+                                    border-radius:50%;
+                                    display:flex;
+                                    align-items:center;
+                                    justify-content:center;
+                                    border:2px solid
+                                        ${
+                                            active
+                                                ? "currentColor"
+                                                : "rgba(0,0,0,0.15)"
+                                        };
+                                    opacity:
+                                        ${
+                                            active
+                                                ? "1"
+                                                : "0.45"
+                                        };
+                                    font-size:18px;
+                                    background:
+                                        ${
+                                            active
+                                                ? "rgba(0,0,0,0.05)"
+                                                : "transparent"
+                                        };
+                                ">
+                                    ${step.icon}
+                                </div>
+
+                                <div style="
+                                    font-size:10px;
+                                    margin-top:7px;
+                                    opacity:
+                                        ${
+                                            active
+                                                ? "1"
+                                                : "0.5"
+                                        };
+                                ">
+                                    ${step.label}
+                                </div>
+
+                            </div>
+
+                        `;
+
+                    }).join("")
+                }
+
+            </div>
+
+        `;
+
+    }
+
+
+    /* ---------------------------------------------------------
+       ACTIVE PICKUP CARD
+       --------------------------------------------------------- */
+
+    function renderActivePickup(request) {
+
+        const status =
+            getStatus(request);
+
+
+        const config =
+            statusConfig(status);
+
+
+        return `
+
+            <div style="
+                padding:24px;
+                border-radius:18px;
+                background:var(--card-bg,#fff);
+                border:1px solid rgba(0,0,0,0.08);
+                box-shadow:0 5px 20px rgba(0,0,0,0.05);
+            ">
+
+
+                <!-- STATUS -->
+
+                <div style="
+                    display:flex;
+                    justify-content:space-between;
+                    align-items:flex-start;
+                    gap:15px;
+                    flex-wrap:wrap;
+                ">
+
+                    <div>
+
+                        <div style="
+                            font-size:12px;
+                            opacity:0.6;
+                        ">
+                            Pickup Request
+                        </div>
+
+                        <h3 style="
+                            margin:5px 0 0;
+                        ">
+                            ${escapeHTML(
+                                getRequestId(request)
+                            )}
+                        </h3>
+
+                    </div>
+
+
+                    <div style="
+                        padding:9px 14px;
+                        border-radius:20px;
+                        background:rgba(0,0,0,0.05);
+                        font-size:13px;
+                        font-weight:700;
+                    ">
+
+                        ${config.icon}
+                        ${config.label}
+
+                    </div>
+
+                </div>
+
+
+                <!-- PROGRESS -->
+
+                ${renderProgress(status)}
+
+
+                <!-- DETAILS -->
+
+                <div style="
+                    display:grid;
+                    grid-template-columns:
+                        repeat(auto-fit,minmax(200px,1fr));
+                    gap:15px;
+                    margin-top:20px;
+                ">
+
+
+                    <div style="
+                        padding:14px;
+                        border-radius:12px;
+                        background:rgba(0,0,0,0.03);
+                    ">
+
+                        <div style="
+                            font-size:11px;
+                            opacity:0.55;
+                        ">
+                            Material
+                        </div>
+
+                        <strong>
+                            ♻️
+                            ${escapeHTML(
+                                getMaterial(request)
+                            )}
+                        </strong>
+
+                    </div>
+
+
+                    <div style="
+                        padding:14px;
+                        border-radius:12px;
+                        background:rgba(0,0,0,0.03);
+                    ">
+
+                        <div style="
+                            font-size:11px;
+                            opacity:0.55;
+                        ">
+                            Estimated Weight
+                        </div>
+
+                        <strong>
+                            ${
+                                getWeight(request) > 0
+                                    ? getWeight(request) + " kg"
+                                    : "To be weighed"
+                            }
+                        </strong>
+
+                    </div>
+
+
+                    <div style="
+                        padding:14px;
+                        border-radius:12px;
+                        background:rgba(0,0,0,0.03);
+                    ">
+
+                        <div style="
+                            font-size:11px;
+                            opacity:0.55;
+                        ">
+                            Pickup Address
+                        </div>
+
+                        <strong>
+                            ${escapeHTML(
+                                getAddress(request)
+                            )}
+                        </strong>
+
+                    </div>
+
+
+                    <div style="
+                        padding:14px;
+                        border-radius:12px;
+                        background:rgba(0,0,0,0.03);
+                    ">
+
+                        <div style="
+                            font-size:11px;
+                            opacity:0.55;
+                        ">
+                            Requested On
+                        </div>
+
+                        <strong>
+                            ${escapeHTML(
+                                formatDate(request)
+                            )}
+                        </strong>
+
+                    </div>
+
+                </div>
+
+
+                <!-- COLLECTOR INFORMATION -->
+
+                ${
+                    request.collectorName
+                        ? `
+
+                            <div style="
+                                margin-top:20px;
+                                padding:15px;
+                                border-radius:12px;
+                                border:1px solid rgba(0,0,0,0.08);
+                            ">
+
+                                <div style="
+                                    font-size:12px;
+                                    opacity:0.6;
+                                ">
+                                    Assigned Collector
+                                </div>
+
+                                <strong>
+                                    👤
+                                    ${escapeHTML(
+                                        request.collectorName
+                                    )}
+                                </strong>
+
+                            </div>
+
+                        `
+                        : ""
+                }
+
+
+                <!-- FINAL -->
+
+                ${
+                    status === "completed"
+                        ? `
+
+                            <div style="
+                                margin-top:20px;
+                                padding:16px;
+                                border-radius:12px;
+                                background:rgba(0,0,0,0.04);
+                            ">
+
+                                <strong>
+                                    ♻️ Pickup completed successfully.
+                                </strong>
+
+                                <p style="
+                                    margin-bottom:0;
+                                    opacity:0.65;
+                                    font-size:13px;
+                                ">
+                                    Your waste has been collected
+                                    and can now continue through
+                                    the Kabadi Setu recycling chain.
+                                </p>
+
+                            </div>
+
+                        `
+                        : ""
+                }
+
+            </div>
+
+        `;
+
+    }
+
+
+    /* ---------------------------------------------------------
+       HISTORY CARD
+       --------------------------------------------------------- */
+
+    function renderHistoryCard(request) {
+
+        const status =
+            getStatus(request);
+
+
+        const config =
+            statusConfig(status);
+
+
+        return `
+
+            <div style="
+                padding:16px;
+                border-radius:14px;
+                border:1px solid rgba(0,0,0,0.08);
+                background:var(--card-bg,#fff);
+                margin-bottom:10px;
+            ">
+
+                <div style="
+                    display:flex;
+                    justify-content:space-between;
+                    align-items:center;
+                    gap:15px;
+                    flex-wrap:wrap;
+                ">
+
+                    <div>
+
+                        <strong>
+                            ${config.icon}
+                            ${escapeHTML(
+                                getMaterial(request)
+                            )}
+                        </strong>
+
+                        <div style="
+                            font-size:11px;
+                            opacity:0.55;
+                            margin-top:4px;
+                        ">
+                            ${escapeHTML(
+                                getRequestId(request)
+                            )}
+                        </div>
+
+                    </div>
+
+
+                    <div style="
+                        text-align:right;
+                    ">
+
+                        <div style="
+                            font-weight:700;
+                            font-size:13px;
+                        ">
+                            ${config.label}
+                        </div>
+
+                        <div style="
+                            font-size:11px;
+                            opacity:0.55;
+                        ">
+                            ${escapeHTML(
+                                formatDate(request)
+                            )}
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        `;
+
+    }
+
+
+    /* ---------------------------------------------------------
+       MAIN RENDER
+       --------------------------------------------------------- */
+
+    function renderHouseholdPickupTracking() {
+
+        createHouseholdTrackingSection();
+
+
+        const activeContainer =
+            document.getElementById(
+                "householdActivePickup"
+            );
+
+
+        const historyContainer =
+            document.getElementById(
+                "householdPickupHistory"
+            );
+
+
+        if (!activeContainer ||
+            !historyContainer) {
+
+            return;
+
+        }
+
+
+        const requests =
+            getHouseholdRequests();
+
+
+        /*
+         * Latest request is treated as the active
+         * household pickup request.
+         */
+
+        const sorted =
+            [...requests].sort(
+                function(a, b) {
+
+                    return (
+                        getDate(b) -
+                        getDate(a)
+                    );
+
+                }
+            );
+
+
+        const activeRequest =
+            sorted.find(function(request) {
+
+                const status =
+                    getStatus(request);
+
+                return (
+                    status !== "completed" &&
+                    status !== "cancelled"
+                );
+
+            });
+
+
+        if (activeRequest) {
+
+            activeContainer.innerHTML =
+                renderActivePickup(
+                    activeRequest
+                );
+
+        } else {
+
+            activeContainer.innerHTML = `
+
+                <div style="
+                    padding:45px 20px;
+                    text-align:center;
+                    border-radius:18px;
+                    border:1px dashed rgba(0,0,0,0.15);
+                ">
+
+                    <div style="
+                        font-size:45px;
+                        margin-bottom:10px;
+                    ">
+                        📭
+                    </div>
+
+                    <h3>
+                        No Active Pickup
+                    </h3>
+
+                    <p style="
+                        opacity:0.6;
+                    ">
+                        Create a pickup request and
+                        track it here.
+                    </p>
+
+                </div>
+
+            `;
+
+        }
+
+
+        const history =
+            sorted
+                .filter(function(request) {
+
+                    return (
+                        request !==
+                        activeRequest
+                    );
+
+                })
+                .slice(0, 10);
+
+
+        if (!history.length) {
+
+            historyContainer.innerHTML = `
+
+                <div style="
+                    padding:25px;
+                    text-align:center;
+                    opacity:0.6;
+                    border:1px dashed rgba(0,0,0,0.12);
+                    border-radius:14px;
+                ">
+                    No previous pickup requests.
+                </div>
+
+            `;
+
+        } else {
+
+            historyContainer.innerHTML =
+                history
+                    .map(renderHistoryCard)
+                    .join("");
+
+        }
+
+    }
+
+
+    /* ---------------------------------------------------------
+       NAVIGATION
+       --------------------------------------------------------- */
+
+    function createHouseholdTrackingNav() {
+
+        if (
+            document.getElementById(
+                "householdPickupTrackingNav"
+            )
+        ) {
+
+            return;
+
+        }
+
+
+        const nav =
+            document.createElement("div");
+
+
+        nav.id =
+            "householdPickupTrackingNav";
+
+
+        nav.className =
+            "nav-item";
+
+
+        nav.style.display =
+            "none";
+
+
+        nav.innerHTML = `
+
+            <span>
+                🚚
+            </span>
+
+            <span>
+                Track Pickup
+            </span>
+
+        `;
+
+
+        nav.addEventListener(
+            "click",
+            function() {
+
+                if (
+                    typeof window.showSection ===
+                    "function"
+                ) {
+
+                    window.showSection(
+                        "householdPickupTracking"
+                    );
+
+                }
+
+
+                renderHouseholdPickupTracking();
+
+            }
+        );
+
+
+        const navItems =
+            document.querySelectorAll(
+                ".nav-item"
+            );
+
+
+        let target = null;
+
+
+        navItems.forEach(function(item) {
+
+            const text =
+                item.innerText
+                    .toLowerCase();
+
+
+            if (
+                text.includes("scanner") ||
+                text.includes("dashboard")
+            ) {
+
+                target = item;
+
+            }
+
+        });
+
+
+        if (
+            target &&
+            target.parentNode
+        ) {
+
+            target.parentNode.insertBefore(
+                nav,
+                target.nextSibling
+            );
+
+        }
+
+    }
+
+
+    /* ---------------------------------------------------------
+       ROLE VISIBILITY
+       --------------------------------------------------------- */
+
+    function updateHouseholdTrackingNav() {
+
+        const nav =
+            document.getElementById(
+                "householdPickupTrackingNav"
+            );
+
+
+        if (!nav) return;
+
+
+        const role =
+            String(
+                window.currentRole ||
+                window.userRole ||
+                localStorage.getItem(
+                    "kabadiSetuRole"
+                ) ||
+                ""
+            ).toLowerCase();
+
+
+        const isCollector =
+            role.includes("collector");
+
+
+        nav.style.display =
+            isCollector
+                ? "none"
+                : "";
+
+    }
+
+
+    /* ---------------------------------------------------------
+       WRAP SWITCH ROLE
+       --------------------------------------------------------- */
+
+    const originalSwitchRole =
+        window.switchRole;
+
+
+    if (
+        typeof originalSwitchRole ===
+        "function"
+    ) {
+
+        window.switchRole =
+            function() {
+
+                const result =
+                    originalSwitchRole.apply(
+                        this,
+                        arguments
+                    );
+
+
+                setTimeout(function() {
+
+                    createHouseholdTrackingSection();
+                    createHouseholdTrackingNav();
+                    updateHouseholdTrackingNav();
+
+                }, 400);
+
+
+                return result;
+
+            };
+
+    }
+
+
+    /* ---------------------------------------------------------
+       WRAP SHOW SECTION
+       --------------------------------------------------------- */
+
+    const originalShowSection =
+        window.showSection;
+
+
+    if (
+        typeof originalShowSection ===
+        "function"
+    ) {
+
+        window.showSection =
+            function(sectionId) {
+
+                const result =
+                    originalShowSection.apply(
+                        this,
+                        arguments
+                    );
+
+
+                if (
+                    sectionId ===
+                    "householdPickupTracking"
+                ) {
+
+                    setTimeout(
+                        renderHouseholdPickupTracking,
+                        50
+                    );
+
+                }
+
+
+                return result;
+
+            };
+
+    }
+
+
+    /* ---------------------------------------------------------
+       PUBLIC FUNCTIONS
+       --------------------------------------------------------- */
+
+    window.renderHouseholdPickupTracking =
+        renderHouseholdPickupTracking;
+
+
+    window.getHouseholdPickupRequests =
+        getHouseholdRequests;
+
+
+    /* ---------------------------------------------------------
+       INITIALIZE
+       --------------------------------------------------------- */
+
+    setTimeout(function() {
+
+        createHouseholdTrackingSection();
+        createHouseholdTrackingNav();
+        updateHouseholdTrackingNav();
+
+        console.log(
+            "✅ Step 5S - Household Pickup Tracking ready."
+        );
+
+    }, 1000);
+
+
+    /* ---------------------------------------------------------
+       AUTO REFRESH
+       --------------------------------------------------------- */
+
+    setInterval(function() {
+
+        updateHouseholdTrackingNav();
+
+
+        const section =
+            document.getElementById(
+                "householdPickupTracking"
+            );
+
+
+        if (
+            section &&
+            section.classList.contains(
+                "active-section"
+            )
+        ) {
+
+            renderHouseholdPickupTracking();
+
+        }
+
+    }, 3000);
+
+
+})();
+
+/* =========================================================
+   STEP 5Q FIX — PROFILE IN TOP RIGHT
+   Removes Collector Profile page and uses existing header
+   ========================================================= */
+
+(function () {
+
+    console.log("🔧 Step 5Q Fix - Header Profile loaded.");
+
+    const PROFILE_KEY = "kabadiSetuCollectorProfile";
+
+
+    /* ---------------------------------------------------------
+       GET PROFILE
+       --------------------------------------------------------- */
+
+    function getProfile() {
+
+        try {
+
+            const saved =
+                JSON.parse(
+                    localStorage.getItem(PROFILE_KEY) || "null"
+                );
+
+            if (saved && typeof saved === "object") {
+                return saved;
+            }
+
+        } catch (error) {
+
+            console.error(
+                "Profile read error:",
+                error
+            );
+
+        }
+
+
+        return {
+            name: "Collector",
+            phone: "",
+            city: "",
+            area: "",
+            experience: "",
+            collectorId: "KS-COL-" +
+                Math.floor(
+                    100000 +
+                    Math.random() * 900000
+                ),
+            materials: [],
+            verified: false
+        };
+
+    }
+
+
+    function saveProfile(profile) {
+
+        localStorage.setItem(
+            PROFILE_KEY,
+            JSON.stringify(profile)
+        );
+
+    }
+
+
+    /* ---------------------------------------------------------
+       REMOVE OLD STEP 5Q PAGE
+       --------------------------------------------------------- */
+
+    function removeOldProfilePage() {
+
+        const oldSection =
+            document.getElementById(
+                "collectorProfile"
+            );
+
+        if (oldSection) {
+
+            oldSection.remove();
+
+            console.log(
+                "🗑️ Old Collector Profile page removed."
+            );
+
+        }
+
+
+        const oldNav =
+            document.getElementById(
+                "collectorProfileNav"
+            );
+
+        if (oldNav) {
+
+            oldNav.remove();
+
+            console.log(
+                "🗑️ Old Collector Profile navigation removed."
+            );
+
+        }
+
+    }
+
+
+    /* ---------------------------------------------------------
+       CREATE PROFILE MODAL
+       --------------------------------------------------------- */
+
+    function createCollectorProfileModal() {
+
+        if (
+            document.getElementById(
+                "collectorProfileEditModal"
+            )
+        ) {
+
+            return;
+
+        }
+
+
+        const modal =
+            document.createElement("div");
+
+
+        modal.id =
+            "collectorProfileEditModal";
+
+
+        modal.style.cssText = `
+            display:none;
+            position:fixed;
+            inset:0;
+            background:rgba(0,0,0,0.55);
+            z-index:999999;
+            align-items:center;
+            justify-content:center;
+            padding:20px;
+            box-sizing:border-box;
+        `;
+
+
+        modal.innerHTML = `
+
+            <div style="
+                width:520px;
+                max-width:100%;
+                max-height:90vh;
+                overflow-y:auto;
+                background:#ffffff;
+                border-radius:20px;
+                padding:28px;
+                box-sizing:border-box;
+                box-shadow:0 25px 70px rgba(0,0,0,0.30);
+                position:relative;
+            ">
+
+                <!-- CLOSE -->
+
+                <button
+                    id="closeCollectorProfileModal"
+                    type="button"
+                    style="
+                        position:absolute;
+                        top:14px;
+                        right:18px;
+                        border:none;
+                        background:none;
+                        font-size:27px;
+                        cursor:pointer;
+                        opacity:0.65;
+                    "
+                >
+                    ×
+                </button>
+
+
+                <!-- HEADER -->
+
+                <div style="
+                    text-align:center;
+                    margin-bottom:24px;
+                ">
+
+                    <div style="
+                        width:70px;
+                        height:70px;
+                        border-radius:50%;
+                        margin:0 auto 12px;
+                        display:flex;
+                        align-items:center;
+                        justify-content:center;
+                        background:#111827;
+                        color:white;
+                        font-size:28px;
+                        font-weight:800;
+                    "
+                    id="collectorProfileAvatar">
+                        C
+                    </div>
+
+
+                    <h2 style="
+                        margin:0;
+                        color:#111827;
+                    ">
+                        Collector Profile
+                    </h2>
+
+
+                    <p style="
+                        margin:6px 0 0;
+                        color:#6b7280;
+                        font-size:13px;
+                    ">
+                        Manage your collector details
+                    </p>
+
+                </div>
+
+
+                <!-- NAME -->
+
+                <label style="
+                    display:block;
+                    font-size:13px;
+                    font-weight:700;
+                    margin-bottom:6px;
+                    color:#374151;
+                ">
+                    Full Name
+                </label>
+
+                <input
+                    id="headerCollectorName"
+                    type="text"
+                    placeholder="Enter your name"
+                    style="
+                        width:100%;
+                        box-sizing:border-box;
+                        padding:12px;
+                        border:1px solid #d1d5db;
+                        border-radius:10px;
+                        margin-bottom:15px;
+                        font-size:14px;
+                    "
+                >
+
+
+                <!-- PHONE -->
+
+                <label style="
+                    display:block;
+                    font-size:13px;
+                    font-weight:700;
+                    margin-bottom:6px;
+                    color:#374151;
+                ">
+                    Phone Number
+                </label>
+
+                <input
+                    id="headerCollectorPhone"
+                    type="tel"
+                    placeholder="Enter phone number"
+                    style="
+                        width:100%;
+                        box-sizing:border-box;
+                        padding:12px;
+                        border:1px solid #d1d5db;
+                        border-radius:10px;
+                        margin-bottom:15px;
+                        font-size:14px;
+                    "
+                >
+
+
+                <!-- CITY -->
+
+                <label style="
+                    display:block;
+                    font-size:13px;
+                    font-weight:700;
+                    margin-bottom:6px;
+                    color:#374151;
+                ">
+                    City
+                </label>
+
+                <input
+                    id="headerCollectorCity"
+                    type="text"
+                    placeholder="Enter city"
+                    style="
+                        width:100%;
+                        box-sizing:border-box;
+                        padding:12px;
+                        border:1px solid #d1d5db;
+                        border-radius:10px;
+                        margin-bottom:15px;
+                        font-size:14px;
+                    "
+                >
+
+
+                <!-- AREA -->
+
+                <label style="
+                    display:block;
+                    font-size:13px;
+                    font-weight:700;
+                    margin-bottom:6px;
+                    color:#374151;
+                ">
+                    Operating Area
+                </label>
+
+                <input
+                    id="headerCollectorArea"
+                    type="text"
+                    placeholder="Locality / Area"
+                    style="
+                        width:100%;
+                        box-sizing:border-box;
+                        padding:12px;
+                        border:1px solid #d1d5db;
+                        border-radius:10px;
+                        margin-bottom:15px;
+                        font-size:14px;
+                    "
+                >
+
+
+                <!-- EXPERIENCE -->
+
+                <label style="
+                    display:block;
+                    font-size:13px;
+                    font-weight:700;
+                    margin-bottom:6px;
+                    color:#374151;
+                ">
+                    Experience
+                </label>
+
+                <select
+                    id="headerCollectorExperience"
+                    style="
+                        width:100%;
+                        box-sizing:border-box;
+                        padding:12px;
+                        border:1px solid #d1d5db;
+                        border-radius:10px;
+                        margin-bottom:20px;
+                        font-size:14px;
+                    "
+                >
+
+                    <option value="">
+                        Select experience
+                    </option>
+
+                    <option value="Less than 1 year">
+                        Less than 1 year
+                    </option>
+
+                    <option value="1-3 years">
+                        1-3 years
+                    </option>
+
+                    <option value="3-5 years">
+                        3-5 years
+                    </option>
+
+                    <option value="5+ years">
+                        5+ years
+                    </option>
+
+                </select>
+
+
+                <!-- COLLECTOR ID -->
+
+                <div style="
+                    padding:13px;
+                    border-radius:10px;
+                    background:#f3f4f6;
+                    margin-bottom:20px;
+                    font-size:13px;
+                ">
+
+                    <div style="
+                        color:#6b7280;
+                        font-size:11px;
+                        margin-bottom:4px;
+                    ">
+                        Collector ID
+                    </div>
+
+                    <strong
+                        id="headerCollectorId"
+                        style="
+                            color:#111827;
+                        "
+                    >
+                        KS-COL-000000
+                    </strong>
+
+                </div>
+
+
+                <!-- VERIFICATION -->
+
+                <div style="
+                    display:flex;
+                    justify-content:space-between;
+                    align-items:center;
+                    padding:13px;
+                    border-radius:10px;
+                    background:#f9fafb;
+                    margin-bottom:20px;
+                ">
+
+                    <div>
+
+                        <div style="
+                            font-size:11px;
+                            color:#6b7280;
+                        ">
+                            Verification Status
+                        </div>
+
+                        <strong
+                            id="headerCollectorVerification"
+                        >
+                            ⏳ Pending
+                        </strong>
+
+                    </div>
+
+                </div>
+
+
+                <!-- SAVE -->
+
+                <button
+                    id="saveHeaderCollectorProfile"
+                    type="button"
+                    style="
+                        width:100%;
+                        padding:13px;
+                        border:none;
+                        border-radius:11px;
+                        cursor:pointer;
+                        font-weight:800;
+                        font-size:14px;
+                        background:#111827;
+                        color:white;
+                    "
+                >
+                    💾 Save Changes
+                </button>
+
+
+                <!-- VERIFICATION -->
+
+                <button
+                    id="requestHeaderVerification"
+                    type="button"
+                    style="
+                        width:100%;
+                        padding:12px;
+                        border:1px solid #d1d5db;
+                        border-radius:11px;
+                        cursor:pointer;
+                        font-weight:700;
+                        font-size:13px;
+                        background:white;
+                        color:#111827;
+                        margin-top:10px;
+                    "
+                >
+                    🛡️ Request Verification
+                </button>
+
+            </div>
+
+        `;
+
+
+        document.body.appendChild(modal);
+
+
+        /* -----------------------------------------------------
+           CLOSE
+           ----------------------------------------------------- */
+
+        document
+            .getElementById(
+                "closeCollectorProfileModal"
+            )
+            .addEventListener(
+                "click",
+                closeCollectorProfile
+            );
+
+
+        modal.addEventListener(
+            "click",
+            function(event) {
+
+                if (
+                    event.target === modal
+                ) {
+
+                    closeCollectorProfile();
+
+                }
+
+            }
+        );
+
+
+        /* -----------------------------------------------------
+           SAVE
+           ----------------------------------------------------- */
+
+        document
+            .getElementById(
+                "saveHeaderCollectorProfile"
+            )
+            .addEventListener(
+                "click",
+                saveHeaderCollectorProfile
+            );
+
+
+        /* -----------------------------------------------------
+           VERIFICATION
+           ----------------------------------------------------- */
+
+        document
+            .getElementById(
+                "requestHeaderVerification"
+            )
+            .addEventListener(
+                "click",
+                requestCollectorVerification
+            );
+
+    }
+
+
+    /* ---------------------------------------------------------
+       OPEN PROFILE
+       --------------------------------------------------------- */
+
+    function openCollectorProfile() {
+
+        createCollectorProfileModal();
+
+
+        const profile =
+            getProfile();
+
+
+        document
+            .getElementById(
+                "headerCollectorName"
+            )
+            .value =
+            profile.name || "";
+
+
+        document
+            .getElementById(
+                "headerCollectorPhone"
+            )
+            .value =
+            profile.phone || "";
+
+
+        document
+            .getElementById(
+                "headerCollectorCity"
+            )
+            .value =
+            profile.city || "";
+
+
+        document
+            .getElementById(
+                "headerCollectorArea"
+            )
+            .value =
+            profile.area || "";
+
+
+        document
+            .getElementById(
+                "headerCollectorExperience"
+            )
+            .value =
+            profile.experience || "";
+
+
+        document
+            .getElementById(
+                "headerCollectorId"
+            )
+            .innerText =
+            profile.collectorId ||
+            "KS-COL-000000";
+
+
+        document
+            .getElementById(
+                "headerCollectorVerification"
+            )
+            .innerText =
+            profile.verified
+                ? "✅ Verified"
+                : profile.verificationRequested
+                    ? "⏳ Verification Requested"
+                    : "⏳ Pending";
+
+
+        const avatar =
+            document.getElementById(
+                "collectorProfileAvatar"
+            );
+
+
+        const name =
+            profile.name ||
+            "Collector";
+
+
+        if (avatar) {
+
+            avatar.innerText =
+                name
+                    .trim()
+                    .charAt(0)
+                    .toUpperCase() ||
+                "C";
+
+        }
+
+
+        document
+            .getElementById(
+                "collectorProfileEditModal"
+            )
+            .style.display =
+            "flex";
+
+    }
+
+
+    /* ---------------------------------------------------------
+       CLOSE PROFILE
+       --------------------------------------------------------- */
+
+    function closeCollectorProfile() {
+
+        const modal =
+            document.getElementById(
+                "collectorProfileEditModal"
+            );
+
+
+        if (modal) {
+
+            modal.style.display =
+                "none";
+
+        }
+
+    }
+
+
+    /* ---------------------------------------------------------
+       SAVE PROFILE
+       --------------------------------------------------------- */
+
+    function saveHeaderCollectorProfile() {
+
+        const profile =
+            getProfile();
+
+
+        profile.name =
+            document
+                .getElementById(
+                    "headerCollectorName"
+                )
+                .value
+                .trim();
+
+
+        profile.phone =
+            document
+                .getElementById(
+                    "headerCollectorPhone"
+                )
+                .value
+                .trim();
+
+
+        profile.city =
+            document
+                .getElementById(
+                    "headerCollectorCity"
+                )
+                .value
+                .trim();
+
+
+        profile.area =
+            document
+                .getElementById(
+                    "headerCollectorArea"
+                )
+                .value
+                .trim();
+
+
+        profile.experience =
+            document
+                .getElementById(
+                    "headerCollectorExperience"
+                )
+                .value;
+
+
+        saveProfile(profile);
+
+
+        updateHeaderProfile();
+
+
+        closeCollectorProfile();
+
+
+        alert(
+            "✅ Collector profile updated successfully!"
+        );
+
+    }
+
+
+    /* ---------------------------------------------------------
+       REQUEST VERIFICATION
+       --------------------------------------------------------- */
+
+    function requestCollectorVerification() {
+
+        const profile =
+            getProfile();
+
+
+        if (
+            !profile.name ||
+            !profile.phone ||
+            !profile.city
+        ) {
+
+            alert(
+                "Please complete your name, phone number and city first."
+            );
+
+            return;
+
+        }
+
+
+        profile.verificationRequested =
+            true;
+
+
+        profile.verificationRequestedAt =
+            new Date().toISOString();
+
+
+        saveProfile(profile);
+
+
+        openCollectorProfile();
+
+
+        alert(
+            "🛡️ Verification request submitted."
+        );
+
+    }
+
+
+    /* ---------------------------------------------------------
+       UPDATE EXISTING HEADER
+       --------------------------------------------------------- */
+
+    function updateHeaderProfile() {
+
+        const profile =
+            getProfile();
+
+
+        const name =
+            profile.name ||
+            "Collector";
+
+
+        /* Name */
+
+        const nameElements = [
+
+            document.getElementById(
+                "profileName"
+            ),
+
+            document.getElementById(
+                "profileNameText"
+            )
+
+        ];
+
+
+        nameElements.forEach(function(element) {
+
+            if (element) {
+
+                element.innerText =
+                    name;
+
+            }
+
+        });
+
+
+        /* Role */
+
+        const roleElements = [
+
+            document.getElementById(
+                "profileRole"
+            ),
+
+            document.getElementById(
+                "profileRoleText"
+            )
+
+        ];
+
+
+        roleElements.forEach(function(element) {
+
+            if (element) {
+
+                element.innerText =
+                    "Collector";
+
+            }
+
+        });
+
+
+        /* Avatar */
+
+        const avatars =
+            document.querySelectorAll(
+                ".profile .avatar, #profileAvatar"
+            );
+
+
+        avatars.forEach(function(avatar) {
+
+            avatar.innerText =
+                name
+                    .trim()
+                    .substring(0, 2)
+                    .toUpperCase();
+
+        });
+
+    }
+
+
+    /* ---------------------------------------------------------
+       MAKE EXISTING HEADER PROFILE CLICKABLE
+       --------------------------------------------------------- */
+
+    function setupHeaderProfile() {
+
+        const profiles =
+            document.querySelectorAll(
+                ".profile"
+            );
+
+
+        profiles.forEach(function(profile) {
+
+            if (
+                profile.dataset
+                    .collectorProfileReady ===
+                "true"
+            ) {
+
+                return;
+
+            }
+
+
+            profile.dataset
+                .collectorProfileReady =
+                "true";
+
+
+            profile.style.cursor =
+                "pointer";
+
+
+            profile.title =
+                "Open Collector Profile";
+
+
+            profile.addEventListener(
+                "click",
+                function(event) {
+
+                    event.preventDefault();
+                    event.stopPropagation();
+
+                    openCollectorProfile();
+
+                }
+            );
+
+        });
+
+
+        updateHeaderProfile();
+
+    }
+
+
+    /* ---------------------------------------------------------
+       ESCAPE KEY
+       --------------------------------------------------------- */
+
+    document.addEventListener(
+        "keydown",
+        function(event) {
+
+            if (
+                event.key === "Escape"
+            ) {
+
+                closeCollectorProfile();
+
+            }
+
+        }
+    );
+
+
+    /* ---------------------------------------------------------
+       ROLE SWITCH COMPATIBILITY
+       --------------------------------------------------------- */
+
+    const previousSwitchRole =
+        window.switchRole;
+
+
+    if (
+        typeof previousSwitchRole ===
+        "function"
+    ) {
+
+        window.switchRole =
+            function() {
+
+                const result =
+                    previousSwitchRole.apply(
+                        this,
+                        arguments
+                    );
+
+
+                setTimeout(function() {
+
+                    removeOldProfilePage();
+                    createCollectorProfileModal();
+                    setupHeaderProfile();
+
+                }, 400);
+
+
+                return result;
+
+            };
+
+    }
+
+
+    /* ---------------------------------------------------------
+       INITIALIZATION
+       --------------------------------------------------------- */
+
+    window.openCollectorProfile =
+        openCollectorProfile;
+
+
+    window.closeCollectorProfile =
+        closeCollectorProfile;
+
+
+    window.updateHeaderProfile =
+        updateHeaderProfile;
+
+
+    setTimeout(function() {
+
+        removeOldProfilePage();
+
+        createCollectorProfileModal();
+
+        setupHeaderProfile();
+
+        console.log(
+            "✅ Step 5Q FIX COMPLETE."
+        );
+
+    }, 1200);
+
+
+})();
+
+/* =========================================================
+   FINAL PROFILE UI FIX
+   Remove visible Collector Profile card/button
+   Keep profile access only in top-right header
+   ========================================================= */
+
+(function () {
+
+    console.log("🔧 Final Profile UI Fix loaded.");
+
+    /* ---------------------------------------------------------
+       REMOVE ANY OLD COLLECTOR PROFILE UI
+       --------------------------------------------------------- */
+
+    function removeOldCollectorProfileUI() {
+
+        /* IDs commonly used by previous profile versions */
+
+        const idsToRemove = [
+            "collectorProfile",
+            "collectorProfileSection",
+            "collectorProfileCard",
+            "collectorProfilePage",
+            "collectorProfileContainer",
+            "collectorProfileNav"
+        ];
+
+        idsToRemove.forEach(function (id) {
+
+            const element =
+                document.getElementById(id);
+
+            if (element) {
+
+                element.remove();
+
+                console.log(
+                    "🗑️ Removed:",
+                    id
+                );
+
+            }
+
+        });
+
+
+        /* -----------------------------------------------------
+           FIND ELEMENTS CONTAINING
+           "Edit Collector Profile"
+           ----------------------------------------------------- */
+
+        const allElements =
+            document.querySelectorAll(
+                "button, a, div, section, article"
+            );
+
+
+        allElements.forEach(function (element) {
+
+            const text =
+                (element.innerText || "")
+                    .trim()
+                    .toLowerCase();
+
+
+            if (
+                text === "✏️ edit collector profile" ||
+                text === "edit collector profile" ||
+                text.includes("edit collector profile")
+            ) {
+
+                /*
+                 * Do NOT remove the entire dashboard.
+                 * Remove the smallest suitable parent.
+                 */
+
+                let target =
+                    element;
+
+
+                if (
+                    element.parentElement &&
+                    (
+                        element.parentElement
+                            .innerText || ""
+                    )
+                    .trim()
+                    .toLowerCase()
+                    .includes("edit collector profile")
+                ) {
+
+                    target =
+                        element.parentElement;
+
+                }
+
+
+                if (
+                    target.parentElement &&
+                    target.parentElement
+                        .innerText
+                        .trim()
+                        .toLowerCase()
+                        .includes("edit collector profile")
+                ) {
+
+                    /*
+                     * Only move one level up if it looks
+                     * like a dedicated profile block.
+                     */
+
+                    const parent =
+                        target.parentElement;
+
+
+                    if (
+                        parent.children.length <= 4
+                    ) {
+
+                        target =
+                            parent;
+
+                    }
+
+                }
+
+
+                target.remove();
+
+
+                console.log(
+                    "🗑️ Removed visible Edit Collector Profile UI."
+                );
+
+            }
+
+        });
+
+    }
+
+
+    /* ---------------------------------------------------------
+       CREATE TOP-RIGHT PROFILE BUTTON
+       --------------------------------------------------------- */
+
+    function setupTopRightProfile() {
+
+        const profile =
+            document.querySelector(
+                ".top-actions .profile"
+            ) ||
+            document.querySelector(
+                "header .profile"
+            ) ||
+            document.querySelector(
+                ".profile"
+            );
+
+
+        if (!profile) {
+
+            console.warn(
+                "⚠️ Top-right profile element not found."
+            );
+
+            return;
+
+        }
+
+
+        /*
+         * Make it clickable
+         */
+
+        profile.style.cursor =
+            "pointer";
+
+
+        profile.title =
+            "Open Profile";
+
+
+        profile.setAttribute(
+            "role",
+            "button"
+        );
+
+
+        profile.setAttribute(
+            "tabindex",
+            "0"
+        );
+
+
+        if (
+            profile.dataset
+                .profileClickAttached ===
+            "true"
+        ) {
+
+            return;
+
+        }
+
+
+        profile.dataset
+            .profileClickAttached =
+            "true";
+
+
+        profile.addEventListener(
+            "click",
+            function (event) {
+
+                event.preventDefault();
+                event.stopPropagation();
+
+
+                /*
+                 * Use our collector profile modal
+                 * if it exists.
+                 */
+
+                if (
+                    typeof window
+                        .openCollectorProfile ===
+                    "function"
+                ) {
+
+                    window.openCollectorProfile();
+
+                    return;
+
+                }
+
+
+                /*
+                 * Otherwise use existing profile modal.
+                 */
+
+                const modal =
+                    document.getElementById(
+                        "profileModal"
+                    );
+
+
+                if (modal) {
+
+                    modal.style.display =
+                        "flex";
+
+                }
+
+            }
+        );
+
+
+        profile.addEventListener(
+            "keydown",
+            function (event) {
+
+                if (
+                    event.key === "Enter" ||
+                    event.key === " "
+                ) {
+
+                    event.preventDefault();
+
+
+                    if (
+                        typeof window
+                            .openCollectorProfile ===
+                        "function"
+                    ) {
+
+                        window.openCollectorProfile();
+
+                    }
+
+                }
+
+            }
+        );
+
+    }
+
+
+    /* ---------------------------------------------------------
+       KEEP OLD PROFILE UI REMOVED
+       --------------------------------------------------------- */
+
+    function cleanProfileUI() {
+
+        removeOldCollectorProfileUI();
+
+        setupTopRightProfile();
+
+    }
+
+
+    /* ---------------------------------------------------------
+       RUN AFTER PAGE LOAD
+       --------------------------------------------------------- */
+
+    setTimeout(
+        cleanProfileUI,
+        300
+    );
+
+
+    setTimeout(
+        cleanProfileUI,
+        1000
+    );
+
+
+    setTimeout(
+        cleanProfileUI,
+        2000
+    );
+
+
+    setTimeout(
+        cleanProfileUI,
+        4000
+    );
+
+
+    /* ---------------------------------------------------------
+       WATCH FOR OLD PROFILE UI BEING CREATED AGAIN
+       --------------------------------------------------------- */
+
+    const observer =
+        new MutationObserver(
+            function () {
+
+                removeOldCollectorProfileUI();
+
+            }
+        );
+
+
+    observer.observe(
+        document.body,
+        {
+            childList: true,
+            subtree: true
+        }
+    );
+
+
+    /* ---------------------------------------------------------
+       ROLE SWITCH
+       --------------------------------------------------------- */
+
+    document.addEventListener(
+        "click",
+        function (event) {
+
+            const target =
+                event.target;
+
+
+            if (
+                target &&
+                target.closest &&
+                target.closest(
+                    ".role-btn"
+                )
+            ) {
+
+                setTimeout(
+                    cleanProfileUI,
+                    500
+                );
+
+
+                setTimeout(
+                    cleanProfileUI,
+                    1200
+                );
+
+            }
+
+        }
+    );
+
+
+    console.log(
+        "✅ Final Profile UI Fix active."
+    );
+
+})();
+
+// ============================================================
+// COLLECTOR PROFILE EDIT - FINAL
+// ============================================================
+
+(function () {
+
+    const PROFILE_KEY = "kabadiSetuCollectorProfile";
+
+    const defaultProfile = {
+        name: "Yashasvi",
+        collectorId: "KS-COL-10284",
+        phone: "",
+        email: "",
+        address: "",
+        materials: "Plastic, Metal, Paper, E-Waste"
+    };
+
+    function getProfile() {
+        try {
+            const saved = localStorage.getItem(PROFILE_KEY);
+
+            if (saved) {
+                return {
+                    ...defaultProfile,
+                    ...JSON.parse(saved)
+                };
+            }
+        } catch (error) {
+            console.warn("Profile load error:", error);
+        }
+
+        return { ...defaultProfile };
+    }
+
+    function saveProfile(profile) {
+        localStorage.setItem(
+            PROFILE_KEY,
+            JSON.stringify(profile)
+        );
+
+        updateCollectorProfileUI();
+    }
+
+    // --------------------------------------------------------
+    // UPDATE PROFILE DISPLAY
+    // --------------------------------------------------------
+
+    function updateCollectorProfileUI() {
+
+        const profile = getProfile();
+
+        // Sidebar name
+        document.querySelectorAll(".profile strong").forEach(el => {
+            el.innerText = profile.name;
+        });
+
+        // Sidebar role
+        document.querySelectorAll(".profile span").forEach(el => {
+            el.innerText = "Collector";
+        });
+
+        // Avatar initials
+        const initials = profile.name
+            .trim()
+            .split(/\s+/)
+            .map(word => word.charAt(0))
+            .join("")
+            .substring(0, 2)
+            .toUpperCase();
+
+        document.querySelectorAll(".profile .avatar").forEach(el => {
+            el.innerText = initials || "YS";
+        });
+
+        // Top-right profile circle
+        const topProfile = document.getElementById(
+            "collectorTopProfile"
+        );
+
+        if (topProfile) {
+            topProfile.innerText = initials || "YS";
+        }
+    }
+
+    // --------------------------------------------------------
+    // CREATE TOP-RIGHT PROFILE BUTTON
+    // --------------------------------------------------------
+
+    function createCollectorProfileButton() {
+
+        // Don't create twice
+        if (
+            document.getElementById(
+                "collectorTopProfile"
+            )
+        ) {
+            return;
+        }
+
+        const topActions =
+            document.querySelector(".top-actions");
+
+        if (!topActions) {
+            return;
+        }
+
+        const profile = getProfile();
+
+        const initials = profile.name
+            .trim()
+            .split(/\s+/)
+            .map(word => word.charAt(0))
+            .join("")
+            .substring(0, 2)
+            .toUpperCase();
+
+        const button =
+            document.createElement("button");
+
+        button.id =
+            "collectorTopProfile";
+
+        button.type =
+            "button";
+
+        button.title =
+            "Edit Collector Profile";
+
+        button.innerText =
+            initials || "YS";
+
+        button.style.cssText = `
+            width:40px;
+            height:40px;
+            min-width:40px;
+            border-radius:50%;
+            border:none;
+            background:#16845b;
+            color:#ffffff;
+            font-size:14px;
+            font-weight:800;
+            cursor:pointer;
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            margin-left:10px;
+            box-shadow:0 2px 8px rgba(22,132,91,0.18);
+        `;
+
+        button.addEventListener(
+            "click",
+            openCollectorProfile
+        );
+
+        topActions.appendChild(button);
+    }
+
+    // --------------------------------------------------------
+    // PROFILE MODAL
+    // --------------------------------------------------------
+
+    window.openCollectorProfile = function () {
+
+        const old =
+            document.getElementById(
+                "collectorProfileModal"
+            );
+
+        if (old) {
+            old.remove();
+        }
+
+        const profile =
+            getProfile();
+
+        const modal =
+            document.createElement("div");
+
+        modal.id =
+            "collectorProfileModal";
+
+        modal.style.cssText = `
+            position:fixed;
+            inset:0;
+            background:rgba(15,23,42,0.55);
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            padding:20px;
+            z-index:999999;
+        `;
+
+        modal.innerHTML = `
+
+            <div style="
+                width:min(520px,100%);
+                max-height:90vh;
+                overflow:auto;
+                background:#ffffff;
+                border-radius:22px;
+                padding:28px;
+                box-shadow:0 25px 70px rgba(0,0,0,0.25);
+            ">
+
+                <div style="
+                    display:flex;
+                    justify-content:space-between;
+                    align-items:center;
+                    margin-bottom:22px;
+                ">
+
+                    <div>
+                        <div style="
+                            color:#16845b;
+                            font-size:12px;
+                            font-weight:800;
+                            letter-spacing:1.5px;
+                            text-transform:uppercase;
+                        ">
+                            COLLECTOR PROFILE
+                        </div>
+
+                        <h2 style="
+                            margin:5px 0 0;
+                            color:#111827;
+                        ">
+                            Edit Profile
+                        </h2>
+                    </div>
+
+                    <button
+                        type="button"
+                        onclick="closeCollectorProfile()"
+                        style="
+                            width:36px;
+                            height:36px;
+                            border:none;
+                            border-radius:50%;
+                            background:#f1f5f9;
+                            color:#475569;
+                            font-size:20px;
+                            cursor:pointer;
+                        "
+                    >
+                        ×
+                    </button>
+
+                </div>
+
+
+                <div style="
+                    display:flex;
+                    align-items:center;
+                    gap:15px;
+                    padding:16px;
+                    background:#f0fdf4;
+                    border:1px solid #d1fae5;
+                    border-radius:15px;
+                    margin-bottom:22px;
+                ">
+
+                    <div style="
+                        width:58px;
+                        height:58px;
+                        border-radius:50%;
+                        background:#16845b;
+                        color:white;
+                        display:flex;
+                        align-items:center;
+                        justify-content:center;
+                        font-size:18px;
+                        font-weight:800;
+                    ">
+                        ${profile.name
+                            .trim()
+                            .split(/\s+/)
+                            .map(x => x[0])
+                            .join("")
+                            .substring(0,2)
+                            .toUpperCase()}
+                    </div>
+
+                    <div>
+                        <strong style="
+                            display:block;
+                            font-size:18px;
+                            color:#111827;
+                        ">
+                            ${profile.name}
+                        </strong>
+
+                        <span style="
+                            color:#16845b;
+                            font-size:13px;
+                            font-weight:700;
+                        ">
+                            Verified Collector
+                        </span>
+                    </div>
+
+                </div>
+
+
+                <label style="
+                    display:block;
+                    font-weight:700;
+                    color:#374151;
+                    margin-bottom:7px;
+                ">
+                    Full Name
+                </label>
+
+                <input
+                    id="collectorProfileName"
+                    type="text"
+                    value="${profile.name}"
+                    style="
+                        width:100%;
+                        box-sizing:border-box;
+                        padding:12px 14px;
+                        border:1px solid #d1d5db;
+                        border-radius:10px;
+                        margin-bottom:17px;
+                        font-size:15px;
+                        outline:none;
+                    "
+                >
+
+
+                <label style="
+                    display:block;
+                    font-weight:700;
+                    color:#374151;
+                    margin-bottom:7px;
+                ">
+                    Collector ID
+                </label>
+
+                <input
+                    type="text"
+                    value="${profile.collectorId}"
+                    disabled
+                    style="
+                        width:100%;
+                        box-sizing:border-box;
+                        padding:12px 14px;
+                        border:1px solid #e5e7eb;
+                        border-radius:10px;
+                        margin-bottom:17px;
+                        font-size:15px;
+                        background:#f8fafc;
+                        color:#64748b;
+                    "
+                >
+
+
+                <label style="
+                    display:block;
+                    font-weight:700;
+                    color:#374151;
+                    margin-bottom:7px;
+                ">
+                    Phone Number
+                </label>
+
+                <input
+                    id="collectorProfilePhone"
+                    type="tel"
+                    value="${profile.phone}"
+                    placeholder="+91 XXXXX XXXXX"
+                    style="
+                        width:100%;
+                        box-sizing:border-box;
+                        padding:12px 14px;
+                        border:1px solid #d1d5db;
+                        border-radius:10px;
+                        margin-bottom:17px;
+                        font-size:15px;
+                    "
+                >
+
+
+                <label style="
+                    display:block;
+                    font-weight:700;
+                    color:#374151;
+                    margin-bottom:7px;
+                ">
+                    Email
+                </label>
+
+                <input
+                    id="collectorProfileEmail"
+                    type="email"
+                    value="${profile.email}"
+                    placeholder="collector@email.com"
+                    style="
+                        width:100%;
+                        box-sizing:border-box;
+                        padding:12px 14px;
+                        border:1px solid #d1d5db;
+                        border-radius:10px;
+                        margin-bottom:17px;
+                        font-size:15px;
+                    "
+                >
+
+
+                <label style="
+                    display:block;
+                    font-weight:700;
+                    color:#374151;
+                    margin-bottom:7px;
+                ">
+                    Collection Address
+                </label>
+
+                <textarea
+                    id="collectorProfileAddress"
+                    placeholder="Enter your collection area/address"
+                    style="
+                        width:100%;
+                        box-sizing:border-box;
+                        min-height:80px;
+                        padding:12px 14px;
+                        border:1px solid #d1d5db;
+                        border-radius:10px;
+                        margin-bottom:17px;
+                        font-size:15px;
+                        resize:vertical;
+                    "
+                >${profile.address}</textarea>
+
+
+                <label style="
+                    display:block;
+                    font-weight:700;
+                    color:#374151;
+                    margin-bottom:7px;
+                ">
+                    Materials You Collect
+                </label>
+
+                <input
+                    id="collectorProfileMaterials"
+                    type="text"
+                    value="${profile.materials}"
+                    placeholder="Plastic, Metal, Paper, E-Waste"
+                    style="
+                        width:100%;
+                        box-sizing:border-box;
+                        padding:12px 14px;
+                        border:1px solid #d1d5db;
+                        border-radius:10px;
+                        margin-bottom:23px;
+                        font-size:15px;
+                    "
+                >
+
+
+                <div style="
+                    display:flex;
+                    gap:10px;
+                ">
+
+                    <button
+                        type="button"
+                        onclick="closeCollectorProfile()"
+                        style="
+                            flex:1;
+                            padding:13px;
+                            border:1px solid #d1d5db;
+                            background:#ffffff;
+                            color:#374151;
+                            border-radius:10px;
+                            font-weight:700;
+                            cursor:pointer;
+                        "
+                    >
+                        Cancel
+                    </button>
+
+                    <button
+                        type="button"
+                        onclick="saveCollectorProfile()"
+                        style="
+                            flex:1;
+                            padding:13px;
+                            border:none;
+                            background:#16845b;
+                            color:#ffffff;
+                            border-radius:10px;
+                            font-weight:700;
+                            cursor:pointer;
+                        "
+                    >
+                        Save Changes
+                    </button>
+
+                </div>
+
+            </div>
+        `;
+
+        document.body.appendChild(modal);
+    };
+
+
+    // --------------------------------------------------------
+    // SAVE PROFILE
+    // --------------------------------------------------------
+
+    window.saveCollectorProfile = function () {
+
+        const name =
+            document.getElementById(
+                "collectorProfileName"
+            )?.value.trim();
+
+        if (!name) {
+            alert("Please enter your name.");
+            return;
+        }
+
+        const profile = {
+            name: name,
+
+            collectorId:
+                getProfile().collectorId,
+
+            phone:
+                document.getElementById(
+                    "collectorProfilePhone"
+                )?.value.trim() || "",
+
+            email:
+                document.getElementById(
+                    "collectorProfileEmail"
+                )?.value.trim() || "",
+
+            address:
+                document.getElementById(
+                    "collectorProfileAddress"
+                )?.value.trim() || "",
+
+            materials:
+                document.getElementById(
+                    "collectorProfileMaterials"
+                )?.value.trim() || ""
+        };
+
+        saveProfile(profile);
+
+        closeCollectorProfile();
+
+        alert("Profile updated successfully.");
+    };
+
+
+    // --------------------------------------------------------
+    // CLOSE PROFILE
+    // --------------------------------------------------------
+
+    window.closeCollectorProfile = function () {
+
+        const modal =
+            document.getElementById(
+                "collectorProfileModal"
+            );
+
+        if (modal) {
+            modal.remove();
+        }
+    };
+
+
+    // --------------------------------------------------------
+    // START
+    // --------------------------------------------------------
+
+    function initializeCollectorProfile() {
+
+        const role =
+            localStorage.getItem("kabadiSetuRole");
+
+        // Create only for collector mode
+        if (
+            role === "collector" ||
+            document.body.innerText.includes(
+                "Collector Dashboard"
+            )
+        ) {
+            createCollectorProfileButton();
+            updateCollectorProfileUI();
+        }
+    }
+
+    // Run after page is ready
+    if (document.readyState === "loading") {
+
+        document.addEventListener(
+            "DOMContentLoaded",
+            function () {
+                setTimeout(
+                    initializeCollectorProfile,
+                    500
+                );
+            }
+        );
+
+    } else {
+
+        setTimeout(
+            initializeCollectorProfile,
+            500
+        );
+    }
+
+
+    // Also retry once because your collector dashboard
+    // is dynamically rendered.
+    setTimeout(
+        initializeCollectorProfile,
+        1500
+    );
+
+    setTimeout(
+        initializeCollectorProfile,
+        3000
+    );
+
+})();
+
+/* ============================================================
+   KABADI SETU - COLLECTOR HERO GREEN
+   MATCH HOUSEHOLD DASHBOARD HERO
+   ============================================================ */
+
+(function () {
+
+    console.log("🌿 Collector green hero fix loaded.");
+
+    function makeCollectorHeroGreen() {
+
+        /*
+         * Find the actual Collector hero currently
+         * displayed on the page.
+         */
+
+        const elements =
+            document.querySelectorAll(
+                "#inventory div"
+            );
+
+        let hero = null;
+
+        elements.forEach(function (element) {
+
+            const text =
+                (element.innerText || "")
+                    .replace(/\s+/g, " ")
+                    .trim();
+
+            if (
+                text.includes("COLLECTOR PORTAL") &&
+                text.includes("Collector Dashboard")
+            ) {
+
+                /*
+                 * We want the outer rectangular
+                 * hero, not the small text div.
+                 */
+
+                if (
+                    element.offsetWidth > 700 &&
+                    element.offsetHeight > 120
+                ) {
+
+                    hero = element;
+
+                }
+
+            }
+
+        });
+
+
+        if (!hero) {
+            return;
+        }
+
+
+        /* ----------------------------------------------------
+           HERO BACKGROUND
+           ---------------------------------------------------- */
+
+        hero.style.setProperty(
+            "background",
+            "linear-gradient(135deg, #087f5b 0%, #159570 55%, #1b9d68 100%)",
+            "important"
+        );
+
+
+        hero.style.setProperty(
+            "color",
+            "#ffffff",
+            "important"
+        );
+
+
+        hero.style.setProperty(
+            "border",
+            "none",
+            "important"
+        );
+
+
+        hero.style.setProperty(
+            "border-radius",
+            "24px",
+            "important"
+        );
+
+
+        hero.style.setProperty(
+            "box-shadow",
+            "0 12px 30px rgba(8,127,91,0.18)",
+            "important"
+        );
+
+
+        hero.style.setProperty(
+            "position",
+            "relative",
+            "important"
+        );
+
+
+        hero.style.setProperty(
+            "overflow",
+            "hidden",
+            "important"
+        );
+
+
+        /* ----------------------------------------------------
+           ALL TEXT INSIDE HERO
+           ---------------------------------------------------- */
+
+        hero.querySelectorAll(
+            "h1, h2, h3, p, strong, span, small"
+        ).forEach(function (textElement) {
+
+            textElement.style.setProperty(
+                "color",
+                "#ffffff",
+                "important"
+            );
+
+        });
+
+
+        /* ----------------------------------------------------
+           COLLECTOR PORTAL LABEL
+           ---------------------------------------------------- */
+
+        hero.querySelectorAll(
+            "div"
+        ).forEach(function (child) {
+
+            const text =
+                (child.innerText || "")
+                    .trim();
+
+            if (
+                text === "COLLECTOR PORTAL"
+            ) {
+
+                child.style.setProperty(
+                    "color",
+                    "#ffffff",
+                    "important"
+                );
+
+                child.style.setProperty(
+                    "font-weight",
+                    "800",
+                    "important"
+                );
+
+            }
+
+        });
+
+
+        /* ----------------------------------------------------
+           TRUCK / ICON
+           ---------------------------------------------------- */
+
+        hero.querySelectorAll(
+            "img, .hero-icon, .collector-icon"
+        ).forEach(function (icon) {
+
+            icon.style.setProperty(
+                "color",
+                "#ffffff",
+                "important"
+            );
+
+        });
+
+
+        /*
+         * Prevent applying repeatedly to the same element
+         * unnecessarily.
+         */
+
+        hero.dataset.greenHeroApplied =
+            "true";
+
+
+        console.log(
+            "✅ Collector hero changed to Household-style green."
+        );
+
+    }
+
+
+    /* --------------------------------------------------------
+       INITIAL
+       -------------------------------------------------------- */
+
+    setTimeout(
+        makeCollectorHeroGreen,
+        300
+    );
+
+
+    setTimeout(
+        makeCollectorHeroGreen,
+        800
+    );
+
+
+    setTimeout(
+        makeCollectorHeroGreen,
+        1500
+    );
+
+
+    setTimeout(
+        makeCollectorHeroGreen,
+        2500
+    );
+
+
+    /* --------------------------------------------------------
+       IMPORTANT:
+       renderCollectorDashboard() can rebuild the hero.
+       Watch for it and apply the green again.
+       -------------------------------------------------------- */
+
+    const observer =
+        new MutationObserver(
+            function () {
+
+                makeCollectorHeroGreen();
+
+            }
+        );
+
+
+    observer.observe(
+        document.body,
+        {
+            childList: true,
+            subtree: true
+        }
+    );
+
+
+    /* --------------------------------------------------------
+       WHEN COLLECTOR DASHBOARD IS OPENED
+       -------------------------------------------------------- */
+
+    document.addEventListener(
+        "click",
+        function (event) {
+
+            const button =
+                event.target.closest(
+                    ".nav-item"
+                );
+
+            if (!button) {
+                return;
+            }
+
+
+            if (
+                button.innerText
+                    .toLowerCase()
+                    .includes("dashboard")
+            ) {
+
+                setTimeout(
+                    makeCollectorHeroGreen,
+                    200
+                );
+
+            }
+
+        }
+    );
+
+
+})();
+
+/* ============================================================
+   KABADI SETU
+   COLLECTOR DASHBOARD HERO - FINAL GREEN FIX
+   ============================================================ */
+
+(function () {
+
+    console.log("🌿 Collector Hero Final Fix Loaded");
+
+
+    function applyCollectorHero() {
+
+        const panel =
+            document.getElementById("collectorPanel");
+
+        if (!panel) {
+            return;
+        }
+
+
+        /*
+         * IMPORTANT:
+         * renderCollectorDashboard() creates the
+         * WHITE HEADER as the FIRST child of collectorPanel.
+         */
+
+        const hero =
+            panel.firstElementChild;
+
+        if (!hero) {
+            return;
+        }
+
+
+        /* ====================================================
+           MAIN GREEN HERO
+           ==================================================== */
+
+        hero.style.setProperty(
+            "background",
+            "linear-gradient(135deg, #087f5b 0%, #159570 50%, #1da56f 100%)",
+            "important"
+        );
+
+        hero.style.setProperty(
+            "background-color",
+            "#087f5b",
+            "important"
+        );
+
+        hero.style.setProperty(
+            "color",
+            "#ffffff",
+            "important"
+        );
+
+        hero.style.setProperty(
+            "border",
+            "none",
+            "important"
+        );
+
+        hero.style.setProperty(
+            "border-radius",
+            "24px",
+            "important"
+        );
+
+        hero.style.setProperty(
+            "padding",
+            "30px",
+            "important"
+        );
+
+        hero.style.setProperty(
+            "margin-bottom",
+            "24px",
+            "important"
+        );
+
+        hero.style.setProperty(
+            "box-shadow",
+            "0 12px 30px rgba(8,127,91,0.18)",
+            "important"
+        );
+
+        hero.style.setProperty(
+            "overflow",
+            "hidden",
+            "important"
+        );
+
+        hero.style.setProperty(
+            "position",
+            "relative",
+            "important"
+        );
+
+
+        /* ====================================================
+           MAKE ALL HERO TEXT WHITE
+           ==================================================== */
+
+        hero.querySelectorAll("*").forEach(
+            function (element) {
+
+                const tag =
+                    element.tagName.toLowerCase();
+
+                if (
+                    tag === "h1" ||
+                    tag === "h2" ||
+                    tag === "h3" ||
+                    tag === "h4" ||
+                    tag === "p" ||
+                    tag === "strong" ||
+                    tag === "span" ||
+                    tag === "small" ||
+                    tag === "div"
+                ) {
+
+                    element.style.setProperty(
+                        "color",
+                        "#ffffff",
+                        "important"
+                    );
+
+                }
+
+            }
+        );
+
+
+        /* ====================================================
+           TODAY'S EARNINGS BOX
+           ==================================================== */
+
+        const children =
+            hero.querySelectorAll(
+                ":scope > div"
+            );
+
+
+        if (children.length >= 2) {
+
+            const earningsBox =
+                children[1];
+
+            earningsBox.style.setProperty(
+                "background",
+                "rgba(255,255,255,0.15)",
+                "important"
+            );
+
+            earningsBox.style.setProperty(
+                "border",
+                "1px solid rgba(255,255,255,0.25)",
+                "important"
+            );
+
+            earningsBox.style.setProperty(
+                "backdrop-filter",
+                "blur(8px)",
+                "important"
+            );
+
+            earningsBox.style.setProperty(
+                "color",
+                "#ffffff",
+                "important"
+            );
+
+        }
+
+
+        /* ====================================================
+           ADD SUBTLE DECORATIVE CIRCLES
+           ==================================================== */
+
+        if (
+            !hero.querySelector(
+                ".collectorHeroDecoration1"
+            )
+        ) {
+
+            const decoration1 =
+                document.createElement("div");
+
+            decoration1.className =
+                "collectorHeroDecoration1";
+
+            decoration1.style.cssText = `
+                position:absolute;
+                width:220px;
+                height:220px;
+                right:-70px;
+                top:-90px;
+                border-radius:50%;
+                background:rgba(255,255,255,0.07);
+                pointer-events:none;
+            `;
+
+            hero.appendChild(
+                decoration1
+            );
+
+        }
+
+
+        if (
+            !hero.querySelector(
+                ".collectorHeroDecoration2"
+            )
+        ) {
+
+            const decoration2 =
+                document.createElement("div");
+
+            decoration2.className =
+                "collectorHeroDecoration2";
+
+            decoration2.style.cssText = `
+                position:absolute;
+                width:150px;
+                height:150px;
+                right:120px;
+                bottom:-90px;
+                border-radius:50%;
+                background:rgba(255,255,255,0.05);
+                pointer-events:none;
+            `;
+
+            hero.appendChild(
+                decoration2
+            );
+
+        }
+
+
+        /*
+         * Keep content above decorative circles.
+         */
+
+        Array.from(hero.children).forEach(
+            function (child) {
+
+                if (
+                    !child.classList.contains(
+                        "collectorHeroDecoration1"
+                    ) &&
+                    !child.classList.contains(
+                        "collectorHeroDecoration2"
+                    )
+                ) {
+
+                    child.style.position =
+                        "relative";
+
+                    child.style.zIndex =
+                        "2";
+
+                }
+
+            }
+        );
+
+
+        console.log(
+            "✅ COLLECTOR HERO IS NOW GREEN"
+        );
+
+    }
+
+
+    /* ========================================================
+       RUN AFTER COLLECTOR DASHBOARD CREATES IT
+       ======================================================== */
+
+    setTimeout(
+        applyCollectorHero,
+        100
+    );
+
+    setTimeout(
+        applyCollectorHero,
+        500
+    );
+
+    setTimeout(
+        applyCollectorHero,
+        1000
+    );
+
+    setTimeout(
+        applyCollectorHero,
+        2000
+    );
+
+
+    /* ========================================================
+       WATCH FOR DASHBOARD RE-RENDER
+       ======================================================== */
+
+    const observer =
+        new MutationObserver(
+            function () {
+
+                const panel =
+                    document.getElementById(
+                        "collectorPanel"
+                    );
+
+                if (panel) {
+                    applyCollectorHero();
+                }
+
+            }
+        );
+
+
+    observer.observe(
+        document.body,
+        {
+            childList: true,
+            subtree: true
+        }
+    );
+
+
+    /* ========================================================
+       WHEN COLLECTOR DASHBOARD IS OPENED
+       ======================================================== */
+
+    document.addEventListener(
+        "click",
+        function (event) {
+
+            const button =
+                event.target.closest(
+                    ".nav-item"
+                );
+
+            if (!button) {
+                return;
+            }
+
+
+            const text =
+                button.innerText
+                    .toLowerCase();
+
+
+            if (
+                text.includes("dashboard")
+            ) {
+
+                setTimeout(
+                    applyCollectorHero,
+                    150
+                );
+
+                setTimeout(
+                    applyCollectorHero,
+                    500
+                );
+
+            }
+
+        }
+    );
+
+
+    /*
+     * Also expose it so we can test it
+     * directly from browser console.
+     */
+
+    window.applyCollectorHero =
+        applyCollectorHero;
+
+
+})();
