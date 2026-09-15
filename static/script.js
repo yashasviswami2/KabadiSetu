@@ -41522,3 +41522,17668 @@ console.log(
 
 
 })();
+
+// =========================================================
+// KABADI SETU - STEP 6
+// ROLE-SPECIFIC DASHBOARD & NAVIGATION
+// =========================================================
+
+(function () {
+
+    console.log("🚀 Kabadi Setu Step 6 - Role Separation Loaded");
+
+    // -----------------------------------------------------
+    // ROLE STATE
+    // -----------------------------------------------------
+
+    if (!window.kabadiCurrentRole) {
+        window.kabadiCurrentRole = "household";
+    }
+
+
+    // -----------------------------------------------------
+    // NAVIGATION HELPERS
+    // -----------------------------------------------------
+
+    function getNavText(item) {
+        return (item.innerText || "").trim().toLowerCase();
+    }
+
+
+    // -----------------------------------------------------
+    // COLLECTOR NAVIGATION
+    // -----------------------------------------------------
+
+    function applyCollectorNavigation() {
+
+        const navItems = document.querySelectorAll(".nav-item");
+
+        navItems.forEach(function (item) {
+
+            const text = getNavText(item);
+
+            // Hide household-only navigation
+            if (
+                text.includes("scanner") ||
+                text.includes("recycler network")
+            ) {
+
+                item.style.display = "none";
+
+            }
+
+            // Show collector navigation
+            else if (
+                text.includes("inventory") ||
+                text.includes("earning") ||
+                text.includes("transaction") ||
+                text.includes("dashboard")
+            ) {
+
+                item.style.display = "";
+
+            }
+
+        });
+
+
+        // Add collector-specific pickup navigation
+        let pickupNav =
+            document.getElementById("collectorPickupNav");
+
+        if (!pickupNav) {
+
+            const navContainer =
+                document.querySelector(".sidebar nav") ||
+                document.querySelector(".sidebar");
+
+            if (navContainer) {
+
+                pickupNav =
+                    document.createElement("div");
+
+                pickupNav.id =
+                    "collectorPickupNav";
+
+                pickupNav.className =
+                    "nav-item";
+
+                pickupNav.innerHTML =
+                    "📥 Pickup Requests";
+
+                pickupNav.style.cursor =
+                    "pointer";
+
+                pickupNav.addEventListener(
+                    "click",
+                    function () {
+
+                        window.kabadiCurrentRole =
+                            "collector";
+
+                        showSectionSafely(
+                            "inventory"
+                        );
+
+                        setTimeout(
+                            scrollToCollectorRequests,
+                            100
+                        );
+
+                    }
+                );
+
+                navContainer.appendChild(
+                    pickupNav
+                );
+            }
+        }
+
+    }
+
+
+    // -----------------------------------------------------
+    // HOUSEHOLD NAVIGATION
+    // -----------------------------------------------------
+
+    function applyHouseholdNavigation() {
+
+        const navItems =
+            document.querySelectorAll(".nav-item");
+
+        navItems.forEach(function (item) {
+
+            const text =
+                getNavText(item);
+
+            // Show normal household navigation
+            item.style.display = "";
+
+            // Hide collector-only navigation
+            if (
+                item.id ===
+                    "collectorPickupNav" ||
+
+                item.id ===
+                    "collectorTransactionsNav"
+            ) {
+
+                item.style.display =
+                    "none";
+            }
+
+        });
+
+    }
+
+
+    // -----------------------------------------------------
+    // SAFE SECTION OPEN
+    // -----------------------------------------------------
+
+    function showSectionSafely(sectionId) {
+
+        const section =
+            document.getElementById(
+                sectionId
+            );
+
+        if (!section) {
+
+            console.warn(
+                "Section not found:",
+                sectionId
+            );
+
+            return;
+
+        }
+
+
+        // Use existing navigation system
+        if (
+            typeof window.showSection ===
+            "function"
+        ) {
+
+            try {
+
+                window.showSection(
+                    sectionId
+                );
+
+                return;
+
+            } catch (error) {
+
+                console.warn(
+                    "Existing showSection failed:",
+                    error
+                );
+
+            }
+
+        }
+
+
+        // Fallback
+        document
+            .querySelectorAll(
+                ".page-section"
+            )
+            .forEach(function (item) {
+
+                item.classList.remove(
+                    "active-section"
+                );
+
+            });
+
+
+        section.classList.add(
+            "active-section"
+        );
+
+    }
+
+
+    // -----------------------------------------------------
+    // COLLECTOR REQUEST SCROLL
+    // -----------------------------------------------------
+
+    function scrollToCollectorRequests() {
+
+        const requests =
+            document.getElementById(
+                "collectorRequests"
+            );
+
+        if (requests) {
+
+            requests.scrollIntoView({
+                behavior: "smooth",
+                block: "start"
+            });
+
+        }
+
+    }
+
+
+    // -----------------------------------------------------
+    // COLLECTOR HERO DESIGN
+    // -----------------------------------------------------
+
+    function styleCollectorHero() {
+
+        const panel =
+            document.getElementById(
+                "collectorPanel"
+            );
+
+        if (!panel) {
+            return;
+        }
+
+
+        const hero =
+            panel.firstElementChild;
+
+        if (!hero) {
+            return;
+        }
+
+
+        // Main green hero
+        hero.style.setProperty(
+            "background",
+            "linear-gradient(135deg, #087f5b 0%, #159570 55%, #1fb477 100%)",
+            "important"
+        );
+
+        hero.style.setProperty(
+            "background-color",
+            "#087f5b",
+            "important"
+        );
+
+        hero.style.setProperty(
+            "color",
+            "#ffffff",
+            "important"
+        );
+
+        hero.style.setProperty(
+            "border",
+            "none",
+            "important"
+        );
+
+        hero.style.setProperty(
+            "border-radius",
+            "24px",
+            "important"
+        );
+
+        hero.style.setProperty(
+            "padding",
+            "30px",
+            "important"
+        );
+
+        hero.style.setProperty(
+            "box-shadow",
+            "0 14px 35px rgba(8,127,91,.22)",
+            "important"
+        );
+
+        hero.style.setProperty(
+            "overflow",
+            "hidden",
+            "important"
+        );
+
+        hero.style.setProperty(
+            "position",
+            "relative",
+            "important"
+        );
+
+
+        // Make text white
+        hero.querySelectorAll("*")
+            .forEach(function (element) {
+
+                const tag =
+                    element.tagName.toLowerCase();
+
+                if (
+                    tag === "h1" ||
+                    tag === "h2" ||
+                    tag === "h3" ||
+                    tag === "h4" ||
+                    tag === "p" ||
+                    tag === "span" ||
+                    tag === "strong" ||
+                    tag === "small"
+                ) {
+
+                    element.style.setProperty(
+                        "color",
+                        "#ffffff",
+                        "important"
+                    );
+
+                }
+
+            });
+
+
+        // Find today's earnings box
+        const boxes =
+            hero.querySelectorAll(
+                ":scope > div > div"
+            );
+
+        boxes.forEach(function (box) {
+
+            const text =
+                box.innerText || "";
+
+            if (
+                text.toLowerCase()
+                    .includes("today's earnings")
+            ) {
+
+                box.style.setProperty(
+                    "background",
+                    "rgba(255,255,255,.15)",
+                    "important"
+                );
+
+                box.style.setProperty(
+                    "border",
+                    "1px solid rgba(255,255,255,.25)",
+                    "important"
+                );
+
+                box.style.setProperty(
+                    "backdrop-filter",
+                    "blur(8px)",
+                    "important"
+                );
+
+            }
+
+        });
+
+
+        // Decorative circle
+        if (
+            !hero.querySelector(
+                ".kabadiCollectorCircle"
+            )
+        ) {
+
+            const circle =
+                document.createElement(
+                    "div"
+                );
+
+            circle.className =
+                "kabadiCollectorCircle";
+
+            circle.style.cssText = `
+                position:absolute;
+                width:240px;
+                height:240px;
+                right:-80px;
+                top:-110px;
+                border-radius:50%;
+                background:rgba(255,255,255,.08);
+                pointer-events:none;
+                z-index:1;
+            `;
+
+            hero.appendChild(
+                circle
+            );
+
+        }
+
+    }
+
+
+    // -----------------------------------------------------
+    // COLLECTOR DASHBOARD
+    // -----------------------------------------------------
+
+    function activateCollectorMode() {
+
+        window.kabadiCurrentRole =
+            "collector";
+
+
+        applyCollectorNavigation();
+
+
+        // Collector dashboard is inside inventory section
+        showSectionSafely(
+            "inventory"
+        );
+
+
+        // Render existing collector dashboard
+        if (
+            typeof window.renderCollectorDashboard ===
+            "function"
+        ) {
+
+            try {
+
+                window.renderCollectorDashboard();
+
+            } catch (error) {
+
+                console.warn(
+                    "Collector dashboard render error:",
+                    error
+                );
+
+            }
+
+        }
+
+
+        // Apply visual styling after rendering
+        setTimeout(
+            styleCollectorHero,
+            100
+        );
+
+        setTimeout(
+            styleCollectorHero,
+            500
+        );
+
+        setTimeout(
+            styleCollectorHero,
+            1000
+        );
+
+    }
+
+
+    // -----------------------------------------------------
+    // HOUSEHOLD MODE
+    // -----------------------------------------------------
+
+    function activateHouseholdMode() {
+
+        window.kabadiCurrentRole =
+            "household";
+
+
+        applyHouseholdNavigation();
+
+
+        showSectionSafely(
+            "dashboard"
+        );
+
+    }
+
+
+    // -----------------------------------------------------
+    // PATCH ROLE SWITCH
+    // -----------------------------------------------------
+
+    const originalSwitchRole =
+        window.switchRole ||
+        window.switchRole;
+
+
+    window.switchRole =
+        function (role) {
+
+            console.log(
+                "🔄 Switching role:",
+                role
+            );
+
+
+            if (role === "collector") {
+
+                activateCollectorMode();
+
+            }
+
+            else {
+
+                activateHouseholdMode();
+
+            }
+
+
+            // Call original function too
+            if (
+                typeof originalSwitchRole ===
+                "function"
+            ) {
+
+                try {
+
+                    originalSwitchRole(
+                        role
+                    );
+
+                } catch (error) {
+
+                    console.warn(
+                        "Original role switch warning:",
+                        error
+                    );
+
+                }
+
+            }
+
+
+            // Reapply after original function
+            setTimeout(
+                function () {
+
+                    if (
+                        role === "collector"
+                    ) {
+
+                        applyCollectorNavigation();
+
+                        styleCollectorHero();
+
+                    }
+
+                    else {
+
+                        applyHouseholdNavigation();
+
+                    }
+
+                },
+                200
+            );
+
+        };
+
+
+    // -----------------------------------------------------
+    // PATCH SHOW SECTION
+    // -----------------------------------------------------
+
+    const originalShowSection =
+        window.showSection;
+
+    window.showSection =
+        function (sectionId) {
+
+            if (
+                window.kabadiCurrentRole ===
+                "collector"
+            ) {
+
+                // Prevent collector from accidentally
+                // opening household scanner
+                if (
+                    sectionId === "scanner"
+                ) {
+
+                    sectionId =
+                        "inventory";
+
+                }
+
+            }
+
+
+            if (
+                typeof originalShowSection ===
+                "function"
+            ) {
+
+                originalShowSection(
+                    sectionId
+                );
+
+            }
+
+
+            if (
+                window.kabadiCurrentRole ===
+                "collector"
+            ) {
+
+                setTimeout(
+                    styleCollectorHero,
+                    100
+                );
+
+            }
+
+        };
+
+
+    // -----------------------------------------------------
+    // DASHBOARD CLICK HANDLING
+    // -----------------------------------------------------
+
+    document.addEventListener(
+        "click",
+        function (event) {
+
+            const nav =
+                event.target.closest(
+                    ".nav-item"
+                );
+
+            if (!nav) {
+                return;
+            }
+
+
+            const text =
+                getNavText(nav);
+
+
+            if (
+                window.kabadiCurrentRole ===
+                "collector"
+            ) {
+
+                if (
+                    text.includes("dashboard")
+                ) {
+
+                    setTimeout(
+                        function () {
+
+                            showSectionSafely(
+                                "inventory"
+                            );
+
+                            if (
+                                typeof window.renderCollectorDashboard ===
+                                "function"
+                            ) {
+
+                                window.renderCollectorDashboard();
+
+                            }
+
+                            setTimeout(
+                                styleCollectorHero,
+                                100
+                            );
+
+                        },
+                        50
+                    );
+
+                }
+
+            }
+
+        }
+    );
+
+
+    // -----------------------------------------------------
+    // OBSERVE COLLECTOR PANEL
+    // -----------------------------------------------------
+
+    const observer =
+        new MutationObserver(
+            function () {
+
+                if (
+                    window.kabadiCurrentRole ===
+                    "collector"
+                ) {
+
+                    const panel =
+                        document.getElementById(
+                            "collectorPanel"
+                        );
+
+                    if (panel) {
+
+                        styleCollectorHero();
+
+                    }
+
+                }
+
+            }
+        );
+
+
+    observer.observe(
+        document.body,
+        {
+            childList: true,
+            subtree: true
+        }
+    );
+
+
+    // -----------------------------------------------------
+    // INITIAL STATE
+    // -----------------------------------------------------
+
+    setTimeout(
+        function () {
+
+            // Household is the default role
+            if (
+                window.kabadiCurrentRole ===
+                "household"
+            ) {
+
+                applyHouseholdNavigation();
+
+            }
+
+        },
+        500
+    );
+
+
+    // -----------------------------------------------------
+    // PUBLIC FUNCTIONS
+    // -----------------------------------------------------
+
+    window.activateCollectorMode =
+        activateCollectorMode;
+
+    window.activateHouseholdMode =
+        activateHouseholdMode;
+
+    window.styleCollectorHero =
+        styleCollectorHero;
+
+
+    console.log(
+        "✅ STEP 6 ROLE SEPARATION READY"
+    );
+
+})();
+
+// =========================================================
+// KABADI SETU - STEP 7
+// HOUSEHOLD PICKUP TRACKING
+// =========================================================
+
+(function () {
+
+    console.log("🚚 STEP 7 - Household Pickup Tracking Loaded");
+
+    const PICKUP_TRACKING_KEY =
+        "kabadiSetuPickupTracking";
+
+    // -----------------------------------------------------
+    // STORAGE
+    // -----------------------------------------------------
+
+    function getPickupTracking() {
+
+        try {
+
+            return JSON.parse(
+                localStorage.getItem(
+                    PICKUP_TRACKING_KEY
+                )
+            ) || [];
+
+        } catch (error) {
+
+            console.error(
+                "Pickup tracking storage error:",
+                error
+            );
+
+            return [];
+
+        }
+
+    }
+
+
+    function savePickupTracking(data) {
+
+        localStorage.setItem(
+            PICKUP_TRACKING_KEY,
+            JSON.stringify(data)
+        );
+
+    }
+
+
+    // -----------------------------------------------------
+    // STATUS DEFINITIONS
+    // -----------------------------------------------------
+
+    const PICKUP_STATUSES = {
+
+        Pending: {
+            label: "Pickup Requested",
+            icon: "🟡",
+            color: "#d97706",
+            description:
+                "Your pickup request has been sent to nearby collectors."
+        },
+
+        Accepted: {
+            label: "Collector Assigned",
+            icon: "🔵",
+            color: "#2563eb",
+            description:
+                "A collector has accepted your pickup request."
+        },
+
+        Collected: {
+            label: "Material Collected",
+            icon: "🟣",
+            color: "#7c3aed",
+            description:
+                "The collector has physically collected and weighed your material."
+        },
+
+        Recycling: {
+            label: "Sent to Recycler",
+            icon: "🟠",
+            color: "#ea580c",
+            description:
+                "Your material has been handed over for formal recycling."
+        },
+
+        Completed: {
+            label: "Recycling Completed",
+            icon: "🟢",
+            color: "#16a34a",
+            description:
+                "Your material has completed the recycling journey."
+        }
+
+    };
+
+
+    // -----------------------------------------------------
+    // CREATE TRACKING RECORD
+    // -----------------------------------------------------
+
+    function createPickupTracking(
+        requestId,
+        material,
+        weight,
+        address
+    ) {
+
+        if (!requestId) {
+            return null;
+        }
+
+
+        const existing =
+            getPickupTracking()
+                .find(
+                    item =>
+                        item.requestId ===
+                        requestId
+                );
+
+
+        if (existing) {
+            return existing;
+        }
+
+
+        const tracking = {
+
+            requestId:
+                requestId,
+
+            material:
+                material || "Unknown Material",
+
+            estimatedWeight:
+                Number(weight) || 0,
+
+            actualWeight:
+                null,
+
+            address:
+                address || "",
+
+            status:
+                "Pending",
+
+            collectorAssigned:
+                null,
+
+            collectorAssignedAt:
+                null,
+
+            collectedAt:
+                null,
+
+            recycler:
+                null,
+
+            recyclingCompletedAt:
+                null,
+
+            createdAt:
+                new Date().toISOString(),
+
+            updatedAt:
+                new Date().toISOString()
+
+        };
+
+
+        const records =
+            getPickupTracking();
+
+
+        records.unshift(
+            tracking
+        );
+
+
+        savePickupTracking(
+            records
+        );
+
+
+        console.log(
+            "📦 Pickup tracking created:",
+            requestId
+        );
+
+
+        return tracking;
+
+    }
+
+
+    // -----------------------------------------------------
+    // UPDATE TRACKING
+    // -----------------------------------------------------
+
+    function updatePickupTracking(
+        requestId,
+        updates
+    ) {
+
+        const records =
+            getPickupTracking();
+
+
+        const index =
+            records.findIndex(
+                item =>
+                    item.requestId ===
+                    requestId
+            );
+
+
+        if (index === -1) {
+
+            console.warn(
+                "Pickup tracking not found:",
+                requestId
+            );
+
+            return null;
+
+        }
+
+
+        records[index] = {
+
+            ...records[index],
+
+            ...updates,
+
+            updatedAt:
+                new Date().toISOString()
+
+        };
+
+
+        savePickupTracking(
+            records
+        );
+
+
+        renderHouseholdPickupTracking();
+
+
+        return records[index];
+
+    }
+
+
+    // -----------------------------------------------------
+    // SYNC EXISTING COLLECTOR REQUESTS
+    // -----------------------------------------------------
+
+    function syncExistingRequests() {
+
+        if (
+            !Array.isArray(
+                window.collectorRequests
+            )
+        ) {
+            return;
+        }
+
+
+        const requests =
+            window.collectorRequests;
+
+
+        requests.forEach(
+            function (request) {
+
+                if (!request || !request.id) {
+                    return;
+                }
+
+
+                let status =
+                    "Pending";
+
+
+                if (
+                    request.status ===
+                    "Accepted"
+                ) {
+
+                    status =
+                        "Accepted";
+
+                }
+
+
+                if (
+                    request.status ===
+                    "Completed"
+                ) {
+
+                    status =
+                        "Collected";
+
+                }
+
+
+                const existing =
+                    getPickupTracking()
+                        .find(
+                            item =>
+                                item.requestId ===
+                                request.id
+                        );
+
+
+                if (!existing) {
+
+                    createPickupTracking(
+
+                        request.id,
+
+                        request.material,
+
+                        request.weight,
+
+                        request.address
+
+                    );
+
+                }
+
+
+                updatePickupTracking(
+                    request.id,
+                    {
+                        status:
+                            status,
+
+                        actualWeight:
+                            request.finalWeight ||
+                            null,
+
+                        collectorAssigned:
+                            status !== "Pending"
+                                ? "Assigned Collector"
+                                : null,
+
+                        collectedAt:
+                            status === "Collected"
+                                ? new Date().toISOString()
+                                : null
+
+                    }
+                );
+
+            }
+        );
+
+    }
+
+
+    // -----------------------------------------------------
+    // HOUSEHOLD TRACKING CARD
+    // -----------------------------------------------------
+
+    function renderHouseholdPickupTracking() {
+
+        const dashboard =
+            document.getElementById(
+                "dashboard"
+            );
+
+
+        if (!dashboard) {
+            return;
+        }
+
+
+        let card =
+            document.getElementById(
+                "householdPickupTrackingCard"
+            );
+
+
+        if (!card) {
+
+            card =
+                document.createElement(
+                    "div"
+                );
+
+            card.id =
+                "householdPickupTrackingCard";
+
+            dashboard.appendChild(
+                card
+            );
+
+        }
+
+
+        const records =
+            getPickupTracking();
+
+
+        if (!records.length) {
+
+            card.innerHTML = `
+
+                <div style="
+                    background:#fff;
+                    border-radius:18px;
+                    padding:24px;
+                    margin-top:24px;
+                    box-shadow:0 8px 24px rgba(0,0,0,.06);
+                ">
+
+                    <div style="
+                        display:flex;
+                        align-items:center;
+                        gap:12px;
+                    ">
+
+                        <div style="
+                            width:44px;
+                            height:44px;
+                            border-radius:12px;
+                            background:#ecfdf5;
+                            display:flex;
+                            align-items:center;
+                            justify-content:center;
+                            font-size:22px;
+                        ">
+                            🚚
+                        </div>
+
+                        <div>
+
+                            <h3 style="
+                                margin:0;
+                            ">
+                                My Pickup Tracking
+                            </h3>
+
+                            <p style="
+                                margin:4px 0 0;
+                                color:#6b7280;
+                                font-size:13px;
+                            ">
+                                Your pickup and recycling journey will appear here.
+                            </p>
+
+                        </div>
+
+                    </div>
+
+                    <div style="
+                        margin-top:20px;
+                        padding:24px;
+                        text-align:center;
+                        background:#f8fafc;
+                        border-radius:14px;
+                        color:#6b7280;
+                    ">
+                        📦 No pickup requests yet.
+                    </div>
+
+                </div>
+
+            `;
+
+            return;
+
+        }
+
+
+        card.innerHTML = `
+
+            <div style="
+                background:#fff;
+                border-radius:18px;
+                padding:24px;
+                margin-top:24px;
+                box-shadow:0 8px 24px rgba(0,0,0,.06);
+            ">
+
+                <div style="
+                    display:flex;
+                    justify-content:space-between;
+                    align-items:center;
+                    gap:12px;
+                    flex-wrap:wrap;
+                ">
+
+                    <div>
+
+                        <h3 style="
+                            margin:0;
+                        ">
+                            🚚 My Pickup Tracking
+                        </h3>
+
+                        <p style="
+                            margin:5px 0 0;
+                            color:#6b7280;
+                            font-size:13px;
+                        ">
+                            Track your waste from pickup to formal recycling.
+                        </p>
+
+                    </div>
+
+                    <div style="
+                        background:#ecfdf5;
+                        color:#047857;
+                        padding:7px 12px;
+                        border-radius:20px;
+                        font-size:12px;
+                        font-weight:700;
+                    ">
+                        ${records.length}
+                        Request${records.length !== 1 ? "s" : ""}
+                    </div>
+
+                </div>
+
+
+                <div style="
+                    margin-top:20px;
+                ">
+
+                    ${records.slice(0, 5).map(
+                        function (record) {
+
+                            return createTrackingHTML(
+                                record
+                            );
+
+                        }
+                    ).join("")}
+
+                </div>
+
+            </div>
+
+        `;
+
+    }
+
+
+    // -----------------------------------------------------
+    // CREATE TRACKING HTML
+    // -----------------------------------------------------
+
+    function createTrackingHTML(
+        record
+    ) {
+
+        const statusInfo =
+            PICKUP_STATUSES[
+                record.status
+            ] ||
+            PICKUP_STATUSES.Pending;
+
+
+        const steps = [
+
+            {
+                key: "Pending",
+                label: "Pickup Requested"
+            },
+
+            {
+                key: "Accepted",
+                label: "Collector Assigned"
+            },
+
+            {
+                key: "Collected",
+                label: "Material Collected"
+            },
+
+            {
+                key: "Recycling",
+                label: "Sent to Recycler"
+            },
+
+            {
+                key: "Completed",
+                label: "Recycling Completed"
+            }
+
+        ];
+
+
+        const currentIndex =
+            steps.findIndex(
+                step =>
+                    step.key ===
+                    record.status
+            );
+
+
+        return `
+
+            <div style="
+                border:1px solid #e5e7eb;
+                border-radius:16px;
+                padding:20px;
+                margin-bottom:16px;
+                background:#fff;
+            ">
+
+                <!-- TOP -->
+
+                <div style="
+                    display:flex;
+                    justify-content:space-between;
+                    align-items:flex-start;
+                    gap:15px;
+                    flex-wrap:wrap;
+                ">
+
+                    <div>
+
+                        <div style="
+                            font-size:17px;
+                            font-weight:800;
+                            color:#111827;
+                        ">
+                            ${record.material}
+                        </div>
+
+                        <div style="
+                            margin-top:5px;
+                            color:#6b7280;
+                            font-size:13px;
+                        ">
+                            Request ID:
+                            <strong>
+                                ${record.requestId}
+                            </strong>
+                        </div>
+
+                        <div style="
+                            margin-top:4px;
+                            color:#6b7280;
+                            font-size:13px;
+                        ">
+                            Weight:
+                            ${
+                                record.actualWeight
+                                ?
+                                Number(
+                                    record.actualWeight
+                                ).toFixed(2)
+                                :
+                                Number(
+                                    record.estimatedWeight
+                                ).toFixed(2)
+                            }
+                            kg
+                            ${
+                                record.actualWeight
+                                ?
+                                " • Actual"
+                                :
+                                " • Estimated"
+                            }
+                        </div>
+
+                    </div>
+
+
+                    <div style="
+                        background:${statusInfo.color}15;
+                        color:${statusInfo.color};
+                        padding:8px 12px;
+                        border-radius:20px;
+                        font-size:12px;
+                        font-weight:800;
+                    ">
+
+                        ${statusInfo.icon}
+                        ${statusInfo.label}
+
+                    </div>
+
+                </div>
+
+
+                <!-- ADDRESS -->
+
+                <div style="
+                    margin-top:14px;
+                    padding:12px;
+                    background:#f8fafc;
+                    border-radius:10px;
+                    color:#6b7280;
+                    font-size:13px;
+                ">
+
+                    📍 ${record.address || "Pickup address not available"}
+
+                </div>
+
+
+                <!-- TIMELINE -->
+
+                <div style="
+                    margin-top:22px;
+                ">
+
+                    ${steps.map(
+                        function (
+                            step,
+                            index
+                        ) {
+
+                            const completed =
+                                index <=
+                                currentIndex;
+
+                            const isCurrent =
+                                index ===
+                                currentIndex;
+
+
+                            return `
+
+                                <div style="
+                                    display:flex;
+                                    gap:12px;
+                                    min-height:42px;
+                                ">
+
+                                    <div style="
+                                        display:flex;
+                                        flex-direction:column;
+                                        align-items:center;
+                                        width:22px;
+                                    ">
+
+                                        <div style="
+                                            width:20px;
+                                            height:20px;
+                                            border-radius:50%;
+                                            display:flex;
+                                            align-items:center;
+                                            justify-content:center;
+                                            font-size:11px;
+                                            background:
+                                                ${
+                                                    completed
+                                                    ?
+                                                    statusInfo.color
+                                                    :
+                                                    "#e5e7eb"
+                                                };
+                                            color:
+                                                ${
+                                                    completed
+                                                    ?
+                                                    "#fff"
+                                                    :
+                                                    "#9ca3af"
+                                                };
+                                            font-weight:800;
+                                        ">
+
+                                            ${
+                                                completed
+                                                ?
+                                                "✓"
+                                                :
+                                                ""
+                                            }
+
+                                        </div>
+
+                                        ${
+                                            index <
+                                            steps.length - 1
+                                            ?
+
+                                            `
+                                                <div style="
+                                                    width:2px;
+                                                    flex:1;
+                                                    min-height:20px;
+                                                    background:
+                                                        ${
+                                                            index <
+                                                            currentIndex
+                                                            ?
+                                                            statusInfo.color
+                                                            :
+                                                            "#e5e7eb"
+                                                        };
+                                                "></div>
+                                            `
+
+                                            :
+                                            ""
+                                        }
+
+                                    </div>
+
+
+                                    <div style="
+                                        padding-bottom:12px;
+                                        font-size:13px;
+                                        font-weight:
+                                            ${
+                                                isCurrent
+                                                ?
+                                                "800"
+                                                :
+                                                "600"
+                                            };
+                                        color:
+                                            ${
+                                                completed
+                                                ?
+                                                "#111827"
+                                                :
+                                                "#9ca3af"
+                                            };
+                                    ">
+
+                                        ${step.label}
+
+                                        ${
+                                            isCurrent
+                                            ?
+
+                                            `
+                                                <div style="
+                                                    margin-top:3px;
+                                                    color:${statusInfo.color};
+                                                    font-size:11px;
+                                                    font-weight:600;
+                                                ">
+                                                    Current status
+                                                </div>
+                                            `
+
+                                            :
+                                            ""
+                                        }
+
+                                    </div>
+
+                                </div>
+
+                            `;
+
+                        }
+                    ).join("")}
+
+                </div>
+
+
+                <!-- STATUS MESSAGE -->
+
+                <div style="
+                    margin-top:8px;
+                    padding:14px;
+                    background:${statusInfo.color}10;
+                    border-radius:12px;
+                    color:${statusInfo.color};
+                    font-size:13px;
+                    font-weight:600;
+                ">
+
+                    ${statusInfo.icon}
+                    ${statusInfo.description}
+
+                </div>
+
+            </div>
+
+        `;
+
+    }
+
+
+    // -----------------------------------------------------
+    // PATCH PICKUP CREATION
+    // -----------------------------------------------------
+
+    const originalConfirmPickup =
+        window.confirmPickup;
+
+
+    window.confirmPickup =
+        async function () {
+
+            const beforeIds =
+                getPickupTracking()
+                    .map(
+                        item =>
+                            item.requestId
+                    );
+
+
+            if (
+                typeof originalConfirmPickup ===
+                "function"
+            ) {
+
+                await originalConfirmPickup();
+
+            }
+
+
+            // Find new request in collector queue
+            setTimeout(
+                function () {
+
+                    if (
+                        Array.isArray(
+                            window.collectorRequests
+                        )
+                    ) {
+
+                        const newRequest =
+                            window.collectorRequests.find(
+                                request =>
+                                    request &&
+                                    request.id &&
+                                    !beforeIds.includes(
+                                        request.id
+                                    )
+                            );
+
+
+                        if (newRequest) {
+
+                            createPickupTracking(
+
+                                newRequest.id,
+
+                                newRequest.material,
+
+                                newRequest.weight,
+
+                                newRequest.address
+
+                            );
+
+
+                            renderHouseholdPickupTracking();
+
+                            showToast(
+                                "🚚 Pickup tracking activated."
+                            );
+
+                        }
+
+                    }
+
+                },
+                300
+            );
+
+        };
+
+
+    // -----------------------------------------------------
+    // PATCH ACCEPT PICKUP
+    // -----------------------------------------------------
+
+    const originalAcceptPickup =
+        window.acceptCollectorRequest;
+
+
+    window.acceptCollectorRequest =
+        function (requestId) {
+
+            if (
+                typeof originalAcceptPickup ===
+                "function"
+            ) {
+
+                originalAcceptPickup(
+                    requestId
+                );
+
+            }
+
+
+            setTimeout(
+                function () {
+
+                    const request =
+                        Array.isArray(
+                            window.collectorRequests
+                        )
+                        ?
+                        window.collectorRequests.find(
+                            item =>
+                                item.id ===
+                                requestId
+                        )
+                        :
+                        null;
+
+
+                    updatePickupTracking(
+
+                        requestId,
+
+                        {
+
+                            status:
+                                "Accepted",
+
+                            collectorAssigned:
+                                "Assigned Collector",
+
+                            collectorAssignedAt:
+                                new Date().toISOString(),
+
+                            actualWeight:
+                                null
+
+                        }
+
+                    );
+
+                },
+                200
+            );
+
+        };
+
+
+    // -----------------------------------------------------
+    // PATCH COLLECTION COMPLETION
+    // -----------------------------------------------------
+
+    const originalCompleteCollection =
+        window.completeCollectorCollection;
+
+
+    window.completeCollectorCollection =
+        function () {
+
+            const request =
+                window.activeCollectorRequest ||
+                null;
+
+
+            const requestId =
+                request
+                ?
+                request.id
+                :
+                null;
+
+
+            if (
+                typeof originalCompleteCollection ===
+                "function"
+            ) {
+
+                originalCompleteCollection();
+
+            }
+
+
+            setTimeout(
+                function () {
+
+                    if (!requestId) {
+                        return;
+                    }
+
+
+                    const tracking =
+                        getPickupTracking()
+                            .find(
+                                item =>
+                                    item.requestId ===
+                                    requestId
+                            );
+
+
+                    if (!tracking) {
+                        return;
+                    }
+
+
+                    const collectorRequest =
+                        Array.isArray(
+                            window.collectorRequests
+                        )
+                        ?
+                        window.collectorRequests.find(
+                            item =>
+                                item.id ===
+                                requestId
+                        )
+                        :
+                        null;
+
+
+                    updatePickupTracking(
+
+                        requestId,
+
+                        {
+
+                            status:
+                                "Collected",
+
+                            actualWeight:
+                                collectorRequest
+                                &&
+                                collectorRequest.finalWeight
+                                ?
+                                Number(
+                                    collectorRequest.finalWeight
+                                )
+                                :
+                                tracking.estimatedWeight,
+
+                            collectedAt:
+                                new Date().toISOString()
+
+                        }
+
+                    );
+
+                },
+                400
+            );
+
+        };
+
+
+    // -----------------------------------------------------
+    // RECYCLER STATUS
+    // -----------------------------------------------------
+
+    window.markPickupSentToRecycler =
+        function (
+            requestId,
+            recyclerName
+        ) {
+
+            updatePickupTracking(
+
+                requestId,
+
+                {
+
+                    status:
+                        "Recycling",
+
+                    recycler:
+                        recyclerName ||
+                        "Authorized Recycler"
+
+                }
+
+            );
+
+
+            showToast(
+                "♻️ Material marked as sent to recycler."
+            );
+
+        };
+
+
+    // -----------------------------------------------------
+    // COMPLETED STATUS
+    // -----------------------------------------------------
+
+    window.markPickupRecyclingCompleted =
+        function (
+            requestId
+        ) {
+
+            updatePickupTracking(
+
+                requestId,
+
+                {
+
+                    status:
+                        "Completed",
+
+                    recyclingCompletedAt:
+                        new Date().toISOString()
+
+                }
+
+            );
+
+
+            showToast(
+                "🎉 Recycling journey completed."
+            );
+
+        };
+
+
+    // -----------------------------------------------------
+    // ROLE-AWARE RENDER
+    // -----------------------------------------------------
+
+    function renderTrackingIfHousehold() {
+
+        if (
+            window.kabadiCurrentRole ===
+            "collector"
+        ) {
+
+            return;
+
+        }
+
+
+        renderHouseholdPickupTracking();
+
+    }
+
+
+    // -----------------------------------------------------
+    // INITIAL LOAD
+    // -----------------------------------------------------
+
+    setTimeout(
+        function () {
+
+            syncExistingRequests();
+
+            renderTrackingIfHousehold();
+
+        },
+        800
+    );
+
+
+    // -----------------------------------------------------
+    // AUTO REFRESH
+    // -----------------------------------------------------
+
+    setInterval(
+        function () {
+
+            if (
+                window.kabadiCurrentRole !==
+                "collector"
+            ) {
+
+                renderHouseholdPickupTracking();
+
+            }
+
+        },
+        2000
+    );
+
+
+    // -----------------------------------------------------
+    // PUBLIC FUNCTIONS
+    // -----------------------------------------------------
+
+    window.createPickupTracking =
+        createPickupTracking;
+
+    window.updatePickupTracking =
+        updatePickupTracking;
+
+    window.renderHouseholdPickupTracking =
+        renderHouseholdPickupTracking;
+
+    window.getPickupTracking =
+        getPickupTracking;
+
+
+    console.log(
+        "✅ STEP 7 READY - HOUSEHOLD PICKUP TRACKING"
+    );
+
+})();
+
+// ============================================================
+// STEP 9
+// HOUSEHOLD ↔ WASTE JOURNEY INTEGRATION
+// ============================================================
+
+(function () {
+
+    console.log("🚀 STEP 9 - Household/Waste Journey Integration Loaded");
+
+    // --------------------------------------------------------
+    // FIND MATCHING WASTE JOURNEY
+    // --------------------------------------------------------
+
+    function findJourneyForPickup(requestId, material, weight) {
+
+        if (
+            typeof wasteJourneyTransactions === "undefined" ||
+            !Array.isArray(wasteJourneyTransactions)
+        ) {
+            return null;
+        }
+
+        // 1. Match by pickup request ID
+        let journey =
+            wasteJourneyTransactions.find(function (item) {
+
+                return (
+                    item &&
+                    (
+                        item.pickupRequestId === requestId ||
+                        item.requestId === requestId
+                    )
+                );
+
+            });
+
+        if (journey) {
+            return journey;
+        }
+
+        // 2. Match by material + weight
+        journey =
+            [...wasteJourneyTransactions]
+                .reverse()
+                .find(function (item) {
+
+                    if (!item) {
+                        return false;
+                    }
+
+                    const sameMaterial =
+                        String(item.material || "")
+                            .toLowerCase() ===
+                        String(material || "")
+                            .toLowerCase();
+
+                    const journeyWeight =
+                        Number(
+                            item.actualWeight ||
+                            item.estimatedWeight ||
+                            item.finalWeight ||
+                            0
+                        );
+
+                    const requestedWeight =
+                        Number(weight || 0);
+
+                    return (
+                        sameMaterial &&
+                        requestedWeight > 0 &&
+                        Math.abs(
+                            journeyWeight -
+                            requestedWeight
+                        ) < 0.01
+                    );
+
+                });
+
+        return journey || null;
+
+    }
+
+
+    // --------------------------------------------------------
+    // LINK PICKUP TO JOURNEY
+    // --------------------------------------------------------
+
+    function linkPickupToJourney(
+        requestId,
+        material,
+        weight
+    ) {
+
+        const journey =
+            findJourneyForPickup(
+                requestId,
+                material,
+                weight
+            );
+
+        if (!journey) {
+
+            console.warn(
+                "STEP 9: No matching waste journey found.",
+                requestId
+            );
+
+            return null;
+
+        }
+
+
+        journey.pickupRequestId =
+            requestId;
+
+        journey.pickupTrackingLinked =
+            true;
+
+        journey.pickupLinkedAt =
+            new Date().toLocaleString();
+
+
+        if (
+            typeof saveWasteJourneyTransactions ===
+            "function"
+        ) {
+
+            try {
+
+                saveWasteJourneyTransactions();
+
+            } catch (error) {
+
+                console.warn(
+                    "STEP 9: Could not save journey using existing save function.",
+                    error
+                );
+
+            }
+
+        }
+
+
+        console.log(
+            "🔗 Pickup linked with waste journey:",
+            journey.id
+        );
+
+
+        return journey;
+
+    }
+
+
+    // --------------------------------------------------------
+    // UPDATE HOUSEHOLD PICKUP FROM WASTE JOURNEY
+    // --------------------------------------------------------
+
+    function syncPickupFromJourney(
+        journey
+    ) {
+
+        if (!journey) {
+            return;
+        }
+
+
+        const requestId =
+            journey.pickupRequestId ||
+            journey.requestId;
+
+
+        if (!requestId) {
+            return;
+        }
+
+
+        if (
+            typeof updatePickupTracking !==
+            "function"
+        ) {
+            return;
+        }
+
+
+        let status =
+            "Pending";
+
+
+        // ----------------------------------------------------
+        // JOURNEY STATUS → PICKUP STATUS
+        // ----------------------------------------------------
+
+        const journeyStatus =
+            String(
+                journey.status || ""
+            ).toLowerCase();
+
+
+        if (
+            journeyStatus.includes(
+                "recycling completed"
+            )
+        ) {
+
+            status =
+                "Completed";
+
+        }
+
+        else if (
+            journeyStatus.includes(
+                "recycler confirmed"
+            )
+        ) {
+
+            status =
+                "Recycling";
+
+        }
+
+        else if (
+            journeyStatus.includes(
+                "handover prepared"
+            )
+        ) {
+
+            status =
+                "Recycling";
+
+        }
+
+        else if (
+            journeyStatus.includes(
+                "recycler selected"
+            )
+        ) {
+
+            status =
+                "Recycling";
+
+        }
+
+        else if (
+            journeyStatus.includes(
+                "physical"
+            ) ||
+            journeyStatus.includes(
+                "collected"
+            ) ||
+            journeyStatus.includes(
+                "payment"
+            )
+        ) {
+
+            status =
+                "Collected";
+
+        }
+
+        else if (
+            journeyStatus.includes(
+                "collector"
+            )
+        ) {
+
+            status =
+                "Accepted";
+
+        }
+
+
+        const actualWeight =
+            Number(
+                journey.finalWeight ||
+                journey.actualWeight ||
+                0
+            );
+
+
+        const recyclerName =
+            journey.finalRecycler?.name ||
+            journey.recycler?.name ||
+            journey.handoverRecycler?.name ||
+            null;
+
+
+        updatePickupTracking(
+
+            requestId,
+
+            {
+
+                status:
+                    status,
+
+                actualWeight:
+                    actualWeight > 0
+                    ? actualWeight
+                    : null,
+
+                recycler:
+                    recyclerName,
+
+                recyclingCompletedAt:
+                    status === "Completed"
+                    ?
+                    (
+                        journey.recyclingCompletedAt ||
+                        new Date().toLocaleString()
+                    )
+                    :
+                    null
+
+            }
+
+        );
+
+
+        console.log(
+            "🔄 Pickup tracking synchronized:",
+            requestId,
+            "→",
+            status
+        );
+
+    }
+
+
+    // --------------------------------------------------------
+    // WRAP WASTE JOURNEY STEP COMPLETION
+    // --------------------------------------------------------
+
+    if (
+        typeof window.completeWasteJourneyStep ===
+        "function"
+    ) {
+
+        const originalCompleteStep =
+            window.completeWasteJourneyStep;
+
+
+        window.completeWasteJourneyStep =
+            function (
+                journey,
+                stepKey,
+                extraData
+            ) {
+
+                const result =
+                    originalCompleteStep.apply(
+                        this,
+                        arguments
+                    );
+
+
+                try {
+
+                    if (journey) {
+
+                        syncPickupFromJourney(
+                            journey
+                        );
+
+                    }
+
+                }
+
+                catch (error) {
+
+                    console.warn(
+                        "STEP 9 sync error:",
+                        error
+                    );
+
+                }
+
+
+                return result;
+
+            };
+
+    }
+
+
+    // --------------------------------------------------------
+    // SYNC ALL JOURNEYS
+    // --------------------------------------------------------
+
+    function syncAllJourneys() {
+
+        if (
+            typeof wasteJourneyTransactions ===
+            "undefined"
+        ) {
+            return;
+        }
+
+
+        if (
+            !Array.isArray(
+                wasteJourneyTransactions
+            )
+        ) {
+            return;
+        }
+
+
+        wasteJourneyTransactions.forEach(
+            function (journey) {
+
+                syncPickupFromJourney(
+                    journey
+                );
+
+            }
+        );
+
+    }
+
+
+    // --------------------------------------------------------
+    // ENHANCED HOUSEHOLD STATUS CARD
+    // --------------------------------------------------------
+
+    function addJourneyStatusToTracking() {
+
+        const records =
+            typeof getPickupTracking ===
+            "function"
+            ?
+            getPickupTracking()
+            :
+            [];
+
+
+        records.forEach(
+            function (record) {
+
+                if (!record) {
+                    return;
+                }
+
+
+                const journey =
+                    findJourneyForPickup(
+
+                        record.requestId,
+
+                        record.material,
+
+                        record.actualWeight ||
+                        record.estimatedWeight
+
+                    );
+
+
+                if (!journey) {
+                    return;
+                }
+
+
+                syncPickupFromJourney(
+                    journey
+                );
+
+            }
+        );
+
+    }
+
+
+    // --------------------------------------------------------
+    // LINK EXISTING PICKUPS
+    // --------------------------------------------------------
+
+    function linkExistingPickups() {
+
+        if (
+            typeof getPickupTracking !==
+            "function"
+        ) {
+            return;
+        }
+
+
+        if (
+            typeof wasteJourneyTransactions ===
+            "undefined"
+        ) {
+            return;
+        }
+
+
+        const pickups =
+            getPickupTracking();
+
+
+        pickups.forEach(
+            function (pickup) {
+
+                if (!pickup) {
+                    return;
+                }
+
+
+                const journey =
+                    findJourneyForPickup(
+
+                        pickup.requestId,
+
+                        pickup.material,
+
+                        pickup.actualWeight ||
+                        pickup.estimatedWeight
+
+                    );
+
+
+                if (journey) {
+
+                    journey.pickupRequestId =
+                        pickup.requestId;
+
+                    journey.pickupTrackingLinked =
+                        true;
+
+                }
+
+            }
+        );
+
+
+        try {
+
+            if (
+                typeof saveWasteJourneyTransactions ===
+                "function"
+            ) {
+
+                saveWasteJourneyTransactions();
+
+            }
+
+        } catch (error) {
+
+            console.warn(
+                "STEP 9: Journey save skipped."
+            );
+
+        }
+
+    }
+
+
+    // --------------------------------------------------------
+    // HOUSEHOLD DASHBOARD REFRESH
+    // --------------------------------------------------------
+
+    function refreshHouseholdIntegration() {
+
+        if (
+            window.kabadiCurrentRole ===
+            "collector"
+        ) {
+            return;
+        }
+
+
+        syncAllJourneys();
+
+        linkExistingPickups();
+
+        addJourneyStatusToTracking();
+
+
+        if (
+            typeof renderHouseholdPickupTracking ===
+            "function"
+        ) {
+
+            renderHouseholdPickupTracking();
+
+        }
+
+    }
+
+
+    // --------------------------------------------------------
+    // AUTO REFRESH
+    // --------------------------------------------------------
+
+    setTimeout(
+        function () {
+
+            refreshHouseholdIntegration();
+
+        },
+        1200
+    );
+
+
+    setInterval(
+        function () {
+
+            refreshHouseholdIntegration();
+
+        },
+        2000
+    );
+
+
+    // --------------------------------------------------------
+    // PUBLIC FUNCTIONS
+    // --------------------------------------------------------
+
+    window.findJourneyForPickup =
+        findJourneyForPickup;
+
+    window.linkPickupToJourney =
+        linkPickupToJourney;
+
+    window.syncPickupFromJourney =
+        syncPickupFromJourney;
+
+    window.refreshHouseholdIntegration =
+        refreshHouseholdIntegration;
+
+
+    console.log(
+        "✅ STEP 9 COMPLETE - Household and Waste Journey connected."
+    );
+
+})();
+
+// ============================================================
+// STEP 10
+// JUDGE-READY DASHBOARD UI POLISH
+// ============================================================
+
+(function () {
+
+    console.log("🎨 STEP 10 - Judge Ready UI Loaded");
+
+
+    // ========================================================
+    // GLOBAL POLISH STYLES
+    // ========================================================
+
+    function injectJudgeStyles() {
+
+        if (
+            document.getElementById(
+                "kabadiJudgeStyles"
+            )
+        ) {
+            return;
+        }
+
+
+        const style =
+            document.createElement("style");
+
+
+        style.id =
+            "kabadiJudgeStyles";
+
+
+        style.innerHTML = `
+
+            /* -----------------------------------------------
+               CARDS
+            ------------------------------------------------ */
+
+            .ks-polish-card {
+
+                background:#ffffff;
+
+                border:
+                    1px solid #e5e7eb;
+
+                border-radius:
+                    18px;
+
+                padding:
+                    22px;
+
+                box-shadow:
+                    0 8px 24px rgba(0,0,0,.05);
+
+                transition:
+                    transform .2s ease,
+                    box-shadow .2s ease;
+
+            }
+
+
+            .ks-polish-card:hover {
+
+                transform:
+                    translateY(-2px);
+
+                box-shadow:
+                    0 12px 30px rgba(0,0,0,.08);
+
+            }
+
+
+            /* -----------------------------------------------
+               KPI
+            ------------------------------------------------ */
+
+            .ks-kpi-grid {
+
+                display:grid;
+
+                grid-template-columns:
+                    repeat(4,minmax(0,1fr));
+
+                gap:16px;
+
+                margin:
+                    20px 0;
+
+            }
+
+
+            .ks-kpi {
+
+                background:#ffffff;
+
+                border:
+                    1px solid #e5e7eb;
+
+                border-radius:16px;
+
+                padding:18px;
+
+                position:relative;
+
+                overflow:hidden;
+
+            }
+
+
+            .ks-kpi-icon {
+
+                width:42px;
+
+                height:42px;
+
+                border-radius:12px;
+
+                display:flex;
+
+                align-items:center;
+
+                justify-content:center;
+
+                background:#ecfdf5;
+
+                font-size:21px;
+
+                margin-bottom:12px;
+
+            }
+
+
+            .ks-kpi-label {
+
+                color:#6b7280;
+
+                font-size:12px;
+
+                font-weight:600;
+
+            }
+
+
+            .ks-kpi-value {
+
+                font-size:25px;
+
+                font-weight:800;
+
+                color:#111827;
+
+                margin-top:4px;
+
+            }
+
+
+            /* -----------------------------------------------
+               STATUS
+            ------------------------------------------------ */
+
+            .ks-status {
+
+                display:inline-flex;
+
+                align-items:center;
+
+                gap:6px;
+
+                padding:
+                    6px 10px;
+
+                border-radius:20px;
+
+                font-size:11px;
+
+                font-weight:800;
+
+            }
+
+
+            .ks-status-success {
+
+                background:#dcfce7;
+
+                color:#166534;
+
+            }
+
+
+            .ks-status-warning {
+
+                background:#fef3c7;
+
+                color:#92400e;
+
+            }
+
+
+            .ks-status-info {
+
+                background:#dbeafe;
+
+                color:#1e40af;
+
+            }
+
+
+            /* -----------------------------------------------
+               HERO
+            ------------------------------------------------ */
+
+            .ks-hero {
+
+                background:
+                    linear-gradient(
+                        135deg,
+                        #047857,
+                        #10b981
+                    );
+
+                color:white;
+
+                border-radius:22px;
+
+                padding:28px;
+
+                position:relative;
+
+                overflow:hidden;
+
+                margin-bottom:20px;
+
+                box-shadow:
+                    0 12px 30px rgba(16,185,129,.18);
+
+            }
+
+
+            .ks-hero::after {
+
+                content:"";
+
+                position:absolute;
+
+                width:180px;
+
+                height:180px;
+
+                border-radius:50%;
+
+                right:-60px;
+
+                top:-80px;
+
+                background:
+                    rgba(255,255,255,.10);
+
+            }
+
+
+            .ks-hero h2 {
+
+                margin:0;
+
+                font-size:27px;
+
+                position:relative;
+
+                z-index:2;
+
+            }
+
+
+            .ks-hero p {
+
+                margin:
+                    7px 0 0;
+
+                opacity:.88;
+
+                position:relative;
+
+                z-index:2;
+
+            }
+
+
+            /* -----------------------------------------------
+               JOURNEY
+            ------------------------------------------------ */
+
+            .ks-journey-line {
+
+                display:flex;
+
+                align-items:center;
+
+                gap:0;
+
+                margin-top:20px;
+
+                overflow-x:auto;
+
+                padding-bottom:8px;
+
+            }
+
+
+            .ks-journey-step {
+
+                display:flex;
+
+                flex-direction:column;
+
+                align-items:center;
+
+                min-width:105px;
+
+                text-align:center;
+
+                font-size:11px;
+
+                font-weight:700;
+
+                color:#9ca3af;
+
+            }
+
+
+            .ks-journey-dot {
+
+                width:30px;
+
+                height:30px;
+
+                border-radius:50%;
+
+                display:flex;
+
+                align-items:center;
+
+                justify-content:center;
+
+                background:#e5e7eb;
+
+                color:#9ca3af;
+
+                margin-bottom:7px;
+
+                font-weight:800;
+
+            }
+
+
+            .ks-journey-step.active {
+
+                color:#047857;
+
+            }
+
+
+            .ks-journey-step.active
+            .ks-journey-dot {
+
+                background:#10b981;
+
+                color:white;
+
+            }
+
+
+            .ks-journey-connector {
+
+                width:45px;
+
+                height:3px;
+
+                background:#e5e7eb;
+
+                flex-shrink:0;
+
+                margin-top:-24px;
+
+            }
+
+
+            /* -----------------------------------------------
+               MOBILE
+            ------------------------------------------------ */
+
+            @media(max-width:850px) {
+
+                .ks-kpi-grid {
+
+                    grid-template-columns:
+                        repeat(2,minmax(0,1fr));
+
+                }
+
+            }
+
+
+            @media(max-width:500px) {
+
+                .ks-kpi-grid {
+
+                    grid-template-columns:1fr;
+
+                }
+
+
+                .ks-hero {
+
+                    padding:22px;
+
+                }
+
+            }
+
+        `;
+
+
+        document.head.appendChild(
+            style
+        );
+
+    }
+
+
+    // ========================================================
+    // HOUSEHOLD KPI DATA
+    // ========================================================
+
+    function getHouseholdKPIs() {
+
+        let journeys = [];
+
+
+        try {
+
+            if (
+                typeof wasteJourneyTransactions !==
+                "undefined" &&
+                Array.isArray(
+                    wasteJourneyTransactions
+                )
+            ) {
+
+                journeys =
+                    wasteJourneyTransactions;
+
+            }
+
+        } catch (error) {}
+
+
+        let totalWeight = 0;
+
+        let completed = 0;
+
+        let active = 0;
+
+
+        journeys.forEach(
+            function (journey) {
+
+                if (!journey) {
+                    return;
+                }
+
+
+                totalWeight +=
+                    Number(
+                        journey.finalWeight ||
+                        journey.actualWeight ||
+                        journey.estimatedWeight ||
+                        0
+                    );
+
+
+                if (
+                    journey.status ===
+                    "Recycling Completed"
+                ) {
+
+                    completed++;
+
+                } else {
+
+                    active++;
+
+                }
+
+            }
+        );
+
+
+        return {
+
+            total:
+                journeys.length,
+
+            weight:
+                totalWeight,
+
+            completed:
+                completed,
+
+            active:
+                active
+
+        };
+
+    }
+
+
+    // ========================================================
+    // HOUSEHOLD KPI CARD
+    // ========================================================
+
+    function renderHouseholdKPIs() {
+
+        if (
+            window.kabadiCurrentRole ===
+            "collector"
+        ) {
+            return;
+        }
+
+
+        const dashboard =
+            document.getElementById(
+                "dashboard"
+            );
+
+
+        if (!dashboard) {
+            return;
+        }
+
+
+        let card =
+            document.getElementById(
+                "householdJudgeKPI"
+            );
+
+
+        if (!card) {
+
+            card =
+                document.createElement(
+                    "div"
+                );
+
+            card.id =
+                "householdJudgeKPI";
+
+            dashboard.prepend(
+                card
+            );
+
+        }
+
+
+        const data =
+            getHouseholdKPIs();
+
+
+        card.innerHTML = `
+
+            <div class="ks-kpi-grid">
+
+                <div class="ks-kpi">
+
+                    <div class="ks-kpi-icon">
+                        📦
+                    </div>
+
+                    <div class="ks-kpi-label">
+                        Waste Requests
+                    </div>
+
+                    <div class="ks-kpi-value">
+                        ${data.total}
+                    </div>
+
+                </div>
+
+
+                <div class="ks-kpi">
+
+                    <div class="ks-kpi-icon">
+                        ⚖️
+                    </div>
+
+                    <div class="ks-kpi-label">
+                        Waste Collected
+                    </div>
+
+                    <div class="ks-kpi-value">
+                        ${data.weight.toFixed(1)} kg
+                    </div>
+
+                </div>
+
+
+                <div class="ks-kpi">
+
+                    <div class="ks-kpi-icon">
+                        🚚
+                    </div>
+
+                    <div class="ks-kpi-label">
+                        Active Journeys
+                    </div>
+
+                    <div class="ks-kpi-value">
+                        ${data.active}
+                    </div>
+
+                </div>
+
+
+                <div class="ks-kpi">
+
+                    <div class="ks-kpi-icon">
+                        ♻️
+                    </div>
+
+                    <div class="ks-kpi-label">
+                        Recycled
+                    </div>
+
+                    <div class="ks-kpi-value">
+                        ${data.completed}
+                    </div>
+
+                </div>
+
+            </div>
+
+        `;
+
+    }
+
+
+    // ========================================================
+    // HOUSEHOLD HERO
+    // ========================================================
+
+    function renderHouseholdHero() {
+
+        if (
+            window.kabadiCurrentRole ===
+            "collector"
+        ) {
+            return;
+        }
+
+
+        const dashboard =
+            document.getElementById(
+                "dashboard"
+            );
+
+
+        if (!dashboard) {
+            return;
+        }
+
+
+        let hero =
+            document.getElementById(
+                "householdJudgeHero"
+            );
+
+
+        if (!hero) {
+
+            hero =
+                document.createElement(
+                    "div"
+                );
+
+            hero.id =
+                "householdJudgeHero";
+
+            dashboard.prepend(
+                hero
+            );
+
+        }
+
+
+        hero.className =
+            "ks-hero";
+
+
+        hero.innerHTML = `
+
+            <h2>
+                ♻️ Give Your Waste a Second Life
+            </h2>
+
+            <p>
+                Identify waste with AI, request a pickup,
+                and track it until formal recycling.
+            </p>
+
+        `;
+
+    }
+
+
+    // ========================================================
+    // COLLECTOR KPI DATA
+    // ========================================================
+
+    function getCollectorKPIs() {
+
+        let inventory = [];
+
+        let sales = [];
+
+        try {
+
+            inventory =
+                JSON.parse(
+                    localStorage.getItem(
+                        "kabadiSetuCollectorInventory"
+                    )
+                ) || [];
+
+        } catch (error) {}
+
+
+        try {
+
+            sales =
+                JSON.parse(
+                    localStorage.getItem(
+                        "kabadiSetuCollectorSales"
+                    )
+                ) || [];
+
+        } catch (error) {}
+
+
+        let inventoryWeight = 0;
+
+        let inventoryValue = 0;
+
+
+        inventory.forEach(
+            function (item) {
+
+                if (!item) {
+                    return;
+                }
+
+
+                const weight =
+                    Number(
+                        item.weight ||
+                        item.physicalWeight ||
+                        0
+                    );
+
+
+                const rate =
+                    Number(
+                        item.rate ||
+                        item.indicativeRate ||
+                        0
+                    );
+
+
+                inventoryWeight +=
+                    weight;
+
+
+                inventoryValue +=
+                    weight * rate;
+
+            }
+        );
+
+
+        let totalSales = 0;
+
+        let soldWeight = 0;
+
+
+        sales.forEach(
+            function (sale) {
+
+                if (!sale) {
+                    return;
+                }
+
+
+                if (
+                    sale.status ===
+                    "Completed"
+                ) {
+
+                    totalSales++;
+
+                    soldWeight +=
+                        Number(
+                            sale.weight ||
+                            0
+                        );
+
+                }
+
+            }
+        );
+
+
+        return {
+
+            inventoryWeight:
+                inventoryWeight,
+
+            inventoryValue:
+                inventoryValue,
+
+            totalSales:
+                totalSales,
+
+            soldWeight:
+                soldWeight
+
+        };
+
+    }
+
+
+    // ========================================================
+    // COLLECTOR KPI CARD
+    // ========================================================
+
+    function renderCollectorKPIs() {
+
+        if (
+            window.kabadiCurrentRole !==
+            "collector"
+        ) {
+            return;
+        }
+
+
+        const section =
+            document.getElementById(
+                "inventory"
+            );
+
+
+        if (!section) {
+            return;
+        }
+
+
+        let card =
+            document.getElementById(
+                "collectorJudgeKPI"
+            );
+
+
+        if (!card) {
+
+            card =
+                document.createElement(
+                    "div"
+                );
+
+            card.id =
+                "collectorJudgeKPI";
+
+            section.prepend(
+                card
+            );
+
+        }
+
+
+        const data =
+            getCollectorKPIs();
+
+
+        card.innerHTML = `
+
+            <div class="ks-kpi-grid">
+
+                <div class="ks-kpi">
+
+                    <div class="ks-kpi-icon">
+                        📦
+                    </div>
+
+                    <div class="ks-kpi-label">
+                        Inventory
+                    </div>
+
+                    <div class="ks-kpi-value">
+                        ${data.inventoryWeight.toFixed(1)} kg
+                    </div>
+
+                </div>
+
+
+                <div class="ks-kpi">
+
+                    <div class="ks-kpi-icon">
+                        💰
+                    </div>
+
+                    <div class="ks-kpi-label">
+                        Inventory Value
+                    </div>
+
+                    <div class="ks-kpi-value">
+                        ₹${data.inventoryValue.toFixed(0)}
+                    </div>
+
+                </div>
+
+
+                <div class="ks-kpi">
+
+                    <div class="ks-kpi-icon">
+                        🚚
+                    </div>
+
+                    <div class="ks-kpi-label">
+                        Completed Sales
+                    </div>
+
+                    <div class="ks-kpi-value">
+                        ${data.totalSales}
+                    </div>
+
+                </div>
+
+
+                <div class="ks-kpi">
+
+                    <div class="ks-kpi-icon">
+                        ⚖️
+                    </div>
+
+                    <div class="ks-kpi-label">
+                        Material Sold
+                    </div>
+
+                    <div class="ks-kpi-value">
+                        ${data.soldWeight.toFixed(1)} kg
+                    </div>
+
+                </div>
+
+            </div>
+
+        `;
+
+    }
+
+
+    // ========================================================
+    // COLLECTOR HERO
+    // ========================================================
+
+    function renderCollectorHero() {
+
+        if (
+            window.kabadiCurrentRole !==
+            "collector"
+        ) {
+            return;
+        }
+
+
+        const section =
+            document.getElementById(
+                "inventory"
+            );
+
+
+        if (!section) {
+            return;
+        }
+
+
+        let hero =
+            document.getElementById(
+                "collectorJudgeHero"
+            );
+
+
+        if (!hero) {
+
+            hero =
+                document.createElement(
+                    "div"
+                );
+
+            hero.id =
+                "collectorJudgeHero";
+
+            section.prepend(
+                hero
+            );
+
+        }
+
+
+        hero.className =
+            "ks-hero";
+
+
+        hero.innerHTML = `
+
+            <h2>
+                🚚 Collector Dashboard
+            </h2>
+
+            <p>
+                Manage household pickups, build inventory,
+                compare recycler rates and maximize your earnings.
+            </p>
+
+        `;
+
+    }
+
+
+    // ========================================================
+    // RECYCLING JOURNEY VISUAL
+    // ========================================================
+
+    function renderJourneyVisual(
+        container,
+        currentStatus
+    ) {
+
+        if (!container) {
+            return;
+        }
+
+
+        const steps = [
+
+            {
+                key:"requested",
+                label:"Pickup Requested",
+                icon:"📦"
+            },
+
+            {
+                key:"collector",
+                label:"Collector Assigned",
+                icon:"🚚"
+            },
+
+            {
+                key:"collected",
+                label:"Material Collected",
+                icon:"⚖️"
+            },
+
+            {
+                key:"recycler",
+                label:"Recycler Handover",
+                icon:"🏭"
+            },
+
+            {
+                key:"completed",
+                label:"Recycling Completed",
+                icon:"♻️"
+            }
+
+        ];
+
+
+        let current = 0;
+
+
+        const status =
+            String(
+                currentStatus || ""
+            ).toLowerCase();
+
+
+        if (
+            status.includes(
+                "collector"
+            )
+        ) {
+            current = 1;
+        }
+
+
+        if (
+            status.includes(
+                "collected"
+            ) ||
+            status.includes(
+                "physical"
+            )
+        ) {
+            current = 2;
+        }
+
+
+        if (
+            status.includes(
+                "recycler"
+            ) ||
+            status.includes(
+                "handover"
+            )
+        ) {
+            current = 3;
+        }
+
+
+        if (
+            status.includes(
+                "completed"
+            )
+        ) {
+            current = 4;
+        }
+
+
+        container.innerHTML = `
+
+            <div class="ks-journey-line">
+
+                ${steps.map(
+                    function(step,index) {
+
+                        return `
+
+                            <div class="
+                                ks-journey-step
+                                ${
+                                    index <= current
+                                    ? "active"
+                                    : ""
+                                }
+                            ">
+
+                                <div class="
+                                    ks-journey-dot
+                                ">
+                                    ${
+                                        index <= current
+                                        ? "✓"
+                                        : step.icon
+                                    }
+                                </div>
+
+                                ${step.label}
+
+                            </div>
+
+                            ${
+                                index <
+                                steps.length - 1
+
+                                ?
+
+                                `
+                                    <div class="
+                                        ks-journey-connector
+                                    "
+                                    style="
+                                        background:
+                                        ${
+                                            index <
+                                            current
+                                            ?
+                                            "#10b981"
+                                            :
+                                            "#e5e7eb"
+                                        };
+                                    ">
+                                    </div>
+                                `
+
+                                :
+                                ""
+                            }
+
+                        `;
+
+                    }
+                ).join("")}
+
+            </div>
+
+        `;
+
+    }
+
+
+    // ========================================================
+    // MASTER RENDER
+    // ========================================================
+
+    function renderJudgeReadyUI() {
+
+        injectJudgeStyles();
+
+
+        if (
+            window.kabadiCurrentRole ===
+            "collector"
+        ) {
+
+            renderCollectorHero();
+
+            renderCollectorKPIs();
+
+        }
+
+        else {
+
+            renderHouseholdHero();
+
+            renderHouseholdKPIs();
+
+        }
+
+    }
+
+
+    // ========================================================
+    // REFRESH
+    // ========================================================
+
+    setTimeout(
+        function () {
+
+            renderJudgeReadyUI();
+
+        },
+        1000
+    );
+
+
+    setInterval(
+        function () {
+
+            renderJudgeReadyUI();
+
+        },
+        2500
+    );
+
+
+    // ========================================================
+    // ROLE SWITCH HOOK
+    // ========================================================
+
+    const originalSwitchRole =
+        window.switchRole;
+
+
+    if (
+        typeof originalSwitchRole ===
+        "function"
+    ) {
+
+        window.switchRole =
+            function(role) {
+
+                originalSwitchRole(
+                    role
+                );
+
+
+                setTimeout(
+                    function() {
+
+                        renderJudgeReadyUI();
+
+                    },
+                    300
+                );
+
+            };
+
+    }
+
+
+    // ========================================================
+    // PUBLIC FUNCTION
+    // ========================================================
+
+    window.renderJudgeReadyUI =
+        renderJudgeReadyUI;
+
+
+    window.renderJourneyVisual =
+        renderJourneyVisual;
+
+
+    console.log(
+        "✅ STEP 10 COMPLETE - Judge-ready UI active."
+    );
+
+})();
+// ============================================================
+// STEP 10
+// JUDGE-READY DASHBOARD UI POLISH
+// ============================================================
+
+(function () {
+
+    console.log("🎨 STEP 10 - Judge Ready UI Loaded");
+
+
+    // ========================================================
+    // GLOBAL POLISH STYLES
+    // ========================================================
+
+    function injectJudgeStyles() {
+
+        if (
+            document.getElementById(
+                "kabadiJudgeStyles"
+            )
+        ) {
+            return;
+        }
+
+
+        const style =
+            document.createElement("style");
+
+
+        style.id =
+            "kabadiJudgeStyles";
+
+
+        style.innerHTML = `
+
+            /* -----------------------------------------------
+               CARDS
+            ------------------------------------------------ */
+
+            .ks-polish-card {
+
+                background:#ffffff;
+
+                border:
+                    1px solid #e5e7eb;
+
+                border-radius:
+                    18px;
+
+                padding:
+                    22px;
+
+                box-shadow:
+                    0 8px 24px rgba(0,0,0,.05);
+
+                transition:
+                    transform .2s ease,
+                    box-shadow .2s ease;
+
+            }
+
+
+            .ks-polish-card:hover {
+
+                transform:
+                    translateY(-2px);
+
+                box-shadow:
+                    0 12px 30px rgba(0,0,0,.08);
+
+            }
+
+
+            /* -----------------------------------------------
+               KPI
+            ------------------------------------------------ */
+
+            .ks-kpi-grid {
+
+                display:grid;
+
+                grid-template-columns:
+                    repeat(4,minmax(0,1fr));
+
+                gap:16px;
+
+                margin:
+                    20px 0;
+
+            }
+
+
+            .ks-kpi {
+
+                background:#ffffff;
+
+                border:
+                    1px solid #e5e7eb;
+
+                border-radius:16px;
+
+                padding:18px;
+
+                position:relative;
+
+                overflow:hidden;
+
+            }
+
+
+            .ks-kpi-icon {
+
+                width:42px;
+
+                height:42px;
+
+                border-radius:12px;
+
+                display:flex;
+
+                align-items:center;
+
+                justify-content:center;
+
+                background:#ecfdf5;
+
+                font-size:21px;
+
+                margin-bottom:12px;
+
+            }
+
+
+            .ks-kpi-label {
+
+                color:#6b7280;
+
+                font-size:12px;
+
+                font-weight:600;
+
+            }
+
+
+            .ks-kpi-value {
+
+                font-size:25px;
+
+                font-weight:800;
+
+                color:#111827;
+
+                margin-top:4px;
+
+            }
+
+
+            /* -----------------------------------------------
+               STATUS
+            ------------------------------------------------ */
+
+            .ks-status {
+
+                display:inline-flex;
+
+                align-items:center;
+
+                gap:6px;
+
+                padding:
+                    6px 10px;
+
+                border-radius:20px;
+
+                font-size:11px;
+
+                font-weight:800;
+
+            }
+
+
+            .ks-status-success {
+
+                background:#dcfce7;
+
+                color:#166534;
+
+            }
+
+
+            .ks-status-warning {
+
+                background:#fef3c7;
+
+                color:#92400e;
+
+            }
+
+
+            .ks-status-info {
+
+                background:#dbeafe;
+
+                color:#1e40af;
+
+            }
+
+
+            /* -----------------------------------------------
+               HERO
+            ------------------------------------------------ */
+
+            .ks-hero {
+
+                background:
+                    linear-gradient(
+                        135deg,
+                        #047857,
+                        #10b981
+                    );
+
+                color:white;
+
+                border-radius:22px;
+
+                padding:28px;
+
+                position:relative;
+
+                overflow:hidden;
+
+                margin-bottom:20px;
+
+                box-shadow:
+                    0 12px 30px rgba(16,185,129,.18);
+
+            }
+
+
+            .ks-hero::after {
+
+                content:"";
+
+                position:absolute;
+
+                width:180px;
+
+                height:180px;
+
+                border-radius:50%;
+
+                right:-60px;
+
+                top:-80px;
+
+                background:
+                    rgba(255,255,255,.10);
+
+            }
+
+
+            .ks-hero h2 {
+
+                margin:0;
+
+                font-size:27px;
+
+                position:relative;
+
+                z-index:2;
+
+            }
+
+
+            .ks-hero p {
+
+                margin:
+                    7px 0 0;
+
+                opacity:.88;
+
+                position:relative;
+
+                z-index:2;
+
+            }
+
+
+            /* -----------------------------------------------
+               JOURNEY
+            ------------------------------------------------ */
+
+            .ks-journey-line {
+
+                display:flex;
+
+                align-items:center;
+
+                gap:0;
+
+                margin-top:20px;
+
+                overflow-x:auto;
+
+                padding-bottom:8px;
+
+            }
+
+
+            .ks-journey-step {
+
+                display:flex;
+
+                flex-direction:column;
+
+                align-items:center;
+
+                min-width:105px;
+
+                text-align:center;
+
+                font-size:11px;
+
+                font-weight:700;
+
+                color:#9ca3af;
+
+            }
+
+
+            .ks-journey-dot {
+
+                width:30px;
+
+                height:30px;
+
+                border-radius:50%;
+
+                display:flex;
+
+                align-items:center;
+
+                justify-content:center;
+
+                background:#e5e7eb;
+
+                color:#9ca3af;
+
+                margin-bottom:7px;
+
+                font-weight:800;
+
+            }
+
+
+            .ks-journey-step.active {
+
+                color:#047857;
+
+            }
+
+
+            .ks-journey-step.active
+            .ks-journey-dot {
+
+                background:#10b981;
+
+                color:white;
+
+            }
+
+
+            .ks-journey-connector {
+
+                width:45px;
+
+                height:3px;
+
+                background:#e5e7eb;
+
+                flex-shrink:0;
+
+                margin-top:-24px;
+
+            }
+
+
+            /* -----------------------------------------------
+               MOBILE
+            ------------------------------------------------ */
+
+            @media(max-width:850px) {
+
+                .ks-kpi-grid {
+
+                    grid-template-columns:
+                        repeat(2,minmax(0,1fr));
+
+                }
+
+            }
+
+
+            @media(max-width:500px) {
+
+                .ks-kpi-grid {
+
+                    grid-template-columns:1fr;
+
+                }
+
+
+                .ks-hero {
+
+                    padding:22px;
+
+                }
+
+            }
+
+        `;
+
+
+        document.head.appendChild(
+            style
+        );
+
+    }
+
+
+    // ========================================================
+    // HOUSEHOLD KPI DATA
+    // ========================================================
+
+    function getHouseholdKPIs() {
+
+        let journeys = [];
+
+
+        try {
+
+            if (
+                typeof wasteJourneyTransactions !==
+                "undefined" &&
+                Array.isArray(
+                    wasteJourneyTransactions
+                )
+            ) {
+
+                journeys =
+                    wasteJourneyTransactions;
+
+            }
+
+        } catch (error) {}
+
+
+        let totalWeight = 0;
+
+        let completed = 0;
+
+        let active = 0;
+
+
+        journeys.forEach(
+            function (journey) {
+
+                if (!journey) {
+                    return;
+                }
+
+
+                totalWeight +=
+                    Number(
+                        journey.finalWeight ||
+                        journey.actualWeight ||
+                        journey.estimatedWeight ||
+                        0
+                    );
+
+
+                if (
+                    journey.status ===
+                    "Recycling Completed"
+                ) {
+
+                    completed++;
+
+                } else {
+
+                    active++;
+
+                }
+
+            }
+        );
+
+
+        return {
+
+            total:
+                journeys.length,
+
+            weight:
+                totalWeight,
+
+            completed:
+                completed,
+
+            active:
+                active
+
+        };
+
+    }
+
+
+    // ========================================================
+    // HOUSEHOLD KPI CARD
+    // ========================================================
+
+    function renderHouseholdKPIs() {
+
+        if (
+            window.kabadiCurrentRole ===
+            "collector"
+        ) {
+            return;
+        }
+
+
+        const dashboard =
+            document.getElementById(
+                "dashboard"
+            );
+
+
+        if (!dashboard) {
+            return;
+        }
+
+
+        let card =
+            document.getElementById(
+                "householdJudgeKPI"
+            );
+
+
+        if (!card) {
+
+            card =
+                document.createElement(
+                    "div"
+                );
+
+            card.id =
+                "householdJudgeKPI";
+
+            dashboard.prepend(
+                card
+            );
+
+        }
+
+
+        const data =
+            getHouseholdKPIs();
+
+
+        card.innerHTML = `
+
+            <div class="ks-kpi-grid">
+
+                <div class="ks-kpi">
+
+                    <div class="ks-kpi-icon">
+                        📦
+                    </div>
+
+                    <div class="ks-kpi-label">
+                        Waste Requests
+                    </div>
+
+                    <div class="ks-kpi-value">
+                        ${data.total}
+                    </div>
+
+                </div>
+
+
+                <div class="ks-kpi">
+
+                    <div class="ks-kpi-icon">
+                        ⚖️
+                    </div>
+
+                    <div class="ks-kpi-label">
+                        Waste Collected
+                    </div>
+
+                    <div class="ks-kpi-value">
+                        ${data.weight.toFixed(1)} kg
+                    </div>
+
+                </div>
+
+
+                <div class="ks-kpi">
+
+                    <div class="ks-kpi-icon">
+                        🚚
+                    </div>
+
+                    <div class="ks-kpi-label">
+                        Active Journeys
+                    </div>
+
+                    <div class="ks-kpi-value">
+                        ${data.active}
+                    </div>
+
+                </div>
+
+
+                <div class="ks-kpi">
+
+                    <div class="ks-kpi-icon">
+                        ♻️
+                    </div>
+
+                    <div class="ks-kpi-label">
+                        Recycled
+                    </div>
+
+                    <div class="ks-kpi-value">
+                        ${data.completed}
+                    </div>
+
+                </div>
+
+            </div>
+
+        `;
+
+    }
+
+
+    // ========================================================
+    // HOUSEHOLD HERO
+    // ========================================================
+
+    function renderHouseholdHero() {
+
+        if (
+            window.kabadiCurrentRole ===
+            "collector"
+        ) {
+            return;
+        }
+
+
+        const dashboard =
+            document.getElementById(
+                "dashboard"
+            );
+
+
+        if (!dashboard) {
+            return;
+        }
+
+
+        let hero =
+            document.getElementById(
+                "householdJudgeHero"
+            );
+
+
+        if (!hero) {
+
+            hero =
+                document.createElement(
+                    "div"
+                );
+
+            hero.id =
+                "householdJudgeHero";
+
+            dashboard.prepend(
+                hero
+            );
+
+        }
+
+
+        hero.className =
+            "ks-hero";
+
+
+        hero.innerHTML = `
+
+            <h2>
+                ♻️ Give Your Waste a Second Life
+            </h2>
+
+            <p>
+                Identify waste with AI, request a pickup,
+                and track it until formal recycling.
+            </p>
+
+        `;
+
+    }
+
+
+    // ========================================================
+    // COLLECTOR KPI DATA
+    // ========================================================
+
+    function getCollectorKPIs() {
+
+        let inventory = [];
+
+        let sales = [];
+
+        try {
+
+            inventory =
+                JSON.parse(
+                    localStorage.getItem(
+                        "kabadiSetuCollectorInventory"
+                    )
+                ) || [];
+
+        } catch (error) {}
+
+
+        try {
+
+            sales =
+                JSON.parse(
+                    localStorage.getItem(
+                        "kabadiSetuCollectorSales"
+                    )
+                ) || [];
+
+        } catch (error) {}
+
+
+        let inventoryWeight = 0;
+
+        let inventoryValue = 0;
+
+
+        inventory.forEach(
+            function (item) {
+
+                if (!item) {
+                    return;
+                }
+
+
+                const weight =
+                    Number(
+                        item.weight ||
+                        item.physicalWeight ||
+                        0
+                    );
+
+
+                const rate =
+                    Number(
+                        item.rate ||
+                        item.indicativeRate ||
+                        0
+                    );
+
+
+                inventoryWeight +=
+                    weight;
+
+
+                inventoryValue +=
+                    weight * rate;
+
+            }
+        );
+
+
+        let totalSales = 0;
+
+        let soldWeight = 0;
+
+
+        sales.forEach(
+            function (sale) {
+
+                if (!sale) {
+                    return;
+                }
+
+
+                if (
+                    sale.status ===
+                    "Completed"
+                ) {
+
+                    totalSales++;
+
+                    soldWeight +=
+                        Number(
+                            sale.weight ||
+                            0
+                        );
+
+                }
+
+            }
+        );
+
+
+        return {
+
+            inventoryWeight:
+                inventoryWeight,
+
+            inventoryValue:
+                inventoryValue,
+
+            totalSales:
+                totalSales,
+
+            soldWeight:
+                soldWeight
+
+        };
+
+    }
+
+
+    // ========================================================
+    // COLLECTOR KPI CARD
+    // ========================================================
+
+    function renderCollectorKPIs() {
+
+        if (
+            window.kabadiCurrentRole !==
+            "collector"
+        ) {
+            return;
+        }
+
+
+        const section =
+            document.getElementById(
+                "inventory"
+            );
+
+
+        if (!section) {
+            return;
+        }
+
+
+        let card =
+            document.getElementById(
+                "collectorJudgeKPI"
+            );
+
+
+        if (!card) {
+
+            card =
+                document.createElement(
+                    "div"
+                );
+
+            card.id =
+                "collectorJudgeKPI";
+
+            section.prepend(
+                card
+            );
+
+        }
+
+
+        const data =
+            getCollectorKPIs();
+
+
+        card.innerHTML = `
+
+            <div class="ks-kpi-grid">
+
+                <div class="ks-kpi">
+
+                    <div class="ks-kpi-icon">
+                        📦
+                    </div>
+
+                    <div class="ks-kpi-label">
+                        Inventory
+                    </div>
+
+                    <div class="ks-kpi-value">
+                        ${data.inventoryWeight.toFixed(1)} kg
+                    </div>
+
+                </div>
+
+
+                <div class="ks-kpi">
+
+                    <div class="ks-kpi-icon">
+                        💰
+                    </div>
+
+                    <div class="ks-kpi-label">
+                        Inventory Value
+                    </div>
+
+                    <div class="ks-kpi-value">
+                        ₹${data.inventoryValue.toFixed(0)}
+                    </div>
+
+                </div>
+
+
+                <div class="ks-kpi">
+
+                    <div class="ks-kpi-icon">
+                        🚚
+                    </div>
+
+                    <div class="ks-kpi-label">
+                        Completed Sales
+                    </div>
+
+                    <div class="ks-kpi-value">
+                        ${data.totalSales}
+                    </div>
+
+                </div>
+
+
+                <div class="ks-kpi">
+
+                    <div class="ks-kpi-icon">
+                        ⚖️
+                    </div>
+
+                    <div class="ks-kpi-label">
+                        Material Sold
+                    </div>
+
+                    <div class="ks-kpi-value">
+                        ${data.soldWeight.toFixed(1)} kg
+                    </div>
+
+                </div>
+
+            </div>
+
+        `;
+
+    }
+
+
+    // ========================================================
+    // COLLECTOR HERO
+    // ========================================================
+
+    function renderCollectorHero() {
+
+        if (
+            window.kabadiCurrentRole !==
+            "collector"
+        ) {
+            return;
+        }
+
+
+        const section =
+            document.getElementById(
+                "inventory"
+            );
+
+
+        if (!section) {
+            return;
+        }
+
+
+        let hero =
+            document.getElementById(
+                "collectorJudgeHero"
+            );
+
+
+        if (!hero) {
+
+            hero =
+                document.createElement(
+                    "div"
+                );
+
+            hero.id =
+                "collectorJudgeHero";
+
+            section.prepend(
+                hero
+            );
+
+        }
+
+
+        hero.className =
+            "ks-hero";
+
+
+        hero.innerHTML = `
+
+            <h2>
+                🚚 Collector Dashboard
+            </h2>
+
+            <p>
+                Manage household pickups, build inventory,
+                compare recycler rates and maximize your earnings.
+            </p>
+
+        `;
+
+    }
+
+
+    // ========================================================
+    // RECYCLING JOURNEY VISUAL
+    // ========================================================
+
+    function renderJourneyVisual(
+        container,
+        currentStatus
+    ) {
+
+        if (!container) {
+            return;
+        }
+
+
+        const steps = [
+
+            {
+                key:"requested",
+                label:"Pickup Requested",
+                icon:"📦"
+            },
+
+            {
+                key:"collector",
+                label:"Collector Assigned",
+                icon:"🚚"
+            },
+
+            {
+                key:"collected",
+                label:"Material Collected",
+                icon:"⚖️"
+            },
+
+            {
+                key:"recycler",
+                label:"Recycler Handover",
+                icon:"🏭"
+            },
+
+            {
+                key:"completed",
+                label:"Recycling Completed",
+                icon:"♻️"
+            }
+
+        ];
+
+
+        let current = 0;
+
+
+        const status =
+            String(
+                currentStatus || ""
+            ).toLowerCase();
+
+
+        if (
+            status.includes(
+                "collector"
+            )
+        ) {
+            current = 1;
+        }
+
+
+        if (
+            status.includes(
+                "collected"
+            ) ||
+            status.includes(
+                "physical"
+            )
+        ) {
+            current = 2;
+        }
+
+
+        if (
+            status.includes(
+                "recycler"
+            ) ||
+            status.includes(
+                "handover"
+            )
+        ) {
+            current = 3;
+        }
+
+
+        if (
+            status.includes(
+                "completed"
+            )
+        ) {
+            current = 4;
+        }
+
+
+        container.innerHTML = `
+
+            <div class="ks-journey-line">
+
+                ${steps.map(
+                    function(step,index) {
+
+                        return `
+
+                            <div class="
+                                ks-journey-step
+                                ${
+                                    index <= current
+                                    ? "active"
+                                    : ""
+                                }
+                            ">
+
+                                <div class="
+                                    ks-journey-dot
+                                ">
+                                    ${
+                                        index <= current
+                                        ? "✓"
+                                        : step.icon
+                                    }
+                                </div>
+
+                                ${step.label}
+
+                            </div>
+
+                            ${
+                                index <
+                                steps.length - 1
+
+                                ?
+
+                                `
+                                    <div class="
+                                        ks-journey-connector
+                                    "
+                                    style="
+                                        background:
+                                        ${
+                                            index <
+                                            current
+                                            ?
+                                            "#10b981"
+                                            :
+                                            "#e5e7eb"
+                                        };
+                                    ">
+                                    </div>
+                                `
+
+                                :
+                                ""
+                            }
+
+                        `;
+
+                    }
+                ).join("")}
+
+            </div>
+
+        `;
+
+    }
+
+
+    // ========================================================
+    // MASTER RENDER
+    // ========================================================
+
+    function renderJudgeReadyUI() {
+
+        injectJudgeStyles();
+
+
+        if (
+            window.kabadiCurrentRole ===
+            "collector"
+        ) {
+
+            renderCollectorHero();
+
+            renderCollectorKPIs();
+
+        }
+
+        else {
+
+            renderHouseholdHero();
+
+            renderHouseholdKPIs();
+
+        }
+
+    }
+
+
+    // ========================================================
+    // REFRESH
+    // ========================================================
+
+    setTimeout(
+        function () {
+
+            renderJudgeReadyUI();
+
+        },
+        1000
+    );
+
+
+    setInterval(
+        function () {
+
+            renderJudgeReadyUI();
+
+        },
+        2500
+    );
+
+
+    // ========================================================
+    // ROLE SWITCH HOOK
+    // ========================================================
+
+    const originalSwitchRole =
+        window.switchRole;
+
+
+    if (
+        typeof originalSwitchRole ===
+        "function"
+    ) {
+
+        window.switchRole =
+            function(role) {
+
+                originalSwitchRole(
+                    role
+                );
+
+
+                setTimeout(
+                    function() {
+
+                        renderJudgeReadyUI();
+
+                    },
+                    300
+                );
+
+            };
+
+    }
+
+
+    // ========================================================
+    // PUBLIC FUNCTION
+    // ========================================================
+
+    window.renderJudgeReadyUI =
+        renderJudgeReadyUI;
+
+
+    window.renderJourneyVisual =
+        renderJourneyVisual;
+
+
+    console.log(
+        "✅ STEP 10 COMPLETE - Judge-ready UI active."
+    );
+
+})();
+// ============================================================
+// STEP 10
+// JUDGE-READY DASHBOARD UI POLISH
+// ============================================================
+
+(function () {
+
+    console.log("🎨 STEP 10 - Judge Ready UI Loaded");
+
+
+    // ========================================================
+    // GLOBAL POLISH STYLES
+    // ========================================================
+
+    function injectJudgeStyles() {
+
+        if (
+            document.getElementById(
+                "kabadiJudgeStyles"
+            )
+        ) {
+            return;
+        }
+
+
+        const style =
+            document.createElement("style");
+
+
+        style.id =
+            "kabadiJudgeStyles";
+
+
+        style.innerHTML = `
+
+            /* -----------------------------------------------
+               CARDS
+            ------------------------------------------------ */
+
+            .ks-polish-card {
+
+                background:#ffffff;
+
+                border:
+                    1px solid #e5e7eb;
+
+                border-radius:
+                    18px;
+
+                padding:
+                    22px;
+
+                box-shadow:
+                    0 8px 24px rgba(0,0,0,.05);
+
+                transition:
+                    transform .2s ease,
+                    box-shadow .2s ease;
+
+            }
+
+
+            .ks-polish-card:hover {
+
+                transform:
+                    translateY(-2px);
+
+                box-shadow:
+                    0 12px 30px rgba(0,0,0,.08);
+
+            }
+
+
+            /* -----------------------------------------------
+               KPI
+            ------------------------------------------------ */
+
+            .ks-kpi-grid {
+
+                display:grid;
+
+                grid-template-columns:
+                    repeat(4,minmax(0,1fr));
+
+                gap:16px;
+
+                margin:
+                    20px 0;
+
+            }
+
+
+            .ks-kpi {
+
+                background:#ffffff;
+
+                border:
+                    1px solid #e5e7eb;
+
+                border-radius:16px;
+
+                padding:18px;
+
+                position:relative;
+
+                overflow:hidden;
+
+            }
+
+
+            .ks-kpi-icon {
+
+                width:42px;
+
+                height:42px;
+
+                border-radius:12px;
+
+                display:flex;
+
+                align-items:center;
+
+                justify-content:center;
+
+                background:#ecfdf5;
+
+                font-size:21px;
+
+                margin-bottom:12px;
+
+            }
+
+
+            .ks-kpi-label {
+
+                color:#6b7280;
+
+                font-size:12px;
+
+                font-weight:600;
+
+            }
+
+
+            .ks-kpi-value {
+
+                font-size:25px;
+
+                font-weight:800;
+
+                color:#111827;
+
+                margin-top:4px;
+
+            }
+
+
+            /* -----------------------------------------------
+               STATUS
+            ------------------------------------------------ */
+
+            .ks-status {
+
+                display:inline-flex;
+
+                align-items:center;
+
+                gap:6px;
+
+                padding:
+                    6px 10px;
+
+                border-radius:20px;
+
+                font-size:11px;
+
+                font-weight:800;
+
+            }
+
+
+            .ks-status-success {
+
+                background:#dcfce7;
+
+                color:#166534;
+
+            }
+
+
+            .ks-status-warning {
+
+                background:#fef3c7;
+
+                color:#92400e;
+
+            }
+
+
+            .ks-status-info {
+
+                background:#dbeafe;
+
+                color:#1e40af;
+
+            }
+
+
+            /* -----------------------------------------------
+               HERO
+            ------------------------------------------------ */
+
+            .ks-hero {
+
+                background:
+                    linear-gradient(
+                        135deg,
+                        #047857,
+                        #10b981
+                    );
+
+                color:white;
+
+                border-radius:22px;
+
+                padding:28px;
+
+                position:relative;
+
+                overflow:hidden;
+
+                margin-bottom:20px;
+
+                box-shadow:
+                    0 12px 30px rgba(16,185,129,.18);
+
+            }
+
+
+            .ks-hero::after {
+
+                content:"";
+
+                position:absolute;
+
+                width:180px;
+
+                height:180px;
+
+                border-radius:50%;
+
+                right:-60px;
+
+                top:-80px;
+
+                background:
+                    rgba(255,255,255,.10);
+
+            }
+
+
+            .ks-hero h2 {
+
+                margin:0;
+
+                font-size:27px;
+
+                position:relative;
+
+                z-index:2;
+
+            }
+
+
+            .ks-hero p {
+
+                margin:
+                    7px 0 0;
+
+                opacity:.88;
+
+                position:relative;
+
+                z-index:2;
+
+            }
+
+
+            /* -----------------------------------------------
+               JOURNEY
+            ------------------------------------------------ */
+
+            .ks-journey-line {
+
+                display:flex;
+
+                align-items:center;
+
+                gap:0;
+
+                margin-top:20px;
+
+                overflow-x:auto;
+
+                padding-bottom:8px;
+
+            }
+
+
+            .ks-journey-step {
+
+                display:flex;
+
+                flex-direction:column;
+
+                align-items:center;
+
+                min-width:105px;
+
+                text-align:center;
+
+                font-size:11px;
+
+                font-weight:700;
+
+                color:#9ca3af;
+
+            }
+
+
+            .ks-journey-dot {
+
+                width:30px;
+
+                height:30px;
+
+                border-radius:50%;
+
+                display:flex;
+
+                align-items:center;
+
+                justify-content:center;
+
+                background:#e5e7eb;
+
+                color:#9ca3af;
+
+                margin-bottom:7px;
+
+                font-weight:800;
+
+            }
+
+
+            .ks-journey-step.active {
+
+                color:#047857;
+
+            }
+
+
+            .ks-journey-step.active
+            .ks-journey-dot {
+
+                background:#10b981;
+
+                color:white;
+
+            }
+
+
+            .ks-journey-connector {
+
+                width:45px;
+
+                height:3px;
+
+                background:#e5e7eb;
+
+                flex-shrink:0;
+
+                margin-top:-24px;
+
+            }
+
+
+            /* -----------------------------------------------
+               MOBILE
+            ------------------------------------------------ */
+
+            @media(max-width:850px) {
+
+                .ks-kpi-grid {
+
+                    grid-template-columns:
+                        repeat(2,minmax(0,1fr));
+
+                }
+
+            }
+
+
+            @media(max-width:500px) {
+
+                .ks-kpi-grid {
+
+                    grid-template-columns:1fr;
+
+                }
+
+
+                .ks-hero {
+
+                    padding:22px;
+
+                }
+
+            }
+
+        `;
+
+
+        document.head.appendChild(
+            style
+        );
+
+    }
+
+
+    // ========================================================
+    // HOUSEHOLD KPI DATA
+    // ========================================================
+
+    function getHouseholdKPIs() {
+
+        let journeys = [];
+
+
+        try {
+
+            if (
+                typeof wasteJourneyTransactions !==
+                "undefined" &&
+                Array.isArray(
+                    wasteJourneyTransactions
+                )
+            ) {
+
+                journeys =
+                    wasteJourneyTransactions;
+
+            }
+
+        } catch (error) {}
+
+
+        let totalWeight = 0;
+
+        let completed = 0;
+
+        let active = 0;
+
+
+        journeys.forEach(
+            function (journey) {
+
+                if (!journey) {
+                    return;
+                }
+
+
+                totalWeight +=
+                    Number(
+                        journey.finalWeight ||
+                        journey.actualWeight ||
+                        journey.estimatedWeight ||
+                        0
+                    );
+
+
+                if (
+                    journey.status ===
+                    "Recycling Completed"
+                ) {
+
+                    completed++;
+
+                } else {
+
+                    active++;
+
+                }
+
+            }
+        );
+
+
+        return {
+
+            total:
+                journeys.length,
+
+            weight:
+                totalWeight,
+
+            completed:
+                completed,
+
+            active:
+                active
+
+        };
+
+    }
+
+
+    // ========================================================
+    // HOUSEHOLD KPI CARD
+    // ========================================================
+
+    function renderHouseholdKPIs() {
+
+        if (
+            window.kabadiCurrentRole ===
+            "collector"
+        ) {
+            return;
+        }
+
+
+        const dashboard =
+            document.getElementById(
+                "dashboard"
+            );
+
+
+        if (!dashboard) {
+            return;
+        }
+
+
+        let card =
+            document.getElementById(
+                "householdJudgeKPI"
+            );
+
+
+        if (!card) {
+
+            card =
+                document.createElement(
+                    "div"
+                );
+
+            card.id =
+                "householdJudgeKPI";
+
+            dashboard.prepend(
+                card
+            );
+
+        }
+
+
+        const data =
+            getHouseholdKPIs();
+
+
+        card.innerHTML = `
+
+            <div class="ks-kpi-grid">
+
+                <div class="ks-kpi">
+
+                    <div class="ks-kpi-icon">
+                        📦
+                    </div>
+
+                    <div class="ks-kpi-label">
+                        Waste Requests
+                    </div>
+
+                    <div class="ks-kpi-value">
+                        ${data.total}
+                    </div>
+
+                </div>
+
+
+                <div class="ks-kpi">
+
+                    <div class="ks-kpi-icon">
+                        ⚖️
+                    </div>
+
+                    <div class="ks-kpi-label">
+                        Waste Collected
+                    </div>
+
+                    <div class="ks-kpi-value">
+                        ${data.weight.toFixed(1)} kg
+                    </div>
+
+                </div>
+
+
+                <div class="ks-kpi">
+
+                    <div class="ks-kpi-icon">
+                        🚚
+                    </div>
+
+                    <div class="ks-kpi-label">
+                        Active Journeys
+                    </div>
+
+                    <div class="ks-kpi-value">
+                        ${data.active}
+                    </div>
+
+                </div>
+
+
+                <div class="ks-kpi">
+
+                    <div class="ks-kpi-icon">
+                        ♻️
+                    </div>
+
+                    <div class="ks-kpi-label">
+                        Recycled
+                    </div>
+
+                    <div class="ks-kpi-value">
+                        ${data.completed}
+                    </div>
+
+                </div>
+
+            </div>
+
+        `;
+
+    }
+
+
+    // ========================================================
+    // HOUSEHOLD HERO
+    // ========================================================
+
+    function renderHouseholdHero() {
+
+        if (
+            window.kabadiCurrentRole ===
+            "collector"
+        ) {
+            return;
+        }
+
+
+        const dashboard =
+            document.getElementById(
+                "dashboard"
+            );
+
+
+        if (!dashboard) {
+            return;
+        }
+
+
+        let hero =
+            document.getElementById(
+                "householdJudgeHero"
+            );
+
+
+        if (!hero) {
+
+            hero =
+                document.createElement(
+                    "div"
+                );
+
+            hero.id =
+                "householdJudgeHero";
+
+            dashboard.prepend(
+                hero
+            );
+
+        }
+
+
+        hero.className =
+            "ks-hero";
+
+
+        hero.innerHTML = `
+
+            <h2>
+                ♻️ Give Your Waste a Second Life
+            </h2>
+
+            <p>
+                Identify waste with AI, request a pickup,
+                and track it until formal recycling.
+            </p>
+
+        `;
+
+    }
+
+
+    // ========================================================
+    // COLLECTOR KPI DATA
+    // ========================================================
+
+    function getCollectorKPIs() {
+
+        let inventory = [];
+
+        let sales = [];
+
+        try {
+
+            inventory =
+                JSON.parse(
+                    localStorage.getItem(
+                        "kabadiSetuCollectorInventory"
+                    )
+                ) || [];
+
+        } catch (error) {}
+
+
+        try {
+
+            sales =
+                JSON.parse(
+                    localStorage.getItem(
+                        "kabadiSetuCollectorSales"
+                    )
+                ) || [];
+
+        } catch (error) {}
+
+
+        let inventoryWeight = 0;
+
+        let inventoryValue = 0;
+
+
+        inventory.forEach(
+            function (item) {
+
+                if (!item) {
+                    return;
+                }
+
+
+                const weight =
+                    Number(
+                        item.weight ||
+                        item.physicalWeight ||
+                        0
+                    );
+
+
+                const rate =
+                    Number(
+                        item.rate ||
+                        item.indicativeRate ||
+                        0
+                    );
+
+
+                inventoryWeight +=
+                    weight;
+
+
+                inventoryValue +=
+                    weight * rate;
+
+            }
+        );
+
+
+        let totalSales = 0;
+
+        let soldWeight = 0;
+
+
+        sales.forEach(
+            function (sale) {
+
+                if (!sale) {
+                    return;
+                }
+
+
+                if (
+                    sale.status ===
+                    "Completed"
+                ) {
+
+                    totalSales++;
+
+                    soldWeight +=
+                        Number(
+                            sale.weight ||
+                            0
+                        );
+
+                }
+
+            }
+        );
+
+
+        return {
+
+            inventoryWeight:
+                inventoryWeight,
+
+            inventoryValue:
+                inventoryValue,
+
+            totalSales:
+                totalSales,
+
+            soldWeight:
+                soldWeight
+
+        };
+
+    }
+
+
+    // ========================================================
+    // COLLECTOR KPI CARD
+    // ========================================================
+
+    function renderCollectorKPIs() {
+
+        if (
+            window.kabadiCurrentRole !==
+            "collector"
+        ) {
+            return;
+        }
+
+
+        const section =
+            document.getElementById(
+                "inventory"
+            );
+
+
+        if (!section) {
+            return;
+        }
+
+
+        let card =
+            document.getElementById(
+                "collectorJudgeKPI"
+            );
+
+
+        if (!card) {
+
+            card =
+                document.createElement(
+                    "div"
+                );
+
+            card.id =
+                "collectorJudgeKPI";
+
+            section.prepend(
+                card
+            );
+
+        }
+
+
+        const data =
+            getCollectorKPIs();
+
+
+        card.innerHTML = `
+
+            <div class="ks-kpi-grid">
+
+                <div class="ks-kpi">
+
+                    <div class="ks-kpi-icon">
+                        📦
+                    </div>
+
+                    <div class="ks-kpi-label">
+                        Inventory
+                    </div>
+
+                    <div class="ks-kpi-value">
+                        ${data.inventoryWeight.toFixed(1)} kg
+                    </div>
+
+                </div>
+
+
+                <div class="ks-kpi">
+
+                    <div class="ks-kpi-icon">
+                        💰
+                    </div>
+
+                    <div class="ks-kpi-label">
+                        Inventory Value
+                    </div>
+
+                    <div class="ks-kpi-value">
+                        ₹${data.inventoryValue.toFixed(0)}
+                    </div>
+
+                </div>
+
+
+                <div class="ks-kpi">
+
+                    <div class="ks-kpi-icon">
+                        🚚
+                    </div>
+
+                    <div class="ks-kpi-label">
+                        Completed Sales
+                    </div>
+
+                    <div class="ks-kpi-value">
+                        ${data.totalSales}
+                    </div>
+
+                </div>
+
+
+                <div class="ks-kpi">
+
+                    <div class="ks-kpi-icon">
+                        ⚖️
+                    </div>
+
+                    <div class="ks-kpi-label">
+                        Material Sold
+                    </div>
+
+                    <div class="ks-kpi-value">
+                        ${data.soldWeight.toFixed(1)} kg
+                    </div>
+
+                </div>
+
+            </div>
+
+        `;
+
+    }
+
+
+    // ========================================================
+    // COLLECTOR HERO
+    // ========================================================
+
+    function renderCollectorHero() {
+
+        if (
+            window.kabadiCurrentRole !==
+            "collector"
+        ) {
+            return;
+        }
+
+
+        const section =
+            document.getElementById(
+                "inventory"
+            );
+
+
+        if (!section) {
+            return;
+        }
+
+
+        let hero =
+            document.getElementById(
+                "collectorJudgeHero"
+            );
+
+
+        if (!hero) {
+
+            hero =
+                document.createElement(
+                    "div"
+                );
+
+            hero.id =
+                "collectorJudgeHero";
+
+            section.prepend(
+                hero
+            );
+
+        }
+
+
+        hero.className =
+            "ks-hero";
+
+
+        hero.innerHTML = `
+
+            <h2>
+                🚚 Collector Dashboard
+            </h2>
+
+            <p>
+                Manage household pickups, build inventory,
+                compare recycler rates and maximize your earnings.
+            </p>
+
+        `;
+
+    }
+
+
+    // ========================================================
+    // RECYCLING JOURNEY VISUAL
+    // ========================================================
+
+    function renderJourneyVisual(
+        container,
+        currentStatus
+    ) {
+
+        if (!container) {
+            return;
+        }
+
+
+        const steps = [
+
+            {
+                key:"requested",
+                label:"Pickup Requested",
+                icon:"📦"
+            },
+
+            {
+                key:"collector",
+                label:"Collector Assigned",
+                icon:"🚚"
+            },
+
+            {
+                key:"collected",
+                label:"Material Collected",
+                icon:"⚖️"
+            },
+
+            {
+                key:"recycler",
+                label:"Recycler Handover",
+                icon:"🏭"
+            },
+
+            {
+                key:"completed",
+                label:"Recycling Completed",
+                icon:"♻️"
+            }
+
+        ];
+
+
+        let current = 0;
+
+
+        const status =
+            String(
+                currentStatus || ""
+            ).toLowerCase();
+
+
+        if (
+            status.includes(
+                "collector"
+            )
+        ) {
+            current = 1;
+        }
+
+
+        if (
+            status.includes(
+                "collected"
+            ) ||
+            status.includes(
+                "physical"
+            )
+        ) {
+            current = 2;
+        }
+
+
+        if (
+            status.includes(
+                "recycler"
+            ) ||
+            status.includes(
+                "handover"
+            )
+        ) {
+            current = 3;
+        }
+
+
+        if (
+            status.includes(
+                "completed"
+            )
+        ) {
+            current = 4;
+        }
+
+
+        container.innerHTML = `
+
+            <div class="ks-journey-line">
+
+                ${steps.map(
+                    function(step,index) {
+
+                        return `
+
+                            <div class="
+                                ks-journey-step
+                                ${
+                                    index <= current
+                                    ? "active"
+                                    : ""
+                                }
+                            ">
+
+                                <div class="
+                                    ks-journey-dot
+                                ">
+                                    ${
+                                        index <= current
+                                        ? "✓"
+                                        : step.icon
+                                    }
+                                </div>
+
+                                ${step.label}
+
+                            </div>
+
+                            ${
+                                index <
+                                steps.length - 1
+
+                                ?
+
+                                `
+                                    <div class="
+                                        ks-journey-connector
+                                    "
+                                    style="
+                                        background:
+                                        ${
+                                            index <
+                                            current
+                                            ?
+                                            "#10b981"
+                                            :
+                                            "#e5e7eb"
+                                        };
+                                    ">
+                                    </div>
+                                `
+
+                                :
+                                ""
+                            }
+
+                        `;
+
+                    }
+                ).join("")}
+
+            </div>
+
+        `;
+
+    }
+
+
+    // ========================================================
+    // MASTER RENDER
+    // ========================================================
+
+    function renderJudgeReadyUI() {
+
+        injectJudgeStyles();
+
+
+        if (
+            window.kabadiCurrentRole ===
+            "collector"
+        ) {
+
+            renderCollectorHero();
+
+            renderCollectorKPIs();
+
+        }
+
+        else {
+
+            renderHouseholdHero();
+
+            renderHouseholdKPIs();
+
+        }
+
+    }
+
+
+    // ========================================================
+    // REFRESH
+    // ========================================================
+
+    setTimeout(
+        function () {
+
+            renderJudgeReadyUI();
+
+        },
+        1000
+    );
+
+
+    setInterval(
+        function () {
+
+            renderJudgeReadyUI();
+
+        },
+        2500
+    );
+
+
+    // ========================================================
+    // ROLE SWITCH HOOK
+    // ========================================================
+
+    const originalSwitchRole =
+        window.switchRole;
+
+
+    if (
+        typeof originalSwitchRole ===
+        "function"
+    ) {
+
+        window.switchRole =
+            function(role) {
+
+                originalSwitchRole(
+                    role
+                );
+
+
+                setTimeout(
+                    function() {
+
+                        renderJudgeReadyUI();
+
+                    },
+                    300
+                );
+
+            };
+
+    }
+
+
+    // ========================================================
+    // PUBLIC FUNCTION
+    // ========================================================
+
+    window.renderJudgeReadyUI =
+        renderJudgeReadyUI;
+
+
+    window.renderJourneyVisual =
+        renderJourneyVisual;
+
+
+    console.log(
+        "✅ STEP 10 COMPLETE - Judge-ready UI active."
+    );
+
+})();
+
+// ============================================================
+// STEP 11
+// DEMO RELIABILITY + ERROR PROTECTION
+// ============================================================
+
+(function () {
+
+    console.log("🛡️ STEP 11 - Demo Reliability Loaded");
+
+
+    // ========================================================
+    // DEMO MODE
+    // ========================================================
+
+    window.kabadiDemoMode = true;
+
+
+    // ========================================================
+    // SAFE JSON PARSER
+    // ========================================================
+
+    window.kabadiSafeJSON = function (
+        key,
+        fallback
+    ) {
+
+        try {
+
+            const value =
+                localStorage.getItem(key);
+
+
+            if (!value) {
+                return fallback;
+            }
+
+
+            const parsed =
+                JSON.parse(value);
+
+
+            return parsed;
+
+        }
+
+        catch (error) {
+
+            console.warn(
+                "Invalid localStorage data:",
+                key,
+                error
+            );
+
+
+            return fallback;
+
+        }
+
+    };
+
+
+    // ========================================================
+    // DUPLICATE REQUEST PROTECTION
+    // ========================================================
+
+    let pickupSubmissionLocked =
+        false;
+
+
+    const originalConfirmPickup =
+        window.confirmPickup;
+
+
+    if (
+        typeof originalConfirmPickup ===
+        "function"
+    ) {
+
+        window.confirmPickup =
+            async function () {
+
+                if (
+                    pickupSubmissionLocked
+                ) {
+
+                    console.warn(
+                        "Duplicate pickup submission blocked."
+                    );
+
+
+                    if (
+                        typeof showToast ===
+                        "function"
+                    ) {
+
+                        showToast(
+                            "⏳ Pickup request is already being submitted."
+                        );
+
+                    }
+
+
+                    return;
+
+                }
+
+
+                pickupSubmissionLocked =
+                    true;
+
+
+                const button =
+                    document.getElementById(
+                        "confirmPickupButton"
+                    );
+
+
+                const oldText =
+                    button
+                    ?
+                    button.innerText
+                    :
+                    "";
+
+
+                if (button) {
+
+                    button.disabled =
+                        true;
+
+                    button.innerText =
+                        "Submitting...";
+
+                    button.style.opacity =
+                        "0.7";
+
+                    button.style.cursor =
+                        "not-allowed";
+
+                }
+
+
+                try {
+
+                    await originalConfirmPickup();
+
+                }
+
+                catch (error) {
+
+                    console.error(
+                        "Pickup submission failed:",
+                        error
+                    );
+
+
+                    alert(
+                        "Pickup request could not be submitted. Please try again."
+                    );
+
+                }
+
+
+                finally {
+
+                    setTimeout(
+                        function () {
+
+                            pickupSubmissionLocked =
+                                false;
+
+
+                            if (button) {
+
+                                button.disabled =
+                                    false;
+
+                                button.innerText =
+                                    oldText ||
+                                    "Confirm Pickup";
+
+                                button.style.opacity =
+                                    "";
+
+                                button.style.cursor =
+                                    "";
+
+                            }
+
+                        },
+                        1200
+                    );
+
+                }
+
+            };
+
+    }
+
+
+    // ========================================================
+    // DUPLICATE JOURNEY PROTECTION
+    // ========================================================
+
+    function removeDuplicateJourneys() {
+
+        if (
+            typeof wasteJourneyTransactions ===
+            "undefined"
+        ) {
+            return;
+        }
+
+
+        if (
+            !Array.isArray(
+                wasteJourneyTransactions
+            )
+        ) {
+            return;
+        }
+
+
+        const seen =
+            new Set();
+
+
+        const cleaned = [];
+
+
+        wasteJourneyTransactions.forEach(
+            function (journey) {
+
+                if (!journey) {
+                    return;
+                }
+
+
+                const id =
+                    journey.id ||
+                    journey.transactionId;
+
+
+                if (!id) {
+
+                    cleaned.push(
+                        journey
+                    );
+
+                    return;
+
+                }
+
+
+                if (
+                    seen.has(id)
+                ) {
+
+                    console.warn(
+                        "Duplicate journey removed:",
+                        id
+                    );
+
+                    return;
+
+                }
+
+
+                seen.add(id);
+
+
+                cleaned.push(
+                    journey
+                );
+
+            }
+        );
+
+
+        wasteJourneyTransactions.length =
+            0;
+
+
+        cleaned.forEach(
+            function (journey) {
+
+                wasteJourneyTransactions.push(
+                    journey
+                );
+
+            }
+        );
+
+
+        try {
+
+            localStorage.setItem(
+
+                "kabadiSetuWasteJourneyTransactions",
+
+                JSON.stringify(
+                    wasteJourneyTransactions
+                )
+
+            );
+
+        }
+
+        catch (error) {
+
+            console.warn(
+                "Could not save cleaned journeys.",
+                error
+            );
+
+        }
+
+    }
+
+
+    // ========================================================
+    // DUPLICATE COLLECTOR SALES PROTECTION
+    // ========================================================
+
+    function removeDuplicateSales() {
+
+        const sales =
+            window.kabadiSafeJSON(
+                "kabadiSetuCollectorSales",
+                []
+            );
+
+
+        if (
+            !Array.isArray(sales)
+        ) {
+            return;
+        }
+
+
+        const seen =
+            new Set();
+
+
+        const cleaned =
+            sales.filter(
+                function (sale) {
+
+                    if (!sale) {
+                        return false;
+                    }
+
+
+                    const id =
+                        sale.saleId ||
+                        sale.id ||
+                        (
+                            sale.material +
+                            "_" +
+                            sale.weight +
+                            "_" +
+                            sale.completedAt
+                        );
+
+
+                    if (
+                        seen.has(id)
+                    ) {
+
+                        return false;
+
+                    }
+
+
+                    seen.add(id);
+
+
+                    return true;
+
+                }
+            );
+
+
+        try {
+
+            localStorage.setItem(
+
+                "kabadiSetuCollectorSales",
+
+                JSON.stringify(
+                    cleaned
+                )
+
+            );
+
+        }
+
+        catch (error) {
+
+            console.warn(
+                "Could not clean collector sales."
+            );
+
+        }
+
+    }
+
+
+    // ========================================================
+    // DUPLICATE PICKUP TRACKING PROTECTION
+    // ========================================================
+
+    function removeDuplicatePickupTracking() {
+
+        const key =
+            "kabadiSetuPickupTracking";
+
+
+        const records =
+            window.kabadiSafeJSON(
+                key,
+                []
+            );
+
+
+        if (
+            !Array.isArray(records)
+        ) {
+            return;
+        }
+
+
+        const seen =
+            new Set();
+
+
+        const cleaned =
+            records.filter(
+                function (record) {
+
+                    if (!record) {
+                        return false;
+                    }
+
+
+                    const id =
+                        record.requestId;
+
+
+                    if (!id) {
+                        return true;
+                    }
+
+
+                    if (
+                        seen.has(id)
+                    ) {
+
+                        return false;
+
+                    }
+
+
+                    seen.add(id);
+
+
+                    return true;
+
+                }
+            );
+
+
+        try {
+
+            localStorage.setItem(
+
+                key,
+
+                JSON.stringify(
+                    cleaned
+                )
+
+            );
+
+        }
+
+        catch (error) {
+
+            console.warn(
+                "Could not clean pickup tracking."
+            );
+
+        }
+
+    }
+
+
+    // ========================================================
+    // DEMO RESET
+    // ========================================================
+
+    window.resetKabadiDemo =
+        function () {
+
+            const confirmed =
+                confirm(
+
+                    "Reset the Kabadi Setu demo?\n\n" +
+
+                    "This will remove demo transactions, " +
+                    "pickup tracking, collector inventory, " +
+                    "sales and journey data."
+
+                );
+
+
+            if (!confirmed) {
+                return;
+            }
+
+
+            const keys = [
+
+                "kabadiSetuWasteJourneyTransactions",
+
+                "kabadiSetuPickupTracking",
+
+                "kabadiSetuPickupRequests",
+
+                "kabadiSetuCollectorInventory",
+
+                "kabadiSetuCollectorSales",
+
+                "kabadiSetuCollectorTransactions",
+
+                "kabadiSetuCollectorEarnings",
+
+                "kabadiSetuTransactions"
+
+            ];
+
+
+            keys.forEach(
+                function (key) {
+
+                    try {
+
+                        localStorage.removeItem(
+                            key
+                        );
+
+                    }
+
+                    catch (error) {}
+
+                }
+            );
+
+
+            // Reset in-memory arrays where available
+
+            try {
+
+                if (
+                    typeof wasteJourneyTransactions !==
+                    "undefined" &&
+                    Array.isArray(
+                        wasteJourneyTransactions
+                    )
+                ) {
+
+                    wasteJourneyTransactions.length =
+                        0;
+
+                }
+
+            }
+
+            catch (error) {}
+
+
+            try {
+
+                if (
+                    typeof collectorInventory !==
+                    "undefined" &&
+                    Array.isArray(
+                        collectorInventory
+                    )
+                ) {
+
+                    collectorInventory.length =
+                        0;
+
+                }
+
+            }
+
+            catch (error) {}
+
+
+            try {
+
+                if (
+                    typeof collectorTransactions !==
+                    "undefined" &&
+                    Array.isArray(
+                        collectorTransactions
+                    )
+                ) {
+
+                    collectorTransactions.length =
+                        0;
+
+                }
+
+            }
+
+            catch (error) {}
+
+
+            try {
+
+                if (
+                    typeof collectorRequests !==
+                    "undefined" &&
+                    Array.isArray(
+                        collectorRequests
+                    )
+                ) {
+
+                    // Keep the two default demo requests
+                    // so the collector dashboard is not empty.
+
+                    collectorRequests.length =
+                        0;
+
+
+                    collectorRequests.push(
+
+                        {
+                            id:
+                                "KS-DEMO-001",
+
+                            material:
+                                "Printed Circuit Board",
+
+                            category:
+                                "E-Waste",
+
+                            weight:
+                                2.5,
+
+                            address:
+                                "Mody University Campus",
+
+                            status:
+                                "Pending",
+
+                            indicativeRate:
+                                220,
+
+                            payment:
+                                ""
+
+                        },
+
+                        {
+
+                            id:
+                                "KS-DEMO-002",
+
+                            material:
+                                "Copper Cable",
+
+                            category:
+                                "E-Waste",
+
+                            weight:
+                                3.0,
+
+                            address:
+                                "Laxmangarh",
+
+                            status:
+                                "Pending",
+
+                            indicativeRate:
+                                380,
+
+                            payment:
+                                ""
+
+                        }
+
+                    );
+
+                }
+
+            }
+
+            catch (error) {}
+
+
+            // Reset collector earnings
+
+            try {
+
+                if (
+                    typeof collectorEarnings !==
+                    "undefined"
+                ) {
+
+                    collectorEarnings =
+                        0;
+
+                }
+
+            }
+
+            catch (error) {}
+
+
+            alert(
+                "✅ Demo data has been reset.\n\nReloading Kabadi Setu..."
+            );
+
+
+            location.reload();
+
+        };
+
+
+    // ========================================================
+    // DEMO CONTROL PANEL
+    // ========================================================
+
+    function createDemoControl() {
+
+        if (
+            document.getElementById(
+                "kabadiDemoControl"
+            )
+        ) {
+            return;
+        }
+
+
+        const control =
+            document.createElement(
+                "div"
+            );
+
+
+        control.id =
+            "kabadiDemoControl";
+
+
+        control.style.cssText = `
+
+            position:fixed;
+
+            bottom:18px;
+
+            right:18px;
+
+            z-index:99990;
+
+            font-family:inherit;
+
+        `;
+
+
+        control.innerHTML = `
+
+            <div
+                id="kabadiDemoToggle"
+                style="
+                    background:#047857;
+                    color:white;
+                    padding:9px 13px;
+                    border-radius:30px;
+                    font-size:11px;
+                    font-weight:800;
+                    cursor:pointer;
+                    box-shadow:0 6px 18px rgba(0,0,0,.18);
+                    user-select:none;
+                "
+            >
+
+                🟢 DEMO MODE
+
+            </div>
+
+
+            <div
+                id="kabadiDemoMenu"
+                style="
+                    display:none;
+                    margin-top:8px;
+                    background:white;
+                    border:1px solid #e5e7eb;
+                    border-radius:14px;
+                    padding:8px;
+                    box-shadow:0 10px 30px rgba(0,0,0,.15);
+                    min-width:180px;
+                "
+            >
+
+                <button
+                    id="kabadiResetDemo"
+                    style="
+                        width:100%;
+                        border:none;
+                        background:#fff;
+                        padding:10px;
+                        border-radius:9px;
+                        cursor:pointer;
+                        text-align:left;
+                        font-size:12px;
+                        font-weight:700;
+                        color:#b91c1c;
+                    "
+                >
+                    🗑️ Reset Demo Data
+                </button>
+
+            </div>
+
+        `;
+
+
+        document.body.appendChild(
+            control
+        );
+
+
+        const toggle =
+            document.getElementById(
+                "kabadiDemoToggle"
+            );
+
+
+        const menu =
+            document.getElementById(
+                "kabadiDemoMenu"
+            );
+
+
+        toggle.onclick =
+            function () {
+
+                menu.style.display =
+                    menu.style.display ===
+                    "none"
+                    ?
+                    "block"
+                    :
+                    "none";
+
+            };
+
+
+        document.getElementById(
+            "kabadiResetDemo"
+        ).onclick =
+            function () {
+
+                menu.style.display =
+                    "none";
+
+
+                window.resetKabadiDemo();
+
+            };
+
+    }
+
+
+    // ========================================================
+    // GLOBAL ERROR HANDLER
+    // ========================================================
+
+    window.addEventListener(
+        "error",
+        function (event) {
+
+            console.error(
+                "Kabadi Setu frontend error:",
+                event.error ||
+                event.message
+            );
+
+        }
+    );
+
+
+    window.addEventListener(
+        "unhandledrejection",
+        function (event) {
+
+            console.error(
+                "Kabadi Setu async error:",
+                event.reason
+            );
+
+        }
+    );
+
+
+    // ========================================================
+    // CLEAN DATA ON LOAD
+    // ========================================================
+
+    setTimeout(
+        function () {
+
+            removeDuplicateJourneys();
+
+            removeDuplicateSales();
+
+            removeDuplicatePickupTracking();
+
+            createDemoControl();
+
+
+            console.log(
+                "✅ STEP 11 COMPLETE"
+            );
+
+            console.log(
+                "🛡️ Duplicate protection active."
+            );
+
+            console.log(
+                "🛡️ Error protection active."
+            );
+
+            console.log(
+                "🗑️ Demo reset available."
+            );
+
+        },
+        1500
+    );
+
+
+    // ========================================================
+    // PUBLIC FUNCTION
+    // ========================================================
+
+    window.removeDuplicateJourneys =
+        removeDuplicateJourneys;
+
+
+    window.removeDuplicateSales =
+        removeDuplicateSales;
+
+
+    window.removeDuplicatePickupTracking =
+        removeDuplicatePickupTracking;
+
+
+})();
+
+// ============================================================
+// STEP 12 — SIH IMPACT & TRACEABILITY DASHBOARD
+// Judge-friendly live impact statistics
+// ============================================================
+
+(function () {
+
+    console.log("🚀 Step 12 - Impact & Traceability Dashboard loaded.");
+
+    const IMPACT_SECTION_ID = "kabadiImpactDashboard";
+
+    // ------------------------------------------------------------
+    // SAFE JSON
+    // ------------------------------------------------------------
+
+    function safeParse(key, fallback) {
+        try {
+            const data = JSON.parse(
+                localStorage.getItem(key) || "null"
+            );
+
+            return data !== null ? data : fallback;
+
+        } catch (error) {
+            console.warn("Impact data read error:", key, error);
+            return fallback;
+        }
+    }
+
+    // ------------------------------------------------------------
+    // GET JOURNEYS
+    // ------------------------------------------------------------
+
+    function getJourneys() {
+
+        if (
+            typeof wasteJourneyTransactions !== "undefined" &&
+            Array.isArray(wasteJourneyTransactions)
+        ) {
+            return wasteJourneyTransactions;
+        }
+
+        return safeParse(
+            "kabadiSetuWasteJourneyTransactions",
+            []
+        );
+    }
+
+    // ------------------------------------------------------------
+    // GET PICKUPS
+    // ------------------------------------------------------------
+
+    function getPickups() {
+
+        const pickups =
+            safeParse(
+                "kabadiSetuPickupRequests",
+                []
+            );
+
+        return Array.isArray(pickups)
+            ? pickups
+            : [];
+    }
+
+    // ------------------------------------------------------------
+    // GET INVENTORY
+    // ------------------------------------------------------------
+
+    function getInventory() {
+
+        const inventory =
+            safeParse(
+                "kabadiSetuCollectorInventory",
+                []
+            );
+
+        return Array.isArray(inventory)
+            ? inventory
+            : [];
+    }
+
+    // ------------------------------------------------------------
+    // GET SALES
+    // ------------------------------------------------------------
+
+    function getSales() {
+
+        const sales =
+            safeParse(
+                "kabadiSetuCollectorSales",
+                []
+            );
+
+        return Array.isArray(sales)
+            ? sales
+            : [];
+    }
+
+    // ------------------------------------------------------------
+    // CALCULATE IMPACT
+    // ------------------------------------------------------------
+
+    function calculateImpact() {
+
+        const journeys = getJourneys();
+        const pickups = getPickups();
+        const inventory = getInventory();
+        const sales = getSales();
+
+        // Remove accidental duplicates
+        const uniqueJourneys = journeys.filter(
+            function (item, index, array) {
+
+                const id =
+                    item?.id ||
+                    item?.transactionId ||
+                    index;
+
+                return (
+                    array.findIndex(
+                        function (x) {
+
+                            return (
+                                (
+                                    x?.id ||
+                                    x?.transactionId
+                                ) === id
+                            );
+
+                        }
+                    ) === index
+                );
+
+            }
+        );
+
+        const completedJourneys =
+            uniqueJourneys.filter(
+                function (journey) {
+
+                    return (
+                        journey?.status ===
+                            "Recycling Completed" ||
+
+                        journey?.status ===
+                            "Completed" ||
+
+                        journey?.recyclingCompleted === true ||
+
+                        journey?.timeline?.some(
+                            function (step) {
+                                return (
+                                    step?.key ===
+                                    "completed"
+                                );
+                            }
+                        )
+                    );
+
+                }
+            );
+
+        const totalTrackedWeight =
+            uniqueJourneys.reduce(
+                function (sum, journey) {
+
+                    const weight =
+                        Number(
+                            journey?.finalWeight ??
+                            journey?.actualWeight ??
+                            journey?.weight ??
+                            0
+                        );
+
+                    return (
+                        sum +
+                        (
+                            Number.isFinite(weight)
+                                ? weight
+                                : 0
+                        )
+                    );
+
+                },
+                0
+            );
+
+        const recycledWeight =
+            completedJourneys.reduce(
+                function (sum, journey) {
+
+                    const weight =
+                        Number(
+                            journey?.finalWeight ??
+                            journey?.actualWeight ??
+                            journey?.weight ??
+                            0
+                        );
+
+                    return (
+                        sum +
+                        (
+                            Number.isFinite(weight)
+                                ? weight
+                                : 0
+                        )
+                    );
+
+                },
+                0
+            );
+
+        const totalValue =
+            completedJourneys.reduce(
+                function (sum, journey) {
+
+                    const value =
+                        Number(
+                            journey?.finalRecyclerValue ??
+                            journey?.finalValue ??
+                            journey?.recyclerValue ??
+                            journey?.estimatedValue ??
+                            0
+                        );
+
+                    return (
+                        sum +
+                        (
+                            Number.isFinite(value)
+                                ? value
+                                : 0
+                        )
+                    );
+
+                },
+                0
+            );
+
+        const materials =
+            new Set(
+                uniqueJourneys
+                    .map(
+                        function (journey) {
+                            return journey?.material;
+                        }
+                    )
+                    .filter(Boolean)
+            );
+
+        const activeJourneys =
+            uniqueJourneys.filter(
+                function (journey) {
+
+                    return !(
+                        journey?.status ===
+                            "Recycling Completed" ||
+
+                        journey?.status ===
+                            "Completed" ||
+
+                        journey?.recyclingCompleted === true
+                    );
+
+                }
+            );
+
+        const verifiedRecyclers = 3;
+
+        const totalSalesWeight =
+            sales.reduce(
+                function (sum, sale) {
+
+                    const weight =
+                        Number(
+                            sale?.finalWeight ??
+                            sale?.weight ??
+                            0
+                        );
+
+                    return (
+                        sum +
+                        (
+                            Number.isFinite(weight)
+                                ? weight
+                                : 0
+                        )
+                    );
+
+                },
+                0
+            );
+
+        return {
+
+            pickupRequests:
+                pickups.length,
+
+            trackedWaste:
+                totalTrackedWeight,
+
+            recycledWaste:
+                recycledWeight,
+
+            activeJourneys:
+                activeJourneys.length,
+
+            completedJourneys:
+                completedJourneys.length,
+
+            totalValue:
+                totalValue,
+
+            materialsTracked:
+                materials.size,
+
+            inventoryWeight:
+                inventory.reduce(
+                    function (sum, item) {
+
+                        const weight =
+                            Number(
+                                item?.weight ||
+                                item?.quantity ||
+                                0
+                            );
+
+                        return sum + (
+                            Number.isFinite(weight)
+                                ? weight
+                                : 0
+                        );
+
+                    },
+                    0
+                ),
+
+            salesWeight:
+                totalSalesWeight,
+
+            verifiedRecyclers:
+                verifiedRecyclers
+
+        };
+
+    }
+
+    // ------------------------------------------------------------
+    // FORMAT
+    // ------------------------------------------------------------
+
+    function formatNumber(value) {
+
+        const number =
+            Number(value || 0);
+
+        if (!Number.isFinite(number)) {
+            return "0";
+        }
+
+        return number.toLocaleString(
+            "en-IN",
+            {
+                maximumFractionDigits: 2
+            }
+        );
+
+    }
+
+    // ------------------------------------------------------------
+    // CREATE SECTION
+    // ------------------------------------------------------------
+
+    function createImpactSection() {
+
+        let section =
+            document.getElementById(
+                IMPACT_SECTION_ID
+            );
+
+        if (section) {
+            return section;
+        }
+
+        section =
+            document.createElement("section");
+
+        section.id =
+            IMPACT_SECTION_ID;
+
+        section.className =
+            "page-section";
+
+        section.innerHTML = `
+            <div
+                style="
+                    max-width:1100px;
+                    margin:0 auto;
+                    padding-bottom:40px;
+                "
+            >
+
+                <!-- HERO -->
+
+                <div
+                    style="
+                        background:
+                            linear-gradient(
+                                135deg,
+                                #047857,
+                                #10b981
+                            );
+                        border-radius:24px;
+                        padding:32px;
+                        color:white;
+                        position:relative;
+                        overflow:hidden;
+                        margin-bottom:24px;
+                        box-shadow:
+                            0 14px 35px
+                            rgba(16,185,129,.22);
+                    "
+                >
+
+                    <div
+                        style="
+                            position:absolute;
+                            width:220px;
+                            height:220px;
+                            border-radius:50%;
+                            background:rgba(255,255,255,.08);
+                            right:-70px;
+                            top:-80px;
+                        "
+                    ></div>
+
+                    <div
+                        style="
+                            position:absolute;
+                            width:120px;
+                            height:120px;
+                            border-radius:50%;
+                            background:rgba(255,255,255,.06);
+                            right:120px;
+                            bottom:-70px;
+                        "
+                    ></div>
+
+                    <div
+                        style="
+                            position:relative;
+                            z-index:2;
+                        "
+                    >
+
+                        <div
+                            style="
+                                font-size:13px;
+                                font-weight:800;
+                                letter-spacing:1px;
+                                opacity:.85;
+                                margin-bottom:8px;
+                            "
+                        >
+                            KABADI SETU • SIH DEMO
+                        </div>
+
+                        <h1
+                            style="
+                                margin:0;
+                                font-size:30px;
+                                font-weight:900;
+                            "
+                        >
+                            ♻️ Impact & Traceability
+                        </h1>
+
+                        <p
+                            style="
+                                margin:10px 0 0;
+                                max-width:700px;
+                                line-height:1.6;
+                                opacity:.92;
+                            "
+                        >
+                            See how waste moves from household
+                            collection to authorized recycling —
+                            with every important step digitally traceable.
+                        </p>
+
+                    </div>
+
+                </div>
+
+
+                <!-- LIVE LABEL -->
+
+                <div
+                    style="
+                        display:flex;
+                        justify-content:space-between;
+                        align-items:center;
+                        margin-bottom:14px;
+                    "
+                >
+
+                    <div>
+                        <h2
+                            style="
+                                margin:0;
+                                font-size:21px;
+                                color:#111827;
+                            "
+                        >
+                            Live Impact
+                        </h2>
+
+                        <div
+                            style="
+                                color:#6b7280;
+                                font-size:13px;
+                                margin-top:4px;
+                            "
+                        >
+                            Updated automatically from the demo data
+                        </div>
+                    </div>
+
+                    <div
+                        style="
+                            display:flex;
+                            align-items:center;
+                            gap:7px;
+                            padding:7px 11px;
+                            border-radius:999px;
+                            background:#ecfdf5;
+                            color:#047857;
+                            font-size:12px;
+                            font-weight:800;
+                        "
+                    >
+                        <span
+                            style="
+                                width:8px;
+                                height:8px;
+                                border-radius:50%;
+                                background:#10b981;
+                                display:inline-block;
+                            "
+                        ></span>
+
+                        LIVE
+                    </div>
+
+                </div>
+
+
+                <!-- KPI GRID -->
+
+                <div
+                    id="kabadiImpactKpis"
+                    style="
+                        display:grid;
+                        grid-template-columns:
+                            repeat(
+                                auto-fit,
+                                minmax(190px,1fr)
+                            );
+                        gap:16px;
+                        margin-bottom:24px;
+                    "
+                ></div>
+
+
+                <!-- JOURNEY VISUAL -->
+
+                <div
+                    style="
+                        background:#ffffff;
+                        border-radius:20px;
+                        padding:26px;
+                        box-shadow:
+                            0 7px 25px
+                            rgba(0,0,0,.06);
+                        border:1px solid #eef2f7;
+                        margin-bottom:24px;
+                    "
+                >
+
+                    <div
+                        style="
+                            display:flex;
+                            justify-content:space-between;
+                            align-items:center;
+                            gap:10px;
+                            margin-bottom:22px;
+                            flex-wrap:wrap;
+                        "
+                    >
+
+                        <div>
+
+                            <h2
+                                style="
+                                    margin:0;
+                                    font-size:20px;
+                                "
+                            >
+                                🔗 End-to-End Waste Journey
+                            </h2>
+
+                            <p
+                                style="
+                                    margin:5px 0 0;
+                                    color:#6b7280;
+                                    font-size:13px;
+                                "
+                            >
+                                From household submission to formal recycling
+                            </p>
+
+                        </div>
+
+                        <div
+                            style="
+                                padding:8px 12px;
+                                background:#f0fdf4;
+                                border-radius:10px;
+                                color:#15803d;
+                                font-size:12px;
+                                font-weight:800;
+                            "
+                        >
+                            TRACEABLE CHAIN
+                        </div>
+
+                    </div>
+
+
+                    <div
+                        id="kabadiImpactJourney"
+                        style="
+                            display:grid;
+                            grid-template-columns:
+                                repeat(
+                                    auto-fit,
+                                    minmax(125px,1fr)
+                                );
+                            gap:8px;
+                            align-items:center;
+                        "
+                    ></div>
+
+                </div>
+
+
+                <!-- TWO COLUMNS -->
+
+                <div
+                    style="
+                        display:grid;
+                        grid-template-columns:
+                            repeat(
+                                auto-fit,
+                                minmax(280px,1fr)
+                            );
+                        gap:20px;
+                    "
+                >
+
+                    <!-- ENVIRONMENT -->
+
+                    <div
+                        style="
+                            background:#ffffff;
+                            border-radius:20px;
+                            padding:24px;
+                            box-shadow:
+                                0 7px 25px
+                                rgba(0,0,0,.06);
+                            border:1px solid #eef2f7;
+                        "
+                    >
+
+                        <div
+                            style="
+                                font-size:28px;
+                                margin-bottom:10px;
+                            "
+                        >
+                            🌱
+                        </div>
+
+                        <h3
+                            style="
+                                margin:0;
+                                font-size:18px;
+                            "
+                        >
+                            Environmental Impact
+                        </h3>
+
+                        <p
+                            style="
+                                color:#6b7280;
+                                font-size:13px;
+                                line-height:1.6;
+                                margin:8px 0 18px;
+                            "
+                        >
+                            Every completed journey represents material
+                            that has been tracked toward formal recycling.
+                        </p>
+
+                        <div
+                            id="kabadiEnvironmentalStats"
+                        ></div>
+
+                    </div>
+
+
+                    <!-- FORMALIZATION -->
+
+                    <div
+                        style="
+                            background:#ffffff;
+                            border-radius:20px;
+                            padding:24px;
+                            box-shadow:
+                                0 7px 25px
+                                rgba(0,0,0,.06);
+                            border:1px solid #eef2f7;
+                        "
+                    >
+
+                        <div
+                            style="
+                                font-size:28px;
+                                margin-bottom:10px;
+                            "
+                        >
+                            🤝
+                        </div>
+
+                        <h3
+                            style="
+                                margin:0;
+                                font-size:18px;
+                            "
+                        >
+                            Formal Recycling Chain
+                        </h3>
+
+                        <p
+                            style="
+                                color:#6b7280;
+                                font-size:13px;
+                                line-height:1.6;
+                                margin:8px 0 18px;
+                            "
+                        >
+                            Informal collection is connected with
+                            verified recycler infrastructure.
+                        </p>
+
+                        <div
+                            id="kabadiFormalStats"
+                        ></div>
+
+                    </div>
+
+                </div>
+
+            </div>
+        `;
+
+        const main =
+            document.querySelector("main") ||
+            document.body;
+
+        main.appendChild(section);
+
+        return section;
+    }
+
+    // ------------------------------------------------------------
+    // KPI CARD
+    // ------------------------------------------------------------
+
+    function createKpi(
+        icon,
+        value,
+        label,
+        description
+    ) {
+
+        return `
+            <div
+                style="
+                    background:#ffffff;
+                    border-radius:18px;
+                    padding:21px;
+                    border:1px solid #eef2f7;
+                    box-shadow:
+                        0 6px 20px
+                        rgba(0,0,0,.05);
+                "
+            >
+
+                <div
+                    style="
+                        width:42px;
+                        height:42px;
+                        border-radius:12px;
+                        background:#ecfdf5;
+                        display:flex;
+                        align-items:center;
+                        justify-content:center;
+                        font-size:21px;
+                        margin-bottom:13px;
+                    "
+                >
+                    ${icon}
+                </div>
+
+                <div
+                    style="
+                        font-size:27px;
+                        font-weight:900;
+                        color:#111827;
+                    "
+                >
+                    ${value}
+                </div>
+
+                <div
+                    style="
+                        font-size:13px;
+                        font-weight:800;
+                        color:#374151;
+                        margin-top:3px;
+                    "
+                >
+                    ${label}
+                </div>
+
+                <div
+                    style="
+                        font-size:11px;
+                        color:#9ca3af;
+                        margin-top:5px;
+                    "
+                >
+                    ${description}
+                </div>
+
+            </div>
+        `;
+
+    }
+
+    // ------------------------------------------------------------
+    // RENDER
+    // ------------------------------------------------------------
+
+    function renderImpactDashboard() {
+
+        const section =
+            createImpactSection();
+
+        const impact =
+            calculateImpact();
+
+        const kpis =
+            document.getElementById(
+                "kabadiImpactKpis"
+            );
+
+        if (kpis) {
+
+            kpis.innerHTML =
+
+                createKpi(
+                    "♻️",
+                    formatNumber(
+                        impact.trackedWaste
+                    ) + " kg",
+                    "Waste Tracked",
+                    "Across digital waste journeys"
+                ) +
+
+                createKpi(
+                    "🚚",
+                    formatNumber(
+                        impact.pickupRequests
+                    ),
+                    "Pickup Requests",
+                    "Household collection requests"
+                ) +
+
+                createKpi(
+                    "✅",
+                    formatNumber(
+                        impact.completedJourneys
+                    ),
+                    "Completed Journeys",
+                    "Successfully recycled journeys"
+                ) +
+
+                createKpi(
+                    "🏭",
+                    formatNumber(
+                        impact.verifiedRecyclers
+                    ),
+                    "Verified Recyclers",
+                    "Recycler network available"
+                ) +
+
+                createKpi(
+                    "💰",
+                    "₹" +
+                        formatNumber(
+                            impact.totalValue
+                        ),
+                    "Recycler Value",
+                    "Value recorded in completed journeys"
+                );
+
+        }
+
+        // --------------------------------------------------------
+        // JOURNEY VISUAL
+        // --------------------------------------------------------
+
+        const journey =
+            document.getElementById(
+                "kabadiImpactJourney"
+            );
+
+        if (journey) {
+
+            const steps = [
+
+                ["🏠", "Household", "Waste submitted"],
+
+                ["🤖", "AI", "Material classified"],
+
+                ["⚖️", "Weighing", "Actual weight recorded"],
+
+                ["👤", "Collector", "Material collected"],
+
+                ["🏭", "Recycler", "Authorized recycler"],
+
+                ["📱", "Handover", "Digital handover"],
+
+                ["♻️", "Recycling", "Journey completed"]
+
+            ];
+
+            journey.innerHTML =
+                steps.map(
+                    function (step, index) {
+
+                        return `
+
+                            <div
+                                style="
+                                    text-align:center;
+                                    padding:12px 5px;
+                                "
+                            >
+
+                                <div
+                                    style="
+                                        width:52px;
+                                        height:52px;
+                                        border-radius:50%;
+                                        margin:0 auto 9px;
+                                        background:#ecfdf5;
+                                        display:flex;
+                                        align-items:center;
+                                        justify-content:center;
+                                        font-size:23px;
+                                        border:2px solid #bbf7d0;
+                                    "
+                                >
+                                    ${step[0]}
+                                </div>
+
+                                <div
+                                    style="
+                                        font-size:12px;
+                                        font-weight:900;
+                                        color:#111827;
+                                    "
+                                >
+                                    ${step[1]}
+                                </div>
+
+                                <div
+                                    style="
+                                        font-size:10px;
+                                        color:#9ca3af;
+                                        margin-top:3px;
+                                    "
+                                >
+                                    ${step[2]}
+                                </div>
+
+                            </div>
+
+                            ${
+                                index <
+                                steps.length - 1
+                                    ? `
+                                        <div
+                                            style="
+                                                display:flex;
+                                                align-items:center;
+                                                justify-content:center;
+                                                color:#86efac;
+                                                font-size:18px;
+                                                font-weight:900;
+                                            "
+                                        >
+                                            →
+                                        </div>
+                                    `
+                                    : ""
+                            }
+
+                        `;
+
+                    }
+                ).join("");
+
+        }
+
+        // --------------------------------------------------------
+        // ENVIRONMENTAL STATS
+        // --------------------------------------------------------
+
+        const environment =
+            document.getElementById(
+                "kabadiEnvironmentalStats"
+            );
+
+        if (environment) {
+
+            environment.innerHTML = `
+
+                <div
+                    style="
+                        display:grid;
+                        grid-template-columns:
+                            repeat(2,1fr);
+                        gap:12px;
+                    "
+                >
+
+                    <div
+                        style="
+                            padding:14px;
+                            background:#f0fdf4;
+                            border-radius:13px;
+                        "
+                    >
+
+                        <div
+                            style="
+                                font-size:20px;
+                                font-weight:900;
+                                color:#15803d;
+                            "
+                        >
+                            ${formatNumber(
+                                impact.recycledWaste
+                            )} kg
+                        </div>
+
+                        <div
+                            style="
+                                font-size:11px;
+                                color:#6b7280;
+                                margin-top:3px;
+                            "
+                        >
+                            Successfully recycled
+                        </div>
+
+                    </div>
+
+
+                    <div
+                        style="
+                            padding:14px;
+                            background:#f0fdf4;
+                            border-radius:13px;
+                        "
+                    >
+
+                        <div
+                            style="
+                                font-size:20px;
+                                font-weight:900;
+                                color:#15803d;
+                            "
+                        >
+                            ${formatNumber(
+                                impact.materialsTracked
+                            )}
+                        </div>
+
+                        <div
+                            style="
+                                font-size:11px;
+                                color:#6b7280;
+                                margin-top:3px;
+                            "
+                        >
+                            Material categories
+                        </div>
+
+                    </div>
+
+                </div>
+
+            `;
+
+        }
+
+        // --------------------------------------------------------
+        // FORMALIZATION STATS
+        // --------------------------------------------------------
+
+        const formal =
+            document.getElementById(
+                "kabadiFormalStats"
+            );
+
+        if (formal) {
+
+            formal.innerHTML = `
+
+                <div
+                    style="
+                        display:flex;
+                        flex-direction:column;
+                        gap:11px;
+                    "
+                >
+
+                    <div
+                        style="
+                            display:flex;
+                            justify-content:space-between;
+                            padding-bottom:10px;
+                            border-bottom:1px solid #f3f4f6;
+                        "
+                    >
+                        <span
+                            style="
+                                color:#6b7280;
+                                font-size:13px;
+                            "
+                        >
+                            Active journeys
+                        </span>
+
+                        <strong>
+                            ${formatNumber(
+                                impact.activeJourneys
+                            )}
+                        </strong>
+                    </div>
+
+
+                    <div
+                        style="
+                            display:flex;
+                            justify-content:space-between;
+                            padding-bottom:10px;
+                            border-bottom:1px solid #f3f4f6;
+                        "
+                    >
+                        <span
+                            style="
+                                color:#6b7280;
+                                font-size:13px;
+                            "
+                        >
+                            Materials tracked
+                        </span>
+
+                        <strong>
+                            ${formatNumber(
+                                impact.materialsTracked
+                            )}
+                        </strong>
+                    </div>
+
+
+                    <div
+                        style="
+                            display:flex;
+                            justify-content:space-between;
+                            padding-bottom:10px;
+                            border-bottom:1px solid #f3f4f6;
+                        "
+                    >
+                        <span
+                            style="
+                                color:#6b7280;
+                                font-size:13px;
+                            "
+                        >
+                            Collector sales weight
+                        </span>
+
+                        <strong>
+                            ${formatNumber(
+                                impact.salesWeight
+                            )} kg
+                        </strong>
+                    </div>
+
+
+                    <div
+                        style="
+                            display:flex;
+                            justify-content:space-between;
+                        "
+                    >
+                        <span
+                            style="
+                                color:#6b7280;
+                                font-size:13px;
+                            "
+                        >
+                            Recycler connections
+                        </span>
+
+                        <strong
+                            style="
+                                color:#15803d;
+                            "
+                        >
+                            ${formatNumber(
+                                impact.verifiedRecyclers
+                            )} verified
+                        </strong>
+                    </div>
+
+                </div>
+
+            `;
+
+        }
+
+    }
+
+    // ------------------------------------------------------------
+    // NAVIGATION
+    // ------------------------------------------------------------
+
+    function createImpactNavigation() {
+
+        if (
+            document.getElementById(
+                "kabadiImpactNav"
+            )
+        ) {
+            return;
+        }
+
+        const nav =
+            document.createElement("button");
+
+        nav.id =
+            "kabadiImpactNav";
+
+        nav.type = "button";
+
+        nav.innerHTML =
+            "📊 Impact & Traceability";
+
+        nav.style.cssText = `
+            width:100%;
+            text-align:left;
+            border:none;
+            background:transparent;
+            cursor:pointer;
+            padding:11px 14px;
+            border-radius:10px;
+            font-size:14px;
+            font-weight:700;
+        `;
+
+        nav.addEventListener(
+            "click",
+            function () {
+
+                if (
+                    typeof window.showSection ===
+                    "function"
+                ) {
+
+                    window.showSection(
+                        IMPACT_SECTION_ID
+                    );
+
+                } else {
+
+                    document
+                        .querySelectorAll(
+                            ".page-section"
+                        )
+                        .forEach(
+                            function (section) {
+                                section.classList.remove(
+                                    "active-section"
+                                );
+                            }
+                        );
+
+                    const section =
+                        document.getElementById(
+                            IMPACT_SECTION_ID
+                        );
+
+                    if (section) {
+                        section.classList.add(
+                            "active-section"
+                        );
+                    }
+
+                }
+
+                renderImpactDashboard();
+
+            }
+        );
+
+        // Find navigation container
+        const candidates = [
+            document.querySelector("nav"),
+            document.querySelector(".sidebar"),
+            document.querySelector(".nav-menu"),
+            document.querySelector(".sidebar-nav")
+        ];
+
+        let container = null;
+
+        for (
+            let i = 0;
+            i < candidates.length;
+            i++
+        ) {
+
+            if (candidates[i]) {
+                container = candidates[i];
+                break;
+            }
+
+        }
+
+        if (container) {
+
+            container.appendChild(nav);
+
+        }
+
+    }
+
+    // ------------------------------------------------------------
+    // WRAP SHOW SECTION
+    // ------------------------------------------------------------
+
+    const originalShowSection =
+        window.showSection;
+
+    if (
+        typeof originalShowSection ===
+        "function"
+    ) {
+
+        window.showSection =
+            function (sectionId) {
+
+                const result =
+                    originalShowSection.apply(
+                        this,
+                        arguments
+                    );
+
+                if (
+                    sectionId ===
+                    IMPACT_SECTION_ID
+                ) {
+
+                    setTimeout(
+                        function () {
+
+                            renderImpactDashboard();
+
+                        },
+                        50
+                    );
+
+                }
+
+                return result;
+
+            };
+
+    }
+
+    // ------------------------------------------------------------
+    // AUTO REFRESH
+    // ------------------------------------------------------------
+
+    setInterval(
+        function () {
+
+            const section =
+                document.getElementById(
+                    IMPACT_SECTION_ID
+                );
+
+            if (
+                section &&
+                section.classList.contains(
+                    "active-section"
+                )
+            ) {
+
+                renderImpactDashboard();
+
+            }
+
+        },
+        2000
+    );
+
+    // ------------------------------------------------------------
+    // INITIALIZE
+    // ------------------------------------------------------------
+
+    setTimeout(
+        function () {
+
+            createImpactSection();
+            createImpactNavigation();
+            renderImpactDashboard();
+
+            console.log(
+                "✅ Step 12 - Impact & Traceability Dashboard ready."
+            );
+
+        },
+        1200
+    );
+
+    // ------------------------------------------------------------
+    // PUBLIC ACCESS
+    // ------------------------------------------------------------
+
+    window.renderKabadiImpactDashboard =
+        renderImpactDashboard;
+
+    window.calculateKabadiImpact =
+        calculateImpact;
+
+})();
+
+// =========================================================
+// TRACEABLE CHAIN BUTTON - CLICK ACTION
+// =========================================================
+
+(function enableTraceableChainButton() {
+
+    function setupTraceableChainButton() {
+
+        // Find the element containing "TRACEABLE CHAIN"
+        const elements = Array.from(
+            document.querySelectorAll("*")
+        );
+
+        const button = elements.find(el => {
+            return (
+                el.children.length === 0 &&
+                el.textContent.trim().toUpperCase() === "TRACEABLE CHAIN"
+            );
+        });
+
+        if (!button) {
+            return;
+        }
+
+        // Prevent duplicate event listeners
+        if (button.dataset.traceableChainReady === "true") {
+            return;
+        }
+
+        button.dataset.traceableChainReady = "true";
+
+        // Make it behave like a real button
+        button.style.cursor = "pointer";
+        button.setAttribute("role", "button");
+        button.setAttribute(
+            "aria-label",
+            "Open Impact and Traceability Dashboard"
+        );
+        button.title =
+            "Open Impact & Traceability Dashboard";
+
+        // Small hover effect
+        button.addEventListener("mouseenter", function () {
+            button.style.transform = "translateY(-2px)";
+            button.style.boxShadow =
+                "0 6px 16px rgba(16,185,129,.18)";
+        });
+
+        button.addEventListener("mouseleave", function () {
+            button.style.transform = "";
+            button.style.boxShadow = "";
+        });
+
+        // CLICK
+        button.addEventListener("click", function () {
+
+            // Try the Impact & Traceability section first
+            const impactSection =
+                document.getElementById(
+                    "kabadiImpactDashboard"
+                );
+
+            if (typeof window.showSection === "function") {
+
+                try {
+                    window.showSection(
+                        "kabadiImpactDashboard"
+                    );
+                } catch (error) {
+                    console.warn(
+                        "Could not open impact dashboard:",
+                        error
+                    );
+                }
+            }
+
+            // If section exists, scroll to it
+            setTimeout(function () {
+
+                const target =
+                    document.getElementById(
+                        "kabadiImpactDashboard"
+                    );
+
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: "smooth",
+                        block: "start"
+                    });
+                }
+
+            }, 150);
+
+        });
+
+        console.log(
+            "✅ TRACEABLE CHAIN button enabled."
+        );
+    }
+
+    // Initial setup
+    setupTraceableChainButton();
+
+    // Run again after dynamically generated UI appears
+    setTimeout(
+        setupTraceableChainButton,
+        1000
+    );
+
+    setTimeout(
+        setupTraceableChainButton,
+        2500
+    );
+
+})();
+
+// ============================================================
+// STEP 14 - SIH JUDGE-READY FINAL UI POLISH
+// ============================================================
+
+(function () {
+
+    console.log("🎨 Step 14 - SIH Judge-Ready UI Polish loaded.");
+
+    // ----------------------------------------------------------
+    // 1. GLOBAL POLISH CSS
+    // ----------------------------------------------------------
+
+    const style = document.createElement("style");
+
+    style.id = "kabadiStep14Polish";
+
+    style.innerHTML = `
+
+        /* ================================================
+           GLOBAL
+        ================================================ */
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #f5f8f7 !important;
+        }
+
+        button {
+            transition:
+                transform 0.18s ease,
+                box-shadow 0.18s ease,
+                background 0.18s ease,
+                opacity 0.18s ease !important;
+        }
+
+        button:hover:not(:disabled) {
+            transform: translateY(-1px);
+        }
+
+        button:active:not(:disabled) {
+            transform: translateY(0);
+        }
+
+        button:disabled {
+            opacity: 0.65;
+            cursor: not-allowed !important;
+        }
+
+
+        /* ================================================
+           CARDS
+        ================================================ */
+
+        .card,
+        .dashboard-card,
+        .stat-card,
+        .feature-card,
+        .flow-card {
+            transition:
+                transform 0.2s ease,
+                box-shadow 0.2s ease !important;
+        }
+
+        .card:hover,
+        .dashboard-card:hover,
+        .stat-card:hover,
+        .feature-card:hover,
+        .flow-card:hover {
+            transform: translateY(-2px);
+            box-shadow:
+                0 12px 30px rgba(16, 185, 129, 0.08) !important;
+        }
+
+
+        /* ================================================
+           NAVIGATION
+        ================================================ */
+
+        .nav-item {
+            transition:
+                background 0.18s ease,
+                color 0.18s ease,
+                transform 0.18s ease !important;
+        }
+
+        .nav-item:hover {
+            transform: translateX(2px);
+        }
+
+
+        /* ================================================
+           SECTION HEADINGS
+        ================================================ */
+
+        h1,
+        h2,
+        h3 {
+            letter-spacing: -0.02em;
+        }
+
+
+        /* ================================================
+           PRIMARY ACTION BUTTONS
+        ================================================ */
+
+        .primary-btn,
+        .secondary-btn {
+            border-radius: 12px !important;
+            font-weight: 700 !important;
+        }
+
+
+        /* ================================================
+           STATUS BADGES
+        ================================================ */
+
+        .status-badge,
+        .badge,
+        .verified-badge {
+            font-weight: 700;
+            letter-spacing: 0.01em;
+        }
+
+
+        /* ================================================
+           SCROLLBAR
+        ================================================ */
+
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #eef2f1;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #b7d9ca;
+            border-radius: 20px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #159570;
+        }
+
+
+        /* ================================================
+           DEMO MODE CONTROL
+        ================================================ */
+
+        #kabadiDemoControl {
+            z-index: 99999 !important;
+        }
+
+
+        /* ================================================
+           MOBILE
+        ================================================ */
+
+        @media (max-width: 768px) {
+
+            .dashboard-card,
+            .card,
+            .feature-card {
+                border-radius: 16px !important;
+            }
+
+            h1 {
+                font-size: 28px !important;
+            }
+
+            h2 {
+                font-size: 22px !important;
+            }
+
+        }
+
+    `;
+
+    document.head.appendChild(style);
+
+
+    // ----------------------------------------------------------
+    // 2. ADD "LIVE PROTOTYPE" INDICATOR
+    // ----------------------------------------------------------
+
+    function createPrototypeIndicator() {
+
+        if (
+            document.getElementById(
+                "kabadiPrototypeIndicator"
+            )
+        ) {
+            return;
+        }
+
+        const indicator =
+            document.createElement("div");
+
+        indicator.id =
+            "kabadiPrototypeIndicator";
+
+        indicator.innerHTML = `
+            <span style="
+                width:8px;
+                height:8px;
+                border-radius:50%;
+                background:#22c55e;
+                display:inline-block;
+                box-shadow:0 0 0 4px rgba(34,197,94,.12);
+            "></span>
+
+            <span>
+                Kabadi Setu • Live Prototype
+            </span>
+        `;
+
+        indicator.style.cssText = `
+            position:fixed;
+            top:18px;
+            right:22px;
+            z-index:9998;
+
+            display:flex;
+            align-items:center;
+            gap:9px;
+
+            padding:9px 14px;
+
+            background:rgba(255,255,255,.94);
+            border:1px solid #dcebe4;
+            border-radius:999px;
+
+            color:#166534;
+
+            font-size:12px;
+            font-weight:800;
+
+            box-shadow:0 5px 18px rgba(0,0,0,.06);
+
+            backdrop-filter:blur(10px);
+        `;
+
+        document.body.appendChild(indicator);
+    }
+
+
+    // ----------------------------------------------------------
+    // 3. IMPROVE PAGE TITLE AREA
+    // ----------------------------------------------------------
+
+    function polishPageTitle() {
+
+        const title =
+            document.getElementById(
+                "pageTitle"
+            );
+
+        if (!title) {
+            return;
+        }
+
+        title.style.fontWeight = "800";
+        title.style.letterSpacing = "-0.025em";
+    }
+
+
+    // ----------------------------------------------------------
+    // 4. ADD SMALL "VERIFIED" STYLE TO RECYCLERS
+    // ----------------------------------------------------------
+
+    function polishRecyclerBadges() {
+
+        const elements =
+            document.querySelectorAll(
+                "*"
+            );
+
+        elements.forEach(function (element) {
+
+            const text =
+                (element.textContent || "")
+                    .trim();
+
+            if (
+                text === "Verified" ||
+                text === "VERIFIED"
+            ) {
+
+                element.style.fontWeight =
+                    "800";
+
+                element.style.color =
+                    "#15803d";
+
+                element.style.background =
+                    "#ecfdf5";
+
+                element.style.borderRadius =
+                    "999px";
+
+                element.style.padding =
+                    "4px 9px";
+
+                element.style.fontSize =
+                    "11px";
+
+            }
+
+        });
+
+    }
+
+
+    // ----------------------------------------------------------
+    // 5. POLISH TRACEABILITY TIMELINE
+    // ----------------------------------------------------------
+
+    function polishTraceability() {
+
+        const panel =
+            document.getElementById(
+                "wasteJourneyTrackingPanel"
+            );
+
+        if (!panel) {
+            return;
+        }
+
+        panel.style.scrollMarginTop =
+            "30px";
+
+        const headings =
+            panel.querySelectorAll(
+                "h2, h3"
+            );
+
+        headings.forEach(function (heading) {
+
+            heading.style.fontWeight =
+                "800";
+
+        });
+
+    }
+
+
+    // ----------------------------------------------------------
+    // 6. HIGHLIGHT IMPORTANT ACTIONS
+    // ----------------------------------------------------------
+
+    function polishImportantButtons() {
+
+        const buttons =
+            document.querySelectorAll(
+                "button"
+            );
+
+        buttons.forEach(function (button) {
+
+            const text =
+                (button.innerText || "")
+                    .trim()
+                    .toLowerCase();
+
+            if (
+                text.includes("request pickup") ||
+                text.includes("accept") ||
+                text.includes("complete collection") ||
+                text.includes("compare recycler") ||
+                text.includes("prepare handover") ||
+                text.includes("confirm") ||
+                text.includes("complete recycling")
+            ) {
+
+                button.style.fontWeight =
+                    "800";
+
+            }
+
+        });
+
+    }
+
+
+    // ----------------------------------------------------------
+    // 7. DEMO READY MESSAGE
+    // ----------------------------------------------------------
+
+    function showDemoReadyMessage() {
+
+        if (
+            sessionStorage.getItem(
+                "kabadiStep14ReadyShown"
+            )
+        ) {
+            return;
+        }
+
+        sessionStorage.setItem(
+            "kabadiStep14ReadyShown",
+            "true"
+        );
+
+        console.log(
+            "✅ KABADI SETU DEMO READY"
+        );
+
+        console.log(
+            "🏠 Household → 🚚 Collector → ♻️ Recycler → 🌱 Recycling"
+        );
+
+    }
+
+
+    // ----------------------------------------------------------
+    // 8. RUN POLISH
+    // ----------------------------------------------------------
+
+    function applyPolish() {
+
+        createPrototypeIndicator();
+
+        polishPageTitle();
+
+        polishRecyclerBadges();
+
+        polishTraceability();
+
+        polishImportantButtons();
+
+    }
+
+
+    // Initial run
+    setTimeout(
+        applyPolish,
+        500
+    );
+
+
+    // Re-apply because your UI is dynamically rendered
+    setInterval(
+        applyPolish,
+        1500
+    );
+
+
+    setTimeout(
+        showDemoReadyMessage,
+        1000
+    );
+
+
+    console.log(
+        "🚀 Kabadi Setu Step 14 complete."
+    );
+
+})();
+
+// ============================================================
+// STEP 15 - PREMIUM COLLECTOR DASHBOARD
+// MATCHES IMPACT & TRACEABILITY VISUAL STYLE
+// ============================================================
+
+(function () {
+
+    console.log("🎨 Step 15 - Premium Collector Dashboard loaded.");
+
+    function applyPremiumCollectorDashboard() {
+
+        // Only modify collector mode
+        const role =
+            window.kabadiCurrentRole ||
+            localStorage.getItem("kabadiCurrentRole") ||
+            "";
+
+        const dashboard =
+            document.getElementById("collectorDashboardMain");
+
+        if (!dashboard) {
+            return;
+        }
+
+        // ------------------------------------------------------
+        // HERO
+        // ------------------------------------------------------
+
+        const allDivs =
+            dashboard.querySelectorAll("div");
+
+        let hero = null;
+
+        allDivs.forEach(function (element) {
+
+            const text =
+                (element.innerText || "")
+                    .replace(/\s+/g, " ")
+                    .trim();
+
+            if (
+                text.includes("COLLECTOR PORTAL") &&
+                text.includes("Collector Dashboard")
+            ) {
+
+                if (
+                    element.offsetWidth > 600 &&
+                    element.offsetHeight > 100
+                ) {
+                    hero = element;
+                }
+
+            }
+
+        });
+
+        if (!hero) {
+            return;
+        }
+
+
+        // ------------------------------------------------------
+        // HERO BACKGROUND
+        // ------------------------------------------------------
+
+        hero.style.setProperty(
+            "background",
+            "linear-gradient(135deg, #087f5b 0%, #159570 52%, #16b981 100%)",
+            "important"
+        );
+
+        hero.style.setProperty(
+            "border",
+            "none",
+            "important"
+        );
+
+        hero.style.setProperty(
+            "border-radius",
+            "24px",
+            "important"
+        );
+
+        hero.style.setProperty(
+            "padding",
+            "28px 38px",
+            "important"
+        );
+
+        hero.style.setProperty(
+            "min-height",
+            "190px",
+            "important"
+        );
+
+        hero.style.setProperty(
+            "box-shadow",
+            "0 18px 40px rgba(8,127,91,.20)",
+            "important"
+        );
+
+        hero.style.setProperty(
+            "position",
+            "relative",
+            "important"
+        );
+
+        hero.style.setProperty(
+            "overflow",
+            "hidden",
+            "important"
+        );
+
+
+        // ------------------------------------------------------
+        // ALL HERO TEXT WHITE
+        // ------------------------------------------------------
+
+        hero.querySelectorAll(
+            "h1, h2, h3, p, strong, span, small"
+        ).forEach(function (element) {
+
+            element.style.setProperty(
+                "color",
+                "#ffffff",
+                "important"
+            );
+
+        });
+
+
+        // ------------------------------------------------------
+        // COLLECTOR PORTAL LABEL
+        // ------------------------------------------------------
+
+        hero.querySelectorAll(
+            "div"
+        ).forEach(function (element) {
+
+            const text =
+                (element.innerText || "")
+                    .trim();
+
+            if (
+                text === "COLLECTOR PORTAL"
+            ) {
+
+                element.style.setProperty(
+                    "color",
+                    "#d1fae5",
+                    "important"
+                );
+
+                element.style.setProperty(
+                    "font-size",
+                    "13px",
+                    "important"
+                );
+
+                element.style.setProperty(
+                    "font-weight",
+                    "800",
+                    "important"
+                );
+
+                element.style.setProperty(
+                    "letter-spacing",
+                    "1.2px",
+                    "important"
+                );
+
+                element.style.setProperty(
+                    "margin-bottom",
+                    "10px",
+                    "important"
+                );
+
+            }
+
+        });
+
+
+        // ------------------------------------------------------
+        // HERO HEADING
+        // ------------------------------------------------------
+
+        const heading =
+            hero.querySelector("h1, h2, h3");
+
+        if (heading) {
+
+            heading.style.setProperty(
+                "font-size",
+                "34px",
+                "important"
+            );
+
+            heading.style.setProperty(
+                "font-weight",
+                "800",
+                "important"
+            );
+
+            heading.style.setProperty(
+                "margin",
+                "0 0 10px",
+                "important"
+            );
+
+            heading.style.setProperty(
+                "letter-spacing",
+                "-0.03em",
+                "important"
+            );
+
+        }
+
+
+        // ------------------------------------------------------
+        // HERO DESCRIPTION
+        // ------------------------------------------------------
+
+        hero.querySelectorAll(
+            "p"
+        ).forEach(function (paragraph) {
+
+            paragraph.style.setProperty(
+                "color",
+                "rgba(255,255,255,.90)",
+                "important"
+            );
+
+            paragraph.style.setProperty(
+                "font-size",
+                "16px",
+                "important"
+            );
+
+            paragraph.style.setProperty(
+                "line-height",
+                "1.7",
+                "important"
+            );
+
+            paragraph.style.setProperty(
+                "max-width",
+                "780px",
+                "important"
+            );
+
+        });
+
+
+        // ------------------------------------------------------
+        // HERO TRUCK ICON
+        // ------------------------------------------------------
+
+        hero.querySelectorAll(
+            "img, .hero-icon, .collector-icon"
+        ).forEach(function (icon) {
+
+            icon.style.setProperty(
+                "position",
+                "relative",
+                "important"
+            );
+
+            icon.style.setProperty(
+                "z-index",
+                "3",
+                "important"
+            );
+
+        });
+
+
+        // ------------------------------------------------------
+        // FIND THE EXISTING TRUCK EMOJI
+        // ------------------------------------------------------
+
+        hero.querySelectorAll(
+            "div"
+        ).forEach(function (element) {
+
+            if (
+                (element.innerText || "")
+                    .trim() === "🚚"
+            ) {
+
+                element.style.setProperty(
+                    "font-size",
+                    "52px",
+                    "important"
+                );
+
+                element.style.setProperty(
+                    "position",
+                    "relative",
+                    "important"
+                );
+
+                element.style.setProperty(
+                    "z-index",
+                    "3",
+                    "important"
+                );
+
+            }
+
+        });
+
+
+        // ------------------------------------------------------
+        // DECORATIVE CIRCLES
+        // ------------------------------------------------------
+
+        if (
+            !hero.querySelector(
+                ".collectorDecorCircleOne"
+            )
+        ) {
+
+            const circleOne =
+                document.createElement("div");
+
+            circleOne.className =
+                "collectorDecorCircleOne";
+
+            circleOne.style.cssText = `
+                position:absolute;
+                width:260px;
+                height:260px;
+                border-radius:50%;
+                background:rgba(255,255,255,.07);
+                right:-80px;
+                top:-130px;
+                pointer-events:none;
+                z-index:1;
+            `;
+
+            hero.appendChild(circleOne);
+        }
+
+
+        if (
+            !hero.querySelector(
+                ".collectorDecorCircleTwo"
+            )
+        ) {
+
+            const circleTwo =
+                document.createElement("div");
+
+            circleTwo.className =
+                "collectorDecorCircleTwo";
+
+            circleTwo.style.cssText = `
+                position:absolute;
+                width:150px;
+                height:150px;
+                border-radius:50%;
+                background:rgba(255,255,255,.06);
+                right:170px;
+                bottom:-95px;
+                pointer-events:none;
+                z-index:1;
+            `;
+
+            hero.appendChild(circleTwo);
+        }
+
+
+        // ------------------------------------------------------
+        // JOURNEY CARD
+        // ------------------------------------------------------
+
+        const cards =
+            dashboard.querySelectorAll(
+                "div"
+            );
+
+        let journeyCard = null;
+
+        cards.forEach(function (element) {
+
+            const text =
+                (element.innerText || "")
+                    .replace(/\s+/g, " ")
+                    .trim();
+
+            if (
+                text.startsWith(
+                    "COLLECTOR TO RECYCLER JOURNEY"
+                ) &&
+                element.offsetWidth > 600
+            ) {
+
+                journeyCard = element;
+
+            }
+
+        });
+
+
+        if (journeyCard) {
+
+            journeyCard.style.setProperty(
+                "background",
+                "#ffffff",
+                "important"
+            );
+
+            journeyCard.style.setProperty(
+                "border-radius",
+                "24px",
+                "important"
+            );
+
+            journeyCard.style.setProperty(
+                "padding",
+                "28px",
+                "important"
+            );
+
+            journeyCard.style.setProperty(
+                "box-shadow",
+                "0 10px 30px rgba(0,0,0,.06)",
+                "important"
+            );
+
+            journeyCard.style.setProperty(
+                "border",
+                "1px solid #edf3f0",
+                "important"
+            );
+
+        }
+
+
+        // ------------------------------------------------------
+        // SECTION LABELS
+        // ------------------------------------------------------
+
+        dashboard.querySelectorAll(
+            "div"
+        ).forEach(function (element) {
+
+            const text =
+                (element.innerText || "")
+                    .trim();
+
+            if (
+                text === "COLLECTOR TO RECYCLER JOURNEY"
+            ) {
+
+                element.style.setProperty(
+                    "color",
+                    "#15803d",
+                    "important"
+                );
+
+                element.style.setProperty(
+                    "font-size",
+                    "13px",
+                    "important"
+                );
+
+                element.style.setProperty(
+                    "font-weight",
+                    "800",
+                    "important"
+                );
+
+                element.style.setProperty(
+                    "letter-spacing",
+                    "1px",
+                    "important"
+                );
+
+            }
+
+        });
+
+
+        // ------------------------------------------------------
+        // QUICK ACTION CARDS
+        // ------------------------------------------------------
+
+        dashboard.querySelectorAll(
+            "#collectorPickupAction, #collectorInventoryAction, #collectorRecyclerAction, #collectorEarningsAction"
+        ).forEach(function (button) {
+
+            button.style.setProperty(
+                "background",
+                "#ffffff",
+                "important"
+            );
+
+            button.style.setProperty(
+                "border",
+                "1px solid #e5eee9",
+                "important"
+            );
+
+            button.style.setProperty(
+                "border-radius",
+                "18px",
+                "important"
+            );
+
+            button.style.setProperty(
+                "box-shadow",
+                "0 6px 20px rgba(0,0,0,.04)",
+                "important"
+            );
+
+            button.style.setProperty(
+                "transition",
+                "all .2s ease",
+                "important"
+            );
+
+        });
+
+
+        // ------------------------------------------------------
+        // COLLECTION OVERVIEW
+        // ------------------------------------------------------
+
+        dashboard.querySelectorAll(
+            "div"
+        ).forEach(function (element) {
+
+            const text =
+                (element.innerText || "")
+                    .trim();
+
+            if (
+                text === "📊 Collection Overview"
+            ) {
+
+                const parent =
+                    element.parentElement;
+
+                if (parent) {
+
+                    parent.style.setProperty(
+                        "font-weight",
+                        "800",
+                        "important"
+                    );
+
+                }
+
+            }
+
+        });
+
+
+        // ------------------------------------------------------
+        // STAT BOXES
+        // ------------------------------------------------------
+
+        [
+            "collectorDashboardPickups",
+            "collectorDashboardInventory",
+            "collectorDashboardSales",
+            "collectorDashboardEarnings"
+        ].forEach(function (id) {
+
+            const stat =
+                document.getElementById(id);
+
+            if (!stat) {
+                return;
+            }
+
+            const box =
+                stat.parentElement;
+
+            if (!box) {
+                return;
+            }
+
+            box.style.setProperty(
+                "background",
+                "#f0fdf4",
+                "important"
+            );
+
+            box.style.setProperty(
+                "border",
+                "1px solid #dcfce7",
+                "important"
+            );
+
+            box.style.setProperty(
+                "border-radius",
+                "16px",
+                "important"
+            );
+
+            box.style.setProperty(
+                "padding",
+                "18px",
+                "important"
+            );
+
+            stat.style.setProperty(
+                "color",
+                "#087f5b",
+                "important"
+            );
+
+        });
+
+
+        // ------------------------------------------------------
+        // RESPONSIVE HERO
+        // ------------------------------------------------------
+
+        if (
+            window.innerWidth <= 700
+        ) {
+
+            hero.style.setProperty(
+                "padding",
+                "24px",
+                "important"
+            );
+
+            hero.style.setProperty(
+                "min-height",
+                "220px",
+                "important"
+            );
+
+            if (heading) {
+
+                heading.style.setProperty(
+                    "font-size",
+                    "28px",
+                    "important"
+                );
+
+            }
+
+        }
+
+
+        hero.dataset.premiumCollector =
+            "true";
+
+    }
+
+
+    // ----------------------------------------------------------
+    // APPLY AFTER DASHBOARD CREATION
+    // ----------------------------------------------------------
+
+    setTimeout(
+        applyPremiumCollectorDashboard,
+        300
+    );
+
+    setTimeout(
+        applyPremiumCollectorDashboard,
+        800
+    );
+
+    setTimeout(
+        applyPremiumCollectorDashboard,
+        1500
+    );
+
+    setTimeout(
+        applyPremiumCollectorDashboard,
+        2500
+    );
+
+
+    // ----------------------------------------------------------
+    // WATCH DYNAMIC DASHBOARD
+    // ----------------------------------------------------------
+
+    const observer =
+        new MutationObserver(
+            function () {
+
+                if (
+                    !document.getElementById(
+                        "collectorDashboardMain"
+                    )
+                ) {
+                    return;
+                }
+
+                applyPremiumCollectorDashboard();
+
+            }
+        );
+
+
+    observer.observe(
+        document.body,
+        {
+            childList:true,
+            subtree:true
+        }
+    );
+
+
+    // ----------------------------------------------------------
+    // REFRESH WHEN COLLECTOR DASHBOARD OPENS
+    // ----------------------------------------------------------
+
+    document.addEventListener(
+        "click",
+        function (event) {
+
+            const nav =
+                event.target.closest(
+                    ".nav-item"
+                );
+
+            if (!nav) {
+                return;
+            }
+
+            const text =
+                (nav.innerText || "")
+                    .toLowerCase();
+
+            if (
+                text.includes("dashboard")
+            ) {
+
+                setTimeout(
+                    applyPremiumCollectorDashboard,
+                    200
+                );
+
+            }
+
+        }
+    );
+
+
+    console.log(
+        "✅ Step 15 - Collector Dashboard now matches Impact & Traceability style."
+    );
+
+})();
+
+// ============================================================
+// STEP 16 - COLLECTOR HERO FLOATING PARTICLES
+// Small animated particles inside the green hero
+// ============================================================
+
+(function () {
+
+    console.log("✨ Step 16 - Collector floating particles loaded.");
+
+    // ----------------------------------------------------------
+    // ADD PARTICLE ANIMATION
+    // ----------------------------------------------------------
+
+    const style = document.createElement("style");
+
+    style.id = "kabadiCollectorParticleAnimation";
+
+    style.innerHTML = `
+
+        @keyframes kabadiParticleFloat1 {
+            0% {
+                transform: translate3d(0, 0, 0);
+                opacity: .25;
+            }
+
+            25% {
+                transform: translate3d(12px, -14px, 0);
+                opacity: .65;
+            }
+
+            50% {
+                transform: translate3d(-8px, -28px, 0);
+                opacity: .35;
+            }
+
+            75% {
+                transform: translate3d(-16px, -10px, 0);
+                opacity: .7;
+            }
+
+            100% {
+                transform: translate3d(0, 0, 0);
+                opacity: .25;
+            }
+        }
+
+
+        @keyframes kabadiParticleFloat2 {
+            0% {
+                transform: translate3d(0, 0, 0);
+                opacity: .2;
+            }
+
+            30% {
+                transform: translate3d(-15px, -12px, 0);
+                opacity: .65;
+            }
+
+            60% {
+                transform: translate3d(8px, -25px, 0);
+                opacity: .4;
+            }
+
+            100% {
+                transform: translate3d(0, 0, 0);
+                opacity: .2;
+            }
+        }
+
+
+        @keyframes kabadiParticleFloat3 {
+            0% {
+                transform: translate3d(0, 0, 0);
+                opacity: .3;
+            }
+
+            50% {
+                transform: translate3d(18px, -18px, 0);
+                opacity: .75;
+            }
+
+            100% {
+                transform: translate3d(0, 0, 0);
+                opacity: .3;
+            }
+        }
+
+
+        .kabadi-floating-particle {
+            position: absolute;
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 1;
+
+            background: rgba(255,255,255,.18);
+
+            box-shadow:
+                0 0 12px rgba(255,255,255,.10);
+
+            will-change: transform, opacity;
+        }
+
+
+        .kabadi-floating-particle.small {
+            width: 5px;
+            height: 5px;
+        }
+
+
+        .kabadi-floating-particle.medium {
+            width: 8px;
+            height: 8px;
+        }
+
+
+        .kabadi-floating-particle.large {
+            width: 12px;
+            height: 12px;
+            background: rgba(255,255,255,.10);
+        }
+
+
+        /* Keep hero content above particles */
+
+        #collectorDashboardMain .kabadi-collector-hero-content {
+            position: relative;
+            z-index: 5;
+        }
+
+
+        /* Truck stays above particles */
+
+        #collectorDashboardMain .kabadi-collector-truck {
+            position: relative;
+            z-index: 6;
+        }
+
+    `;
+
+    document.head.appendChild(style);
+
+
+    // ----------------------------------------------------------
+    // FIND COLLECTOR HERO
+    // ----------------------------------------------------------
+
+    function findCollectorHero() {
+
+        const dashboard =
+            document.getElementById(
+                "collectorDashboardMain"
+            );
+
+        if (!dashboard) {
+            return null;
+        }
+
+        const elements =
+            dashboard.querySelectorAll(
+                "div"
+            );
+
+        let hero = null;
+
+        elements.forEach(function (element) {
+
+            const text =
+                (element.innerText || "")
+                    .replace(/\s+/g, " ")
+                    .trim();
+
+            if (
+                text.includes("COLLECTOR PORTAL") &&
+                text.includes("Collector Dashboard") &&
+                element.offsetWidth > 600 &&
+                element.offsetHeight > 100
+            ) {
+
+                hero = element;
+
+            }
+
+        });
+
+        return hero;
+    }
+
+
+    // ----------------------------------------------------------
+    // CREATE PARTICLES
+    // ----------------------------------------------------------
+
+    function createFloatingParticles() {
+
+        const hero =
+            findCollectorHero();
+
+        if (!hero) {
+            return;
+        }
+
+
+        // Don't create duplicates
+        if (
+            hero.querySelector(
+                ".kabadi-floating-particle"
+            )
+        ) {
+            return;
+        }
+
+
+        // Make sure particles remain clipped
+        hero.style.setProperty(
+            "overflow",
+            "hidden",
+            "important"
+        );
+
+
+        // ------------------------------------------------------
+        // PARTICLE CONFIGURATION
+        // ------------------------------------------------------
+
+        const particles = [
+
+            {
+                size: "small",
+                left: "34%",
+                top: "25%",
+                animation: "kabadiParticleFloat1",
+                duration: "7s",
+                delay: "-2s"
+            },
+
+            {
+                size: "medium",
+                left: "47%",
+                top: "48%",
+                animation: "kabadiParticleFloat2",
+                duration: "9s",
+                delay: "-5s"
+            },
+
+            {
+                size: "small",
+                left: "58%",
+                top: "22%",
+                animation: "kabadiParticleFloat3",
+                duration: "8s",
+                delay: "-3s"
+            },
+
+            {
+                size: "small",
+                left: "67%",
+                top: "63%",
+                animation: "kabadiParticleFloat1",
+                duration: "10s",
+                delay: "-7s"
+            },
+
+            {
+                size: "medium",
+                left: "76%",
+                top: "35%",
+                animation: "kabadiParticleFloat3",
+                duration: "8s",
+                delay: "-4s"
+            },
+
+            {
+                size: "small",
+                left: "84%",
+                top: "70%",
+                animation: "kabadiParticleFloat2",
+                duration: "11s",
+                delay: "-6s"
+            },
+
+            {
+                size: "large",
+                left: "91%",
+                top: "25%",
+                animation: "kabadiParticleFloat1",
+                duration: "12s",
+                delay: "-8s"
+            },
+
+            {
+                size: "small",
+                left: "26%",
+                top: "76%",
+                animation: "kabadiParticleFloat3",
+                duration: "9s",
+                delay: "-1s"
+            },
+
+            {
+                size: "small",
+                left: "53%",
+                top: "78%",
+                animation: "kabadiParticleFloat2",
+                duration: "10s",
+                delay: "-4s"
+            },
+
+            {
+                size: "medium",
+                left: "72%",
+                top: "17%",
+                animation: "kabadiParticleFloat1",
+                duration: "8s",
+                delay: "-5s"
+            },
+
+            {
+                size: "small",
+                left: "63%",
+                top: "42%",
+                animation: "kabadiParticleFloat3",
+                duration: "9s",
+                delay: "-2s"
+            },
+
+            {
+                size: "small",
+                left: "88%",
+                top: "55%",
+                animation: "kabadiParticleFloat2",
+                duration: "10s",
+                delay: "-6s"
+            }
+
+        ];
+
+
+        // ------------------------------------------------------
+        // ADD PARTICLES
+        // ------------------------------------------------------
+
+        particles.forEach(function (config) {
+
+            const particle =
+                document.createElement("span");
+
+            particle.className =
+                "kabadi-floating-particle " +
+                config.size;
+
+            particle.style.left =
+                config.left;
+
+            particle.style.top =
+                config.top;
+
+            particle.style.animation =
+                config.animation +
+                " " +
+                config.duration +
+                " ease-in-out infinite";
+
+            particle.style.animationDelay =
+                config.delay;
+
+            hero.appendChild(
+                particle
+            );
+
+        });
+
+
+        // ------------------------------------------------------
+        // MAKE HERO CONTENT STAY ABOVE PARTICLES
+        // ------------------------------------------------------
+
+        hero.querySelectorAll(
+            "h1, h2, h3, p, strong, span"
+        ).forEach(function (element) {
+
+            if (
+                !element.classList.contains(
+                    "kabadi-floating-particle"
+                )
+            ) {
+
+                element.style.position =
+                    "relative";
+
+                element.style.zIndex =
+                    "5";
+
+            }
+
+        });
+
+
+        console.log(
+            "✨ Collector hero particles activated."
+        );
+
+    }
+
+
+    // ----------------------------------------------------------
+    // MARK HERO CONTENT
+    // ----------------------------------------------------------
+
+    function protectTruck() {
+
+        const hero =
+            findCollectorHero();
+
+        if (!hero) {
+            return;
+        }
+
+        hero.querySelectorAll(
+            "img"
+        ).forEach(function (img) {
+
+            img.classList.add(
+                "kabadi-collector-truck"
+            );
+
+        });
+
+
+        hero.querySelectorAll(
+            "div"
+        ).forEach(function (element) {
+
+            if (
+                (element.innerText || "")
+                    .trim() === "🚚"
+            ) {
+
+                element.classList.add(
+                    "kabadi-collector-truck"
+                );
+
+            }
+
+        });
+
+    }
+
+
+    // ----------------------------------------------------------
+    // INITIAL
+    // ----------------------------------------------------------
+
+    setTimeout(
+        function () {
+
+            protectTruck();
+            createFloatingParticles();
+
+        },
+        500
+    );
+
+
+    setTimeout(
+        function () {
+
+            protectTruck();
+            createFloatingParticles();
+
+        },
+        1200
+    );
+
+
+    setTimeout(
+        function () {
+
+            protectTruck();
+            createFloatingParticles();
+
+        },
+        2500
+    );
+
+
+    // ----------------------------------------------------------
+    // WATCH FOR DASHBOARD REBUILD
+    // ----------------------------------------------------------
+
+    const observer =
+        new MutationObserver(
+            function () {
+
+                const hero =
+                    findCollectorHero();
+
+                if (!hero) {
+                    return;
+                }
+
+                protectTruck();
+
+                createFloatingParticles();
+
+            }
+        );
+
+
+    observer.observe(
+        document.body,
+        {
+            childList: true,
+            subtree: true
+        }
+    );
+
+
+    console.log(
+        "✅ Step 16 complete - animated collector particles ready."
+    );
+
+})();
+
+// ============================================================
+// STEP 17 - COLLECTOR HERO FULL WIDTH FIX
+// Green background extends ALL THE WAY to the truck
+// ============================================================
+
+(function () {
+
+    console.log("🚚 Step 17 - Full Collector Hero Fix loaded.");
+
+    function fixCollectorHero() {
+
+        const dashboard =
+            document.getElementById(
+                "collectorDashboardMain"
+            );
+
+        if (!dashboard) {
+            return;
+        }
+
+        // ------------------------------------------------------
+        // FIND THE REAL OUTER HERO
+        // ------------------------------------------------------
+
+        let outerHero = null;
+
+        Array.from(dashboard.children).forEach(function (child) {
+
+            const text =
+                (child.innerText || "")
+                    .replace(/\s+/g, " ")
+                    .trim();
+
+            if (
+                text.includes("COLLECTOR PORTAL") &&
+                text.includes("Collector Dashboard")
+            ) {
+                outerHero = child;
+            }
+
+        });
+
+        if (!outerHero) {
+            return;
+        }
+
+
+        // ------------------------------------------------------
+        // THE OUTER HERO MUST BE THE GREEN AREA
+        // ------------------------------------------------------
+
+        outerHero.style.setProperty(
+            "width",
+            "100%",
+            "important"
+        );
+
+        outerHero.style.setProperty(
+            "max-width",
+            "none",
+            "important"
+        );
+
+        outerHero.style.setProperty(
+            "background",
+            "linear-gradient(135deg, #087f5b 0%, #159570 52%, #16b981 100%)",
+            "important"
+        );
+
+        outerHero.style.setProperty(
+            "border",
+            "none",
+            "important"
+        );
+
+        outerHero.style.setProperty(
+            "border-radius",
+            "24px",
+            "important"
+        );
+
+        outerHero.style.setProperty(
+            "padding",
+            "30px 46px",
+            "important"
+        );
+
+        outerHero.style.setProperty(
+            "min-height",
+            "220px",
+            "important"
+        );
+
+        outerHero.style.setProperty(
+            "margin-bottom",
+            "24px",
+            "important"
+        );
+
+        outerHero.style.setProperty(
+            "box-shadow",
+            "0 18px 40px rgba(8,127,91,.20)",
+            "important"
+        );
+
+        outerHero.style.setProperty(
+            "position",
+            "relative",
+            "important"
+        );
+
+        outerHero.style.setProperty(
+            "overflow",
+            "hidden",
+            "important"
+        );
+
+
+        // ------------------------------------------------------
+        // FIND INNER TEXT CONTAINER
+        // ------------------------------------------------------
+
+        const innerContainers =
+            outerHero.querySelectorAll(
+                "div"
+            );
+
+        innerContainers.forEach(function (element) {
+
+            const text =
+                (element.innerText || "")
+                    .replace(/\s+/g, " ")
+                    .trim();
+
+            // This is the OLD container that was incorrectly green
+            if (
+                text.includes("COLLECTOR PORTAL") &&
+                text.includes("Collector Dashboard") &&
+                element !== outerHero
+            ) {
+
+                element.style.setProperty(
+                    "background",
+                    "transparent",
+                    "important"
+                );
+
+                element.style.setProperty(
+                    "width",
+                    "auto",
+                    "important"
+                );
+
+                element.style.setProperty(
+                    "max-width",
+                    "none",
+                    "important"
+                );
+
+            }
+
+        });
+
+
+        // ------------------------------------------------------
+        // ALL HERO TEXT WHITE
+        // ------------------------------------------------------
+
+        outerHero.querySelectorAll(
+            "h1, h2, h3, p, strong, span, small"
+        ).forEach(function (element) {
+
+            element.style.setProperty(
+                "color",
+                "#ffffff",
+                "important"
+            );
+
+            element.style.setProperty(
+                "position",
+                "relative",
+                "important"
+            );
+
+            element.style.setProperty(
+                "z-index",
+                "5",
+                "important"
+            );
+
+        });
+
+
+        // ------------------------------------------------------
+        // PORTAL LABEL
+        // ------------------------------------------------------
+
+        outerHero.querySelectorAll(
+            "div"
+        ).forEach(function (element) {
+
+            if (
+                (element.innerText || "")
+                    .trim() ===
+                "COLLECTOR PORTAL"
+            ) {
+
+                element.style.setProperty(
+                    "color",
+                    "#d1fae5",
+                    "important"
+                );
+
+                element.style.setProperty(
+                    "font-weight",
+                    "800",
+                    "important"
+                );
+
+                element.style.setProperty(
+                    "letter-spacing",
+                    "1px",
+                    "important"
+                );
+
+            }
+
+        });
+
+
+        // ------------------------------------------------------
+        // MAIN HEADING
+        // ------------------------------------------------------
+
+        const heading =
+            outerHero.querySelector(
+                "h1, h2, h3"
+            );
+
+        if (heading) {
+
+            heading.style.setProperty(
+                "font-size",
+                "36px",
+                "important"
+            );
+
+            heading.style.setProperty(
+                "font-weight",
+                "800",
+                "important"
+            );
+
+            heading.style.setProperty(
+                "margin",
+                "0 0 10px",
+                "important"
+            );
+
+        }
+
+
+        // ------------------------------------------------------
+        // DESCRIPTION
+        // ------------------------------------------------------
+
+        outerHero.querySelectorAll(
+            "p"
+        ).forEach(function (paragraph) {
+
+            paragraph.style.setProperty(
+                "color",
+                "rgba(255,255,255,.92)",
+                "important"
+            );
+
+            paragraph.style.setProperty(
+                "font-size",
+                "16px",
+                "important"
+            );
+
+            paragraph.style.setProperty(
+                "line-height",
+                "1.7",
+                "important"
+            );
+
+            paragraph.style.setProperty(
+                "max-width",
+                "850px",
+                "important"
+            );
+
+        });
+
+
+        // ------------------------------------------------------
+        // TRUCK
+        // ------------------------------------------------------
+
+        outerHero.querySelectorAll(
+            "img"
+        ).forEach(function (img) {
+
+            img.style.setProperty(
+                "position",
+                "relative",
+                "important"
+            );
+
+            img.style.setProperty(
+                "z-index",
+                "10",
+                "important"
+            );
+
+        });
+
+
+        outerHero.querySelectorAll(
+            "div"
+        ).forEach(function (element) {
+
+            if (
+                (element.innerText || "")
+                    .trim() === "🚚"
+            ) {
+
+                element.style.setProperty(
+                    "font-size",
+                    "52px",
+                    "important"
+                );
+
+                element.style.setProperty(
+                    "position",
+                    "relative",
+                    "important"
+                );
+
+                element.style.setProperty(
+                    "z-index",
+                    "10",
+                    "important"
+                );
+
+            }
+
+        });
+
+
+        // ------------------------------------------------------
+        // REMOVE OLD LARGE CIRCLES
+        // ------------------------------------------------------
+
+        dashboard.querySelectorAll(
+            ".collectorDecorCircleOne, .collectorDecorCircleTwo"
+        ).forEach(function (element) {
+
+            element.remove();
+
+        });
+
+
+        // ------------------------------------------------------
+        // REMOVE OLD PARTICLES FROM WRONG CONTAINER
+        // ------------------------------------------------------
+
+        dashboard.querySelectorAll(
+            ".kabadi-floating-particle"
+        ).forEach(function (particle) {
+
+            particle.remove();
+
+        });
+
+
+        // ------------------------------------------------------
+        // ADD SMALL PARTICLES TO THE REAL OUTER HERO
+        // ------------------------------------------------------
+
+        const particles = [
+
+            ["18%", "22%", "4px", "7s"],
+            ["29%", "68%", "6px", "9s"],
+            ["41%", "30%", "4px", "8s"],
+            ["52%", "72%", "5px", "10s"],
+            ["63%", "24%", "7px", "8s"],
+            ["71%", "61%", "4px", "11s"],
+            ["80%", "34%", "6px", "9s"],
+            ["88%", "72%", "4px", "10s"],
+            ["94%", "25%", "6px", "8s"],
+            ["57%", "48%", "4px", "7s"],
+            ["35%", "48%", "5px", "12s"],
+            ["76%", "17%", "4px", "9s"]
+
+        ];
+
+
+        particles.forEach(function (item, index) {
+
+            const particle =
+                document.createElement("span");
+
+            particle.className =
+                "kabadi-final-hero-particle";
+
+            particle.style.left =
+                item[0];
+
+            particle.style.top =
+                item[1];
+
+            particle.style.width =
+                item[2];
+
+            particle.style.height =
+                item[2];
+
+            particle.style.animationDuration =
+                item[3];
+
+            particle.style.animationDelay =
+                "-" + (index + 2) + "s";
+
+            outerHero.appendChild(
+                particle
+            );
+
+        });
+
+
+        // ------------------------------------------------------
+        // PARTICLE STYLE
+        // ------------------------------------------------------
+
+        outerHero.querySelectorAll(
+            ".kabadi-final-hero-particle"
+        ).forEach(function (particle) {
+
+            particle.style.position =
+                "absolute";
+
+            particle.style.borderRadius =
+                "50%";
+
+            particle.style.background =
+                "rgba(255,255,255,.30)";
+
+            particle.style.boxShadow =
+                "0 0 10px rgba(255,255,255,.12)";
+
+            particle.style.pointerEvents =
+                "none";
+
+            particle.style.zIndex =
+                "2";
+
+            particle.style.animationName =
+                "kabadiFinalHeroFloat";
+
+            particle.style.animationTimingFunction =
+                "ease-in-out";
+
+            particle.style.animationIterationCount =
+                "infinite";
+
+        });
+
+
+        // ------------------------------------------------------
+        // PREVENT CONTENT FROM BEING COVERED
+        // ------------------------------------------------------
+
+        const mainFlex =
+            outerHero.firstElementChild;
+
+        if (mainFlex) {
+
+            mainFlex.style.position =
+                "relative";
+
+            mainFlex.style.zIndex =
+                "5";
+
+            mainFlex.style.width =
+                "100%";
+
+        }
+
+
+        outerHero.dataset.fullWidthHero =
+            "true";
+
+
+        console.log(
+            "✅ Collector hero now extends fully to the truck."
+        );
+
+    }
+
+
+    // ----------------------------------------------------------
+    // ANIMATION
+    // ----------------------------------------------------------
+
+    if (
+        !document.getElementById(
+            "kabadiFinalHeroParticleStyle"
+        )
+    ) {
+
+        const style =
+            document.createElement("style");
+
+        style.id =
+            "kabadiFinalHeroParticleStyle";
+
+        style.innerHTML = `
+
+            @keyframes kabadiFinalHeroFloat {
+
+                0% {
+                    transform: translate3d(0, 0, 0);
+                    opacity: .20;
+                }
+
+                25% {
+                    transform: translate3d(8px, -10px, 0);
+                    opacity: .55;
+                }
+
+                50% {
+                    transform: translate3d(-6px, -18px, 0);
+                    opacity: .30;
+                }
+
+                75% {
+                    transform: translate3d(10px, -8px, 0);
+                    opacity: .60;
+                }
+
+                100% {
+                    transform: translate3d(0, 0, 0);
+                    opacity: .20;
+                }
+
+            }
+
+            @media (max-width: 700px) {
+
+                #collectorDashboardMain > div {
+                    padding:24px !important;
+                }
+
+            }
+
+        `;
+
+        document.head.appendChild(style);
+
+    }
+
+
+    // ----------------------------------------------------------
+    // RUN
+    // ----------------------------------------------------------
+
+    setTimeout(
+        fixCollectorHero,
+        300
+    );
+
+    setTimeout(
+        fixCollectorHero,
+        800
+    );
+
+    setTimeout(
+        fixCollectorHero,
+        1500
+    );
+
+    setTimeout(
+        fixCollectorHero,
+        2500
+    );
+
+
+    // ----------------------------------------------------------
+    // KEEP IT FIXED BECAUSE THE DASHBOARD RE-RENDERS
+    // ----------------------------------------------------------
+
+    setInterval(
+        function () {
+
+            const hero =
+                document.querySelector(
+                    "#collectorDashboardMain > div[data-full-width-hero='true']"
+                );
+
+            if (!hero) {
+
+                fixCollectorHero();
+
+            }
+
+        },
+        1000
+    );
+
+
+    console.log(
+        "🚀 Step 17 complete."
+    );
+
+})();
+
+// ============================================================
+// FINAL COLLECTOR HERO FIX
+// ONE CONTINUOUS GREEN HERO FROM LEFT TO TRUCK
+// ============================================================
+
+(function () {
+
+    console.log("💚 Final Collector Hero Fix loaded.");
+
+    function fixCollectorHero() {
+
+        const dashboard =
+            document.getElementById(
+                "collectorDashboardMain"
+            );
+
+        if (!dashboard) {
+            return;
+        }
+
+
+        // ------------------------------------------------------
+        // THE FIRST DIRECT CHILD IS THE REAL HERO
+        // ------------------------------------------------------
+
+        const hero =
+            dashboard.children[0];
+
+        if (!hero) {
+            return;
+        }
+
+
+        // ------------------------------------------------------
+        // MAKE OUTER HERO FULL GREEN
+        // ------------------------------------------------------
+
+        hero.style.setProperty(
+            "width",
+            "100%",
+            "important"
+        );
+
+        hero.style.setProperty(
+            "min-height",
+            "220px",
+            "important"
+        );
+
+        hero.style.setProperty(
+            "background",
+            "linear-gradient(135deg, #087f5b 0%, #159570 52%, #16b981 100%)",
+            "important"
+        );
+
+        hero.style.setProperty(
+            "border",
+            "none",
+            "important"
+        );
+
+        hero.style.setProperty(
+            "border-radius",
+            "24px",
+            "important"
+        );
+
+        hero.style.setProperty(
+            "padding",
+            "30px 46px",
+            "important"
+        );
+
+        hero.style.setProperty(
+            "margin-bottom",
+            "24px",
+            "important"
+        );
+
+        hero.style.setProperty(
+            "position",
+            "relative",
+            "important"
+        );
+
+        hero.style.setProperty(
+            "overflow",
+            "hidden",
+            "important"
+        );
+
+        hero.style.setProperty(
+            "box-shadow",
+            "0 18px 40px rgba(8,127,91,.20)",
+            "important"
+        );
+
+
+        // ------------------------------------------------------
+        // REMOVE THE OLD INNER GREEN/PALE BACKGROUND
+        // ------------------------------------------------------
+
+        hero.querySelectorAll(
+            "div"
+        ).forEach(function (div) {
+
+            // Don't touch particle elements
+            if (
+                div.classList.contains(
+                    "kabadi-final-hero-particle"
+                )
+            ) {
+                return;
+            }
+
+            // Don't touch decorative elements
+            if (
+                div.classList.contains(
+                    "collectorDecorCircleOne"
+                ) ||
+                div.classList.contains(
+                    "collectorDecorCircleTwo"
+                )
+            ) {
+                return;
+            }
+
+
+            /*
+             * Every nested container inside the hero
+             * should be transparent.
+             *
+             * This removes the old rounded green box
+             * that was causing the cutoff.
+             */
+
+            div.style.setProperty(
+                "background",
+                "transparent",
+                "important"
+            );
+
+            div.style.setProperty(
+                "background-color",
+                "transparent",
+                "important"
+            );
+
+            div.style.setProperty(
+                "background-image",
+                "none",
+                "important"
+            );
+
+        });
+
+
+        // ------------------------------------------------------
+        // FORCE HERO'S MAIN CONTENT TO FULL WIDTH
+        // ------------------------------------------------------
+
+        const content =
+            hero.firstElementChild;
+
+        if (content) {
+
+            content.style.setProperty(
+                "width",
+                "100%",
+                "important"
+            );
+
+            content.style.setProperty(
+                "max-width",
+                "none",
+                "important"
+            );
+
+            content.style.setProperty(
+                "background",
+                "transparent",
+                "important"
+            );
+
+            content.style.setProperty(
+                "background-color",
+                "transparent",
+                "important"
+            );
+
+            content.style.setProperty(
+                "position",
+                "relative",
+                "important"
+            );
+
+            content.style.setProperty(
+                "z-index",
+                "5",
+                "important"
+            );
+
+        }
+
+
+        // ------------------------------------------------------
+        // WHITE TEXT
+        // ------------------------------------------------------
+
+        hero.querySelectorAll(
+            "h1, h2, h3, p, strong, span, small"
+        ).forEach(function (element) {
+
+            if (
+                element.classList.contains(
+                    "kabadi-final-hero-particle"
+                )
+            ) {
+                return;
+            }
+
+            element.style.setProperty(
+                "color",
+                "#ffffff",
+                "important"
+            );
+
+            element.style.setProperty(
+                "position",
+                "relative",
+                "important"
+            );
+
+            element.style.setProperty(
+                "z-index",
+                "6",
+                "important"
+            );
+
+        });
+
+
+        // ------------------------------------------------------
+        // COLLECTOR PORTAL
+        // ------------------------------------------------------
+
+        hero.querySelectorAll(
+            "div"
+        ).forEach(function (div) {
+
+            if (
+                (div.innerText || "")
+                    .trim() ===
+                "COLLECTOR PORTAL"
+            ) {
+
+                div.style.setProperty(
+                    "color",
+                    "#d1fae5",
+                    "important"
+                );
+
+                div.style.setProperty(
+                    "background",
+                    "transparent",
+                    "important"
+                );
+
+            }
+
+        });
+
+
+        // ------------------------------------------------------
+        // HEADING
+        // ------------------------------------------------------
+
+        const heading =
+            hero.querySelector(
+                "h1, h2, h3"
+            );
+
+        if (heading) {
+
+            heading.style.setProperty(
+                "font-size",
+                "36px",
+                "important"
+            );
+
+            heading.style.setProperty(
+                "font-weight",
+                "800",
+                "important"
+            );
+
+            heading.style.setProperty(
+                "color",
+                "#ffffff",
+                "important"
+            );
+
+        }
+
+
+        // ------------------------------------------------------
+        // DESCRIPTION
+        // ------------------------------------------------------
+
+        hero.querySelectorAll(
+            "p"
+        ).forEach(function (p) {
+
+            p.style.setProperty(
+                "color",
+                "rgba(255,255,255,.92)",
+                "important"
+            );
+
+            p.style.setProperty(
+                "max-width",
+                "900px",
+                "important"
+            );
+
+        });
+
+
+        // ------------------------------------------------------
+        // TRUCK MUST STAY ON GREEN
+        // ------------------------------------------------------
+
+        hero.querySelectorAll(
+            "img"
+        ).forEach(function (img) {
+
+            img.style.setProperty(
+                "position",
+                "relative",
+                "important"
+            );
+
+            img.style.setProperty(
+                "z-index",
+                "20",
+                "important"
+            );
+
+        });
+
+
+        hero.querySelectorAll(
+            "div"
+        ).forEach(function (div) {
+
+            if (
+                (div.innerText || "")
+                    .trim() === "🚚"
+            ) {
+
+                div.style.setProperty(
+                    "position",
+                    "relative",
+                    "important"
+                );
+
+                div.style.setProperty(
+                    "z-index",
+                    "20",
+                    "important"
+                );
+
+                div.style.setProperty(
+                    "font-size",
+                    "52px",
+                    "important"
+                );
+
+                div.style.setProperty(
+                    "background",
+                    "transparent",
+                    "important"
+                );
+
+            }
+
+        });
+
+
+        // ------------------------------------------------------
+        // REMOVE OLD HUGE BUBBLES
+        // ------------------------------------------------------
+
+        hero.querySelectorAll(
+            ".collectorDecorCircleOne, .collectorDecorCircleTwo"
+        ).forEach(function (circle) {
+
+            circle.remove();
+
+        });
+
+
+        // ------------------------------------------------------
+        // CREATE SMALL FLOATING PARTICLES
+        // ------------------------------------------------------
+
+        hero.querySelectorAll(
+            ".kabadi-final-hero-particle"
+        ).forEach(function (particle) {
+
+            particle.remove();
+
+        });
+
+
+        const particleData = [
+
+            ["20%", "25%", "5px", "7s"],
+            ["31%", "67%", "4px", "9s"],
+            ["42%", "30%", "6px", "8s"],
+            ["51%", "75%", "4px", "10s"],
+            ["61%", "20%", "5px", "8s"],
+            ["70%", "62%", "4px", "11s"],
+            ["78%", "32%", "6px", "9s"],
+            ["86%", "70%", "4px", "10s"],
+            ["92%", "23%", "5px", "8s"],
+            ["57%", "48%", "4px", "7s"],
+            ["36%", "50%", "5px", "12s"],
+            ["74%", "17%", "4px", "9s"]
+
+        ];
+
+
+        particleData.forEach(
+            function (data, index) {
+
+                const particle =
+                    document.createElement("span");
+
+                particle.className =
+                    "kabadi-final-hero-particle";
+
+                particle.style.cssText = `
+                    position:absolute;
+                    left:${data[0]};
+                    top:${data[1]};
+                    width:${data[2]};
+                    height:${data[2]};
+                    border-radius:50%;
+                    background:rgba(255,255,255,.30);
+                    box-shadow:0 0 10px rgba(255,255,255,.12);
+                    pointer-events:none;
+                    z-index:2;
+                    animation:kabadiFinalParticleFloat ${data[3]} ease-in-out infinite;
+                    animation-delay:-${index + 2}s;
+                `;
+
+                hero.appendChild(
+                    particle
+                );
+
+            }
+        );
+
+
+        // ------------------------------------------------------
+        // MARK FIXED
+        // ------------------------------------------------------
+
+        hero.dataset.finalCollectorHero =
+            "true";
+
+
+        console.log(
+            "✅ ONE continuous green collector hero applied."
+        );
+
+    }
+
+
+    // ----------------------------------------------------------
+    // PARTICLE ANIMATION
+    // ----------------------------------------------------------
+
+    if (
+        !document.getElementById(
+            "kabadiFinalParticleAnimation"
+        )
+    ) {
+
+        const style =
+            document.createElement("style");
+
+        style.id =
+            "kabadiFinalParticleAnimation";
+
+        style.innerHTML = `
+
+            @keyframes kabadiFinalParticleFloat {
+
+                0% {
+                    transform:translate3d(0,0,0);
+                    opacity:.18;
+                }
+
+                25% {
+                    transform:translate3d(8px,-8px,0);
+                    opacity:.55;
+                }
+
+                50% {
+                    transform:translate3d(-5px,-17px,0);
+                    opacity:.30;
+                }
+
+                75% {
+                    transform:translate3d(10px,-7px,0);
+                    opacity:.60;
+                }
+
+                100% {
+                    transform:translate3d(0,0,0);
+                    opacity:.18;
+                }
+
+            }
+
+        `;
+
+        document.head.appendChild(
+            style
+        );
+
+    }
+
+
+    // ----------------------------------------------------------
+    // INITIAL RUNS
+    // ----------------------------------------------------------
+
+    setTimeout(
+        fixCollectorHero,
+        300
+    );
+
+    setTimeout(
+        fixCollectorHero,
+        800
+    );
+
+    setTimeout(
+        fixCollectorHero,
+        1500
+    );
+
+    setTimeout(
+        fixCollectorHero,
+        2500
+    );
+
+
+    // ----------------------------------------------------------
+    // WATCH FOR DASHBOARD REBUILD
+    // ----------------------------------------------------------
+
+    const observer =
+        new MutationObserver(
+            function () {
+
+                const dashboard =
+                    document.getElementById(
+                        "collectorDashboardMain"
+                    );
+
+                if (!dashboard) {
+                    return;
+                }
+
+                const hero =
+                    dashboard.children[0];
+
+                if (
+                    hero &&
+                    hero.dataset.finalCollectorHero !==
+                    "true"
+                ) {
+
+                    fixCollectorHero();
+
+                }
+
+            }
+        );
+
+
+    observer.observe(
+        document.body,
+        {
+            childList:true,
+            subtree:true
+        }
+    );
+
+
+    console.log(
+        "🚀 Final Collector Hero Fix ready."
+    );
+
+})();
+// ============================================================
+// FINAL FINAL - ONE CONTINUOUS COLLECTOR HERO
+// Removes old inner green partition completely
+// Keeps tiny animated particles across the whole hero
+// ============================================================
+
+(function () {
+
+    console.log("💚 FINAL collector hero cleanup loaded.");
+
+    // ----------------------------------------------------------
+    // CSS OVERRIDES
+    // ----------------------------------------------------------
+
+    if (!document.getElementById("kabadiUltimateCollectorHeroCSS")) {
+
+        const style = document.createElement("style");
+
+        style.id = "kabadiUltimateCollectorHeroCSS";
+
+        style.innerHTML = `
+
+        /* =====================================================
+           ONE SINGLE GREEN HERO
+        ===================================================== */
+
+        #collectorDashboardMain > div:first-child {
+
+            width: 100% !important;
+
+            max-width: none !important;
+
+            min-height: 220px !important;
+
+            padding: 30px 46px !important;
+
+            margin-bottom: 24px !important;
+
+            background:
+                linear-gradient(
+                    135deg,
+                    #087f5b 0%,
+                    #159570 52%,
+                    #16b981 100%
+                ) !important;
+
+            border: none !important;
+
+            border-radius: 24px !important;
+
+            box-shadow:
+                0 18px 40px
+                rgba(8,127,91,.20) !important;
+
+            position: relative !important;
+
+            overflow: hidden !important;
+        }
+
+
+        /* =====================================================
+           REMOVE OLD INNER GREEN PARTITION
+        ===================================================== */
+
+        #collectorDashboardMain
+        > div:first-child
+        > div:first-child {
+
+            background: transparent !important;
+
+            background-color: transparent !important;
+
+            background-image: none !important;
+
+            border: none !important;
+
+            border-radius: 0 !important;
+
+            box-shadow: none !important;
+
+            width: 100% !important;
+
+            max-width: none !important;
+
+            position: relative !important;
+
+            z-index: 5 !important;
+        }
+
+
+        /* =====================================================
+           REMOVE ANY OTHER OLD BACKGROUND LAYERS
+        ===================================================== */
+
+        #collectorDashboardMain
+        > div:first-child
+        > div:first-child
+        > div {
+
+            background-color: transparent !important;
+        }
+
+
+        /* =====================================================
+           KILL OLD PSEUDO-ELEMENT PARTITION
+        ===================================================== */
+
+        #collectorDashboardMain
+        > div:first-child
+        > div:first-child::before,
+
+        #collectorDashboardMain
+        > div:first-child
+        > div:first-child::after {
+
+            content: none !important;
+
+            display: none !important;
+
+            background: none !important;
+
+            box-shadow: none !important;
+        }
+
+
+        /* =====================================================
+           TEXT
+        ===================================================== */
+
+        #collectorDashboardMain
+        > div:first-child
+        h1,
+
+        #collectorDashboardMain
+        > div:first-child
+        h2,
+
+        #collectorDashboardMain
+        > div:first-child
+        h3,
+
+        #collectorDashboardMain
+        > div:first-child
+        p,
+
+        #collectorDashboardMain
+        > div:first-child
+        strong {
+
+            color: #ffffff !important;
+
+            position: relative !important;
+
+            z-index: 10 !important;
+        }
+
+
+        /* =====================================================
+           PORTAL LABEL
+        ===================================================== */
+
+        #collectorDashboardMain
+        > div:first-child
+        div {
+
+            position: relative;
+        }
+
+
+        /* =====================================================
+           MAIN HEADING
+        ===================================================== */
+
+        #collectorDashboardMain
+        > div:first-child
+        h2 {
+
+            font-size: 36px !important;
+
+            font-weight: 800 !important;
+
+            letter-spacing: -0.03em !important;
+
+            margin-bottom: 10px !important;
+        }
+
+
+        /* =====================================================
+           DESCRIPTION
+        ===================================================== */
+
+        #collectorDashboardMain
+        > div:first-child
+        p {
+
+            color:
+                rgba(255,255,255,.92) !important;
+
+            font-size: 16px !important;
+
+            line-height: 1.7 !important;
+
+            max-width: 900px !important;
+        }
+
+
+        /* =====================================================
+           TRUCK ALWAYS ABOVE EVERYTHING
+        ===================================================== */
+
+        #collectorDashboardMain
+        > div:first-child
+        img,
+
+        #collectorDashboardMain
+        > div:first-child
+        div:has(> img) {
+
+            position: relative !important;
+
+            z-index: 20 !important;
+        }
+
+
+        /* =====================================================
+           PARTICLES
+        ===================================================== */
+
+        .kabadi-ultimate-particle {
+
+            position: absolute !important;
+
+            border-radius: 50% !important;
+
+            pointer-events: none !important;
+
+            z-index: 3 !important;
+
+            background:
+                rgba(255,255,255,.32) !important;
+
+            box-shadow:
+                0 0 8px
+                rgba(255,255,255,.16) !important;
+
+            animation:
+                kabadiUltimateFloat
+                var(--particle-speed)
+                ease-in-out
+                infinite !important;
+
+            animation-delay:
+                var(--particle-delay) !important;
+        }
+
+
+        @keyframes kabadiUltimateFloat {
+
+            0% {
+
+                transform:
+                    translate3d(0,0,0);
+
+                opacity: .12;
+            }
+
+            25% {
+
+                transform:
+                    translate3d(7px,-9px,0);
+
+                opacity: .48;
+            }
+
+            50% {
+
+                transform:
+                    translate3d(-5px,-17px,0);
+
+                opacity: .22;
+            }
+
+            75% {
+
+                transform:
+                    translate3d(9px,-7px,0);
+
+                opacity: .55;
+            }
+
+            100% {
+
+                transform:
+                    translate3d(0,0,0);
+
+                opacity: .12;
+            }
+        }
+
+
+        /* =====================================================
+           MOBILE
+        ===================================================== */
+
+        @media (max-width: 700px) {
+
+            #collectorDashboardMain > div:first-child {
+
+                padding: 24px !important;
+
+                min-height: 240px !important;
+
+                border-radius: 20px !important;
+            }
+
+            #collectorDashboardMain
+            > div:first-child
+            h2 {
+
+                font-size: 28px !important;
+            }
+
+        }
+
+        `;
+
+        document.head.appendChild(style);
+    }
+
+
+    // ----------------------------------------------------------
+    // FIND HERO
+    // ----------------------------------------------------------
+
+    function getHero() {
+
+        const dashboard =
+            document.getElementById(
+                "collectorDashboardMain"
+            );
+
+        if (!dashboard) {
+            return null;
+        }
+
+        return dashboard.children[0] || null;
+    }
+
+
+    // ----------------------------------------------------------
+    // REMOVE ALL OLD PARTICLES / CIRCLES
+    // ----------------------------------------------------------
+
+    function cleanOldDecorations(hero) {
+
+        hero.querySelectorAll(
+            ".collectorDecorCircleOne," +
+            ".collectorDecorCircleTwo," +
+            ".kabadi-floating-particle," +
+            ".kabadi-final-hero-particle"
+        ).forEach(function (element) {
+
+            element.remove();
+
+        });
+
+    }
+
+
+    // ----------------------------------------------------------
+    // CREATE TINY PARTICLES
+    // ----------------------------------------------------------
+
+    function createParticles(hero) {
+
+        // Don't duplicate
+        if (
+            hero.querySelector(
+                ".kabadi-ultimate-particle"
+            )
+        ) {
+            return;
+        }
+
+
+        const particles = [
+
+            {
+                left: "22%",
+                top: "20%",
+                size: "4px",
+                speed: "7s",
+                delay: "-2s"
+            },
+
+            {
+                left: "31%",
+                top: "65%",
+                size: "5px",
+                speed: "9s",
+                delay: "-5s"
+            },
+
+            {
+                left: "41%",
+                top: "30%",
+                size: "4px",
+                speed: "8s",
+                delay: "-3s"
+            },
+
+            {
+                left: "51%",
+                top: "72%",
+                size: "5px",
+                speed: "10s",
+                delay: "-7s"
+            },
+
+            {
+                left: "61%",
+                top: "22%",
+                size: "4px",
+                speed: "8s",
+                delay: "-4s"
+            },
+
+            {
+                left: "69%",
+                top: "57%",
+                size: "5px",
+                speed: "11s",
+                delay: "-6s"
+            },
+
+            {
+                left: "77%",
+                top: "32%",
+                size: "4px",
+                speed: "9s",
+                delay: "-2s"
+            },
+
+            {
+                left: "84%",
+                top: "70%",
+                size: "5px",
+                speed: "10s",
+                delay: "-8s"
+            },
+
+            {
+                left: "91%",
+                top: "25%",
+                size: "4px",
+                speed: "8s",
+                delay: "-3s"
+            },
+
+            {
+                left: "57%",
+                top: "48%",
+                size: "3px",
+                speed: "7s",
+                delay: "-5s"
+            },
+
+            {
+                left: "36%",
+                top: "48%",
+                size: "3px",
+                speed: "12s",
+                delay: "-9s"
+            },
+
+            {
+                left: "73%",
+                top: "18%",
+                size: "3px",
+                speed: "9s",
+                delay: "-4s"
+            },
+
+            {
+                left: "46%",
+                top: "82%",
+                size: "3px",
+                speed: "11s",
+                delay: "-6s"
+            },
+
+            {
+                left: "87%",
+                top: "48%",
+                size: "3px",
+                speed: "8s",
+                delay: "-2s"
+            }
+
+        ];
+
+
+        particles.forEach(function (data) {
+
+            const particle =
+                document.createElement("span");
+
+            particle.className =
+                "kabadi-ultimate-particle";
+
+            particle.style.left =
+                data.left;
+
+            particle.style.top =
+                data.top;
+
+            particle.style.width =
+                data.size;
+
+            particle.style.height =
+                data.size;
+
+            particle.style.setProperty(
+                "--particle-speed",
+                data.speed
+            );
+
+            particle.style.setProperty(
+                "--particle-delay",
+                data.delay
+            );
+
+            hero.appendChild(
+                particle
+            );
+
+        });
+
+    }
+
+
+    // ----------------------------------------------------------
+    // MAIN FIX
+    // ----------------------------------------------------------
+
+    function applyUltimateFix() {
+
+        const hero = getHero();
+
+        if (!hero) {
+            return;
+        }
+
+
+        // Clean previous decorations
+        cleanOldDecorations(hero);
+
+
+        // Force ONE continuous green background
+        hero.style.setProperty(
+            "background",
+            "linear-gradient(135deg,#087f5b 0%,#159570 52%,#16b981 100%)",
+            "important"
+        );
+
+
+        hero.style.setProperty(
+            "width",
+            "100%",
+            "important"
+        );
+
+
+        hero.style.setProperty(
+            "position",
+            "relative",
+            "important"
+        );
+
+
+        hero.style.setProperty(
+            "overflow",
+            "hidden",
+            "important"
+        );
+
+
+        // ------------------------------------------------------
+        // REMOVE INNER PANEL VISUALLY
+        // ------------------------------------------------------
+
+        const inner =
+            hero.firstElementChild;
+
+        if (inner) {
+
+            inner.style.setProperty(
+                "background",
+                "transparent",
+                "important"
+            );
+
+            inner.style.setProperty(
+                "background-color",
+                "transparent",
+                "important"
+            );
+
+            inner.style.setProperty(
+                "background-image",
+                "none",
+                "important"
+            );
+
+            inner.style.setProperty(
+                "border",
+                "none",
+                "important"
+            );
+
+            inner.style.setProperty(
+                "border-radius",
+                "0",
+                "important"
+            );
+
+            inner.style.setProperty(
+                "box-shadow",
+                "none",
+                "important"
+            );
+
+            inner.style.setProperty(
+                "width",
+                "100%",
+                "important"
+            );
+
+            inner.style.setProperty(
+                "max-width",
+                "none",
+                "important"
+            );
+
+        }
+
+
+        // ------------------------------------------------------
+        // CREATE PARTICLES
+        // ------------------------------------------------------
+
+        createParticles(hero);
+
+
+        hero.dataset.ultimateHero =
+            "true";
+
+
+        console.log(
+            "✅ ONE GREEN HERO + tiny moving particles."
+        );
+
+    }
+
+
+    // ----------------------------------------------------------
+    // RUN
+    // ----------------------------------------------------------
+
+    setTimeout(
+        applyUltimateFix,
+        300
+    );
+
+    setTimeout(
+        applyUltimateFix,
+        800
+    );
+
+    setTimeout(
+        applyUltimateFix,
+        1500
+    );
+
+    setTimeout(
+        applyUltimateFix,
+        2500
+    );
+
+
+    // ----------------------------------------------------------
+    // WATCH DYNAMIC RENDERING
+    // ----------------------------------------------------------
+
+    const observer =
+        new MutationObserver(
+            function () {
+
+                const hero =
+                    getHero();
+
+                if (!hero) {
+                    return;
+                }
+
+                if (
+                    hero.dataset.ultimateHero !==
+                    "true"
+                ) {
+
+                    applyUltimateFix();
+
+                }
+
+            }
+        );
+
+
+    observer.observe(
+        document.body,
+        {
+            childList: true,
+            subtree: true
+        }
+    );
+
+
+    console.log(
+        "🚀 Ultimate Collector Hero ready."
+    );
+
+})();
+
+// ============================================================
+// KABADI SETU - FINAL COLLECTOR HERO
+// ONE CONTINUOUS GREEN SURFACE + TINY MOVING PARTICLES
+// ============================================================
+
+(function () {
+
+    console.log("💚 Final Collector Hero initialized.");
+
+    // ----------------------------------------------------------
+    // CSS
+    // ----------------------------------------------------------
+
+    const css = document.createElement("style");
+
+    css.id = "kabadiFinalCollectorHeroCSS";
+
+    css.textContent = `
+
+        /* ======================================================
+           OUTER COLLECTOR HERO
+        ====================================================== */
+
+        #collectorDashboardMain > div:first-child {
+
+            width: 100% !important;
+            max-width: 100% !important;
+
+            min-width: 100% !important;
+
+            min-height: 220px !important;
+
+            margin: 0 0 24px 0 !important;
+
+            padding: 0 !important;
+
+            background:
+                linear-gradient(
+                    135deg,
+                    #087f5b 0%,
+                    #11966f 50%,
+                    #16b981 100%
+                ) !important;
+
+            border: none !important;
+
+            border-radius: 24px !important;
+
+            box-shadow:
+                0 18px 40px
+                rgba(8,127,91,.20) !important;
+
+            position: relative !important;
+
+            overflow: hidden !important;
+
+            display: block !important;
+        }
+
+
+        /* ======================================================
+           REMOVE OLD INNER PANEL
+        ====================================================== */
+
+        #collectorDashboardMain > div:first-child
+        > div:first-child {
+
+            width: 100% !important;
+
+            max-width: none !important;
+
+            min-width: 0 !important;
+
+            min-height: 220px !important;
+
+            margin: 0 !important;
+
+            padding: 30px 46px !important;
+
+            background: transparent !important;
+
+            background-color: transparent !important;
+
+            background-image: none !important;
+
+            border: none !important;
+
+            border-radius: 0 !important;
+
+            box-shadow: none !important;
+
+            position: relative !important;
+
+            z-index: 5 !important;
+        }
+
+
+        /* ======================================================
+           KILL ALL OLD HERO BACKGROUND LAYERS
+        ====================================================== */
+
+        #collectorDashboardMain > div:first-child
+        > div:first-child
+        > div {
+
+            background-color: transparent !important;
+
+            background-image: none !important;
+        }
+
+
+        /* ======================================================
+           KILL OLD PSEUDO ELEMENTS
+        ====================================================== */
+
+        #collectorDashboardMain > div:first-child
+        > div:first-child::before,
+
+        #collectorDashboardMain > div:first-child
+        > div:first-child::after {
+
+            display: none !important;
+
+            content: none !important;
+
+            background: none !important;
+        }
+
+
+        /* ======================================================
+           HERO TEXT
+        ====================================================== */
+
+        #collectorDashboardMain > div:first-child h1,
+
+        #collectorDashboardMain > div:first-child h2,
+
+        #collectorDashboardMain > div:first-child h3,
+
+        #collectorDashboardMain > div:first-child p,
+
+        #collectorDashboardMain > div:first-child strong {
+
+            color: #ffffff !important;
+
+            position: relative !important;
+
+            z-index: 10 !important;
+        }
+
+
+        /* ======================================================
+           HEADING
+        ====================================================== */
+
+        #collectorDashboardMain > div:first-child h2 {
+
+            font-size: 36px !important;
+
+            font-weight: 800 !important;
+
+            letter-spacing: -0.03em !important;
+
+            margin: 0 0 10px 0 !important;
+        }
+
+
+        /* ======================================================
+           DESCRIPTION
+        ====================================================== */
+
+        #collectorDashboardMain > div:first-child p {
+
+            color:
+                rgba(255,255,255,.92) !important;
+
+            font-size: 16px !important;
+
+            line-height: 1.7 !important;
+
+            max-width: 900px !important;
+
+            margin: 0 !important;
+        }
+
+
+        /* ======================================================
+           TRUCK
+        ====================================================== */
+
+        #collectorDashboardMain > div:first-child img {
+
+            position: relative !important;
+
+            z-index: 30 !important;
+        }
+
+
+        /* ======================================================
+           TINY PARTICLES
+        ====================================================== */
+
+        .kabadi-tiny-hero-particle {
+
+            position: absolute !important;
+
+            display: block !important;
+
+            border-radius: 50% !important;
+
+            pointer-events: none !important;
+
+            z-index: 4 !important;
+
+            background:
+                rgba(255,255,255,.30) !important;
+
+            box-shadow:
+                0 0 8px
+                rgba(255,255,255,.12) !important;
+
+            animation:
+                kabadiTinyParticleFloat
+                var(--particle-duration)
+                ease-in-out
+                infinite !important;
+
+            animation-delay:
+                var(--particle-delay) !important;
+        }
+
+
+        @keyframes kabadiTinyParticleFloat {
+
+            0% {
+
+                transform:
+                    translate3d(0,0,0);
+
+                opacity: .15;
+            }
+
+            25% {
+
+                transform:
+                    translate3d(7px,-9px,0);
+
+                opacity: .50;
+            }
+
+            50% {
+
+                transform:
+                    translate3d(-5px,-16px,0);
+
+                opacity: .22;
+            }
+
+            75% {
+
+                transform:
+                    translate3d(9px,-7px,0);
+
+                opacity: .55;
+            }
+
+            100% {
+
+                transform:
+                    translate3d(0,0,0);
+
+                opacity: .15;
+            }
+        }
+
+
+        /* ======================================================
+           RESPONSIVE
+        ====================================================== */
+
+        @media (max-width: 700px) {
+
+            #collectorDashboardMain > div:first-child {
+
+                min-height: 240px !important;
+
+                border-radius: 20px !important;
+            }
+
+            #collectorDashboardMain > div:first-child
+            > div:first-child {
+
+                padding: 24px !important;
+            }
+
+            #collectorDashboardMain > div:first-child h2 {
+
+                font-size: 28px !important;
+            }
+        }
+
+    `;
+
+    document.head.appendChild(css);
+
+
+    // ----------------------------------------------------------
+    // FIND REAL HERO
+    // ----------------------------------------------------------
+
+    function getHero() {
+
+        const dashboard =
+            document.getElementById(
+                "collectorDashboardMain"
+            );
+
+        if (!dashboard) {
+            return null;
+        }
+
+        return dashboard.children[0] || null;
+    }
+
+
+    // ----------------------------------------------------------
+    // REMOVE OLD PARTICLES / CIRCLES
+    // ----------------------------------------------------------
+
+    function removeOldDecorations(hero) {
+
+        hero.querySelectorAll(
+            ".collectorDecorCircleOne," +
+            ".collectorDecorCircleTwo," +
+            ".kabadi-floating-particle," +
+            ".kabadi-final-hero-particle," +
+            ".kabadi-ultimate-particle," +
+            ".kabadi-tiny-hero-particle"
+        ).forEach(function (element) {
+
+            element.remove();
+
+        });
+
+    }
+
+
+    // ----------------------------------------------------------
+    // CREATE PARTICLES
+    // ----------------------------------------------------------
+
+    function createParticles(hero) {
+
+        const particles = [
+
+            ["18%", "24%", "4px", "7s", "-1s"],
+            ["27%", "67%", "3px", "9s", "-4s"],
+            ["36%", "34%", "5px", "8s", "-2s"],
+            ["44%", "72%", "3px", "10s", "-6s"],
+            ["53%", "27%", "4px", "8s", "-3s"],
+            ["61%", "65%", "3px", "11s", "-7s"],
+            ["69%", "37%", "5px", "9s", "-5s"],
+            ["76%", "73%", "3px", "10s", "-2s"],
+            ["83%", "25%", "4px", "8s", "-6s"],
+            ["89%", "58%", "3px", "12s", "-8s"],
+            ["94%", "34%", "4px", "9s", "-3s"],
+            ["48%", "48%", "3px", "7s", "-5s"],
+            ["32%", "50%", "3px", "11s", "-9s"],
+            ["72%", "18%", "3px", "8s", "-4s"],
+            ["57%", "82%", "3px", "10s", "-7s"]
+        ];
+
+
+        particles.forEach(function (data) {
+
+            const particle =
+                document.createElement("span");
+
+            particle.className =
+                "kabadi-tiny-hero-particle";
+
+            particle.style.left =
+                data[0];
+
+            particle.style.top =
+                data[1];
+
+            particle.style.width =
+                data[2];
+
+            particle.style.height =
+                data[2];
+
+            particle.style.setProperty(
+                "--particle-duration",
+                data[3]
+            );
+
+            particle.style.setProperty(
+                "--particle-delay",
+                data[4]
+            );
+
+            hero.appendChild(
+                particle
+            );
+
+        });
+
+    }
+
+
+    // ----------------------------------------------------------
+    // APPLY FINAL DESIGN
+    // ----------------------------------------------------------
+
+    function applyFinalHero() {
+
+        const hero = getHero();
+
+        if (!hero) {
+            return;
+        }
+
+
+        // Remove previous decorations
+        removeOldDecorations(hero);
+
+
+        // ------------------------------------------------------
+        // FORCE OUTER HERO
+        // ------------------------------------------------------
+
+        hero.style.setProperty(
+            "width",
+            "100%",
+            "important"
+        );
+
+        hero.style.setProperty(
+            "max-width",
+            "100%",
+            "important"
+        );
+
+        hero.style.setProperty(
+            "min-width",
+            "100%",
+            "important"
+        );
+
+        hero.style.setProperty(
+            "background",
+            "linear-gradient(135deg,#087f5b 0%,#11966f 50%,#16b981 100%)",
+            "important"
+        );
+
+        hero.style.setProperty(
+            "background-color",
+            "#11966f",
+            "important"
+        );
+
+        hero.style.setProperty(
+            "border",
+            "none",
+            "important"
+        );
+
+        hero.style.setProperty(
+            "border-radius",
+            "24px",
+            "important"
+        );
+
+        hero.style.setProperty(
+            "overflow",
+            "hidden",
+            "important"
+        );
+
+        hero.style.setProperty(
+            "position",
+            "relative",
+            "important"
+        );
+
+
+        // ------------------------------------------------------
+        // INNER CONTENT = TRANSPARENT
+        // ------------------------------------------------------
+
+        const inner =
+            hero.firstElementChild;
+
+        if (inner) {
+
+            inner.style.setProperty(
+                "width",
+                "100%",
+                "important"
+            );
+
+            inner.style.setProperty(
+                "max-width",
+                "none",
+                "important"
+            );
+
+            inner.style.setProperty(
+                "min-width",
+                "0",
+                "important"
+            );
+
+            inner.style.setProperty(
+                "background",
+                "transparent",
+                "important"
+            );
+
+            inner.style.setProperty(
+                "background-color",
+                "transparent",
+                "important"
+            );
+
+            inner.style.setProperty(
+                "background-image",
+                "none",
+                "important"
+            );
+
+            inner.style.setProperty(
+                "border",
+                "none",
+                "important"
+            );
+
+            inner.style.setProperty(
+                "border-radius",
+                "0",
+                "important"
+            );
+
+            inner.style.setProperty(
+                "box-shadow",
+                "none",
+                "important"
+            );
+
+        }
+
+
+        // ------------------------------------------------------
+        // REMOVE ANY LARGE DECORATIVE ELEMENTS
+        // ------------------------------------------------------
+
+        hero.querySelectorAll(
+            "[style*='260px'], [style*='150px']"
+        ).forEach(function (element) {
+
+            if (
+                element !== inner &&
+                !element.querySelector("img")
+            ) {
+
+                element.style.setProperty(
+                    "background",
+                    "transparent",
+                    "important"
+                );
+
+            }
+
+        });
+
+
+        // ------------------------------------------------------
+        // ADD TINY PARTICLES
+        // ------------------------------------------------------
+
+        createParticles(hero);
+
+
+        hero.dataset.kabadiFinalHero =
+            "true";
+
+
+        console.log(
+            "✅ FINAL: one continuous green hero + tiny moving particles."
+        );
+
+    }
+
+
+    // ----------------------------------------------------------
+    // INITIAL LOAD
+    // ----------------------------------------------------------
+
+    setTimeout(
+        applyFinalHero,
+        300
+    );
+
+    setTimeout(
+        applyFinalHero,
+        800
+    );
+
+    setTimeout(
+        applyFinalHero,
+        1500
+    );
+
+    setTimeout(
+        applyFinalHero,
+        2500
+    );
+
+
+    // ----------------------------------------------------------
+    // RE-APPLY WHEN COLLECTOR DASHBOARD IS RENDERED
+    // ----------------------------------------------------------
+
+    const observer =
+        new MutationObserver(
+            function () {
+
+                const hero =
+                    getHero();
+
+                if (!hero) {
+                    return;
+                }
+
+                if (
+                    hero.dataset.kabadiFinalHero !==
+                    "true"
+                ) {
+
+                    applyFinalHero();
+
+                }
+
+            }
+        );
+
+
+    observer.observe(
+        document.body,
+        {
+            childList: true,
+            subtree: true
+        }
+    );
+
+
+    console.log(
+        "🚀 Collector hero final styling ready."
+    );
+
+})();
+
+// ============================================================
+// KABADI SETU - DEFINITIVE COLLECTOR HERO FIX
+// Removes ALL inner green partitions
+// Creates ONE continuous green hero
+// Adds tiny floating particles
+// ============================================================
+
+(function () {
+
+    console.log("💚 DEFINITIVE COLLECTOR HERO FIX");
+
+    // ----------------------------------------------------------
+    // CSS
+    // ----------------------------------------------------------
+
+    const style = document.createElement("style");
+
+    style.id = "kabadiDefinitiveCollectorHero";
+
+    style.textContent = `
+
+        /* ======================================================
+           OUTER HERO = THE ONLY GREEN BACKGROUND
+        ====================================================== */
+
+        #collectorDashboardMain > div:first-child {
+
+            width: 100% !important;
+            max-width: 100% !important;
+
+            min-height: 220px !important;
+
+            margin: 0 0 24px 0 !important;
+
+            padding: 30px 46px !important;
+
+            background:
+                linear-gradient(
+                    135deg,
+                    #087f5b 0%,
+                    #11966f 50%,
+                    #16b981 100%
+                ) !important;
+
+            background-color: #11966f !important;
+
+            border: none !important;
+
+            border-radius: 24px !important;
+
+            box-shadow:
+                0 18px 40px
+                rgba(8,127,91,.20) !important;
+
+            position: relative !important;
+
+            overflow: hidden !important;
+
+            isolation: isolate !important;
+        }
+
+
+        /* ======================================================
+           EVERY DIRECT/NESTED CONTENT CONTAINER
+           MUST BE TRANSPARENT
+        ====================================================== */
+
+        #collectorDashboardMain > div:first-child > div,
+        #collectorDashboardMain > div:first-child > div > div,
+        #collectorDashboardMain > div:first-child > div > div > div {
+
+            background: transparent !important;
+
+            background-color: transparent !important;
+
+            background-image: none !important;
+
+            border-color: transparent !important;
+
+            box-shadow: none !important;
+        }
+
+
+        /* ======================================================
+           KILL OLD LARGE DECORATIVE CIRCLES
+        ====================================================== */
+
+        #collectorDashboardMain
+        .collectorDecorCircleOne,
+
+        #collectorDashboardMain
+        .collectorDecorCircleTwo,
+
+        #collectorDashboardMain
+        .kabadi-floating-particle,
+
+        #collectorDashboardMain
+        .kabadi-final-hero-particle,
+
+        #collectorDashboardMain
+        .kabadi-ultimate-particle,
+
+        #collectorDashboardMain
+        .kabadi-tiny-hero-particle {
+
+            display: none !important;
+        }
+
+
+        /* ======================================================
+           HERO CONTENT
+        ====================================================== */
+
+        #collectorDashboardMain > div:first-child
+        > div:first-child {
+
+            width: 100% !important;
+
+            max-width: none !important;
+
+            min-width: 0 !important;
+
+            min-height: 160px !important;
+
+            padding: 0 !important;
+
+            margin: 0 !important;
+
+            display: flex !important;
+
+            justify-content: space-between !important;
+
+            align-items: flex-start !important;
+
+            gap: 30px !important;
+
+            background: transparent !important;
+
+            background-color: transparent !important;
+
+            background-image: none !important;
+
+            border: none !important;
+
+            border-radius: 0 !important;
+
+            box-shadow: none !important;
+
+            position: relative !important;
+
+            z-index: 5 !important;
+        }
+
+
+        /* ======================================================
+           LEFT CONTENT
+        ====================================================== */
+
+        #collectorDashboardMain > div:first-child
+        > div:first-child
+        > div:first-child {
+
+            background: transparent !important;
+
+            background-color: transparent !important;
+
+            background-image: none !important;
+
+            border: none !important;
+
+            border-radius: 0 !important;
+
+            box-shadow: none !important;
+
+            position: relative !important;
+
+            z-index: 10 !important;
+
+            flex: 1 1 auto !important;
+        }
+
+
+        /* ======================================================
+           TRUCK CONTAINER
+        ====================================================== */
+
+        #collectorDashboardMain > div:first-child
+        > div:first-child
+        > div:last-child {
+
+            background: transparent !important;
+
+            background-color: transparent !important;
+
+            background-image: none !important;
+
+            border: none !important;
+
+            border-radius: 0 !important;
+
+            box-shadow: none !important;
+
+            position: relative !important;
+
+            z-index: 20 !important;
+
+            flex: 0 0 auto !important;
+        }
+
+
+        /* ======================================================
+           ALL TEXT WHITE
+        ====================================================== */
+
+        #collectorDashboardMain > div:first-child
+        h1,
+
+        #collectorDashboardMain > div:first-child
+        h2,
+
+        #collectorDashboardMain > div:first-child
+        h3,
+
+        #collectorDashboardMain > div:first-child
+        p,
+
+        #collectorDashboardMain > div:first-child
+        strong {
+
+            color: #ffffff !important;
+
+            background: transparent !important;
+
+            position: relative !important;
+
+            z-index: 15 !important;
+        }
+
+
+        /* ======================================================
+           PORTAL LABEL
+        ====================================================== */
+
+        #collectorDashboardMain > div:first-child
+        > div:first-child
+        > div:first-child
+        > div:first-child {
+
+            background: transparent !important;
+
+            color: #d1fae5 !important;
+
+            font-weight: 800 !important;
+
+            letter-spacing: 1px !important;
+        }
+
+
+        /* ======================================================
+           HEADING
+        ====================================================== */
+
+        #collectorDashboardMain > div:first-child h2 {
+
+            font-size: 36px !important;
+
+            font-weight: 800 !important;
+
+            letter-spacing: -0.03em !important;
+
+            margin: 0 0 10px 0 !important;
+
+            color: #ffffff !important;
+        }
+
+
+        /* ======================================================
+           DESCRIPTION
+        ====================================================== */
+
+        #collectorDashboardMain > div:first-child p {
+
+            color:
+                rgba(255,255,255,.92) !important;
+
+            font-size: 16px !important;
+
+            line-height: 1.7 !important;
+
+            max-width: 900px !important;
+
+            margin: 0 !important;
+        }
+
+
+        /* ======================================================
+           TRUCK
+        ====================================================== */
+
+        #collectorDashboardMain > div:first-child
+        img {
+
+            position: relative !important;
+
+            z-index: 50 !important;
+
+            background: transparent !important;
+
+            border: none !important;
+
+            box-shadow: none !important;
+        }
+
+
+        /* ======================================================
+           PARTICLES
+        ====================================================== */
+
+        .kabadi-clean-particle {
+
+            position: absolute !important;
+
+            display: block !important;
+
+            width: 4px;
+
+            height: 4px;
+
+            border-radius: 50% !important;
+
+            background:
+                rgba(255,255,255,.32) !important;
+
+            box-shadow:
+                0 0 8px
+                rgba(255,255,255,.12) !important;
+
+            pointer-events: none !important;
+
+            z-index: 3 !important;
+
+            animation:
+                kabadiCleanFloat
+                var(--duration)
+                ease-in-out
+                infinite !important;
+
+            animation-delay:
+                var(--delay) !important;
+        }
+
+
+        @keyframes kabadiCleanFloat {
+
+            0% {
+
+                transform:
+                    translate3d(0,0,0);
+
+                opacity: .15;
+            }
+
+            25% {
+
+                transform:
+                    translate3d(7px,-9px,0);
+
+                opacity: .50;
+            }
+
+            50% {
+
+                transform:
+                    translate3d(-5px,-17px,0);
+
+                opacity: .22;
+            }
+
+            75% {
+
+                transform:
+                    translate3d(9px,-7px,0);
+
+                opacity: .55;
+            }
+
+            100% {
+
+                transform:
+                    translate3d(0,0,0);
+
+                opacity: .15;
+            }
+        }
+
+
+        /* ======================================================
+           MOBILE
+        ====================================================== */
+
+        @media (max-width:700px) {
+
+            #collectorDashboardMain > div:first-child {
+
+                min-height: 240px !important;
+
+                padding: 24px !important;
+
+                border-radius: 20px !important;
+            }
+
+            #collectorDashboardMain > div:first-child
+            > div:first-child {
+
+                min-height: 190px !important;
+            }
+
+            #collectorDashboardMain > div:first-child h2 {
+
+                font-size: 28px !important;
+            }
+
+        }
+
+    `;
+
+    document.head.appendChild(style);
+
+
+    // ----------------------------------------------------------
+    // GET HERO
+    // ----------------------------------------------------------
+
+    function getHero() {
+
+        const dashboard =
+            document.getElementById(
+                "collectorDashboardMain"
+            );
+
+        if (!dashboard) {
+            return null;
+        }
+
+        return dashboard.children[0] || null;
+    }
+
+
+    // ----------------------------------------------------------
+    // REMOVE OLD DECORATIONS
+    // ----------------------------------------------------------
+
+    function removeEverythingOld(hero) {
+
+        hero.querySelectorAll(
+            ".collectorDecorCircleOne," +
+            ".collectorDecorCircleTwo," +
+            ".kabadi-floating-particle," +
+            ".kabadi-final-hero-particle," +
+            ".kabadi-ultimate-particle," +
+            ".kabadi-tiny-hero-particle," +
+            ".kabadi-clean-particle"
+        ).forEach(function (element) {
+
+            element.remove();
+
+        });
+
+    }
+
+
+    // ----------------------------------------------------------
+    // FORCE EVERY INNER ELEMENT TRANSPARENT
+    // ----------------------------------------------------------
+
+    function removeInnerBackgrounds(hero) {
+
+        const all =
+            hero.querySelectorAll("*");
+
+        all.forEach(function (element) {
+
+            // Don't touch images
+            if (
+                element.tagName === "IMG"
+            ) {
+                return;
+            }
+
+            // Don't touch particles
+            if (
+                element.classList.contains(
+                    "kabadi-clean-particle"
+                )
+            ) {
+                return;
+            }
+
+
+            // Remove inline background completely
+            element.style.setProperty(
+                "background",
+                "transparent",
+                "important"
+            );
+
+            element.style.setProperty(
+                "background-color",
+                "transparent",
+                "important"
+            );
+
+            element.style.setProperty(
+                "background-image",
+                "none",
+                "important"
+            );
+
+            // Remove old rounded partition
+            if (
+                element !== hero
+            ) {
+
+                element.style.setProperty(
+                    "border-radius",
+                    "0",
+                    "important"
+                );
+
+                element.style.setProperty(
+                    "box-shadow",
+                    "none",
+                    "important"
+                );
+
+            }
+
+        });
+
+    }
+
+
+    // ----------------------------------------------------------
+    // ADD PARTICLES
+    // ----------------------------------------------------------
+
+    function addParticles(hero) {
+
+        const data = [
+
+            ["19%", "20%", "4px", "7s", "-2s"],
+            ["27%", "68%", "3px", "10s", "-4s"],
+            ["36%", "31%", "4px", "8s", "-3s"],
+            ["44%", "74%", "3px", "11s", "-7s"],
+            ["53%", "24%", "4px", "9s", "-5s"],
+            ["61%", "65%", "3px", "12s", "-8s"],
+            ["69%", "35%", "4px", "8s", "-2s"],
+            ["76%", "72%", "3px", "10s", "-6s"],
+            ["83%", "22%", "4px", "9s", "-4s"],
+            ["89%", "57%", "3px", "11s", "-7s"],
+            ["94%", "30%", "4px", "8s", "-3s"],
+            ["48%", "48%", "3px", "7s", "-5s"],
+            ["33%", "52%", "3px", "12s", "-9s"],
+            ["72%", "18%", "3px", "9s", "-6s"],
+            ["57%", "82%", "3px", "10s", "-4s"]
+        ];
+
+
+        data.forEach(function (item) {
+
+            const particle =
+                document.createElement("span");
+
+            particle.className =
+                "kabadi-clean-particle";
+
+            particle.style.left =
+                item[0];
+
+            particle.style.top =
+                item[1];
+
+            particle.style.width =
+                item[2];
+
+            particle.style.height =
+                item[2];
+
+            particle.style.setProperty(
+                "--duration",
+                item[3]
+            );
+
+            particle.style.setProperty(
+                "--delay",
+                item[4]
+            );
+
+            hero.appendChild(
+                particle
+            );
+
+        });
+
+    }
+
+
+    // ----------------------------------------------------------
+    // FINAL APPLY
+    // ----------------------------------------------------------
+
+    function fixHero() {
+
+        const hero = getHero();
+
+        if (!hero) {
+            return;
+        }
+
+
+        // Remove old decorations
+        removeEverythingOld(hero);
+
+
+        // ------------------------------------------------------
+        // OUTER HERO
+        // ------------------------------------------------------
+
+        hero.style.setProperty(
+            "background",
+            "linear-gradient(135deg,#087f5b 0%,#11966f 50%,#16b981 100%)",
+            "important"
+        );
+
+        hero.style.setProperty(
+            "background-color",
+            "#11966f",
+            "important"
+        );
+
+        hero.style.setProperty(
+            "width",
+            "100%",
+            "important"
+        );
+
+        hero.style.setProperty(
+            "max-width",
+            "100%",
+            "important"
+        );
+
+        hero.style.setProperty(
+            "border",
+            "none",
+            "important"
+        );
+
+        hero.style.setProperty(
+            "border-radius",
+            "24px",
+            "important"
+        );
+
+        hero.style.setProperty(
+            "overflow",
+            "hidden",
+            "important"
+        );
+
+        hero.style.setProperty(
+            "position",
+            "relative",
+            "important"
+        );
+
+
+        // ------------------------------------------------------
+        // NUKE INNER BACKGROUNDS
+        // ------------------------------------------------------
+
+        removeInnerBackgrounds(hero);
+
+
+        // ------------------------------------------------------
+        // ADD PARTICLES
+        // ------------------------------------------------------
+
+        addParticles(hero);
+
+
+        hero.dataset.cleanCollectorHero =
+            "true";
+
+
+        console.log(
+            "✅ CLEAN HERO: ONE GREEN SURFACE."
+        );
+
+    }
+
+
+    // ----------------------------------------------------------
+    // INITIAL RUNS
+    // ----------------------------------------------------------
+
+    setTimeout(fixHero, 300);
+    setTimeout(fixHero, 800);
+    setTimeout(fixHero, 1500);
+    setTimeout(fixHero, 2500);
+
+
+    // ----------------------------------------------------------
+    // WATCH DASHBOARD RE-RENDER
+    // ----------------------------------------------------------
+
+    const observer =
+        new MutationObserver(
+            function () {
+
+                const hero = getHero();
+
+                if (!hero) {
+                    return;
+                }
+
+                if (
+                    hero.dataset.cleanCollectorHero !==
+                    "true"
+                ) {
+
+                    fixHero();
+
+                }
+
+            }
+        );
+
+
+    observer.observe(
+        document.body,
+        {
+            childList: true,
+            subtree: true
+        }
+    );
+
+
+    console.log(
+        "🚀 Collector hero is now one continuous green surface."
+    );
+
+})();
+
+// ============================================================
+// KABADI SETU - FINAL COLLECTOR HERO CLEAN DESIGN
+// ONE CONTINUOUS GREEN HERO
+// NO INNER GREEN PANEL
+// SUBTLE MOVING PARTICLES
+// ============================================================
+
+(function () {
+
+    console.log("💚 Final Collector Hero Clean Design loaded.");
+
+    // ==========================================================
+    // CSS
+    // ==========================================================
+
+    const style = document.createElement("style");
+
+    style.id = "kabadiFinalCleanCollectorHero";
+
+    style.innerHTML = `
+
+        /* ======================================================
+           OUTER HERO
+        ====================================================== */
+
+        #collectorDashboardMain > div:first-child {
+
+            width: 100% !important;
+            max-width: 100% !important;
+
+            min-height: 220px !important;
+
+            margin: 0 0 24px 0 !important;
+
+            padding: 30px 46px !important;
+
+            background:
+                linear-gradient(
+                    135deg,
+                    #087f5b 0%,
+                    #11966f 48%,
+                    #16b981 100%
+                ) !important;
+
+            border: none !important;
+
+            border-radius: 24px !important;
+
+            box-shadow:
+                0 18px 40px
+                rgba(8,127,91,.18) !important;
+
+            position: relative !important;
+
+            overflow: hidden !important;
+
+            isolation: isolate !important;
+        }
+
+
+        /* ======================================================
+           REMOVE EVERY INNER BACKGROUND
+        ====================================================== */
+
+        #collectorDashboardMain > div:first-child * {
+
+            background-image: none !important;
+        }
+
+
+        #collectorDashboardMain > div:first-child
+        > div {
+
+            background-color: transparent !important;
+
+            background-image: none !important;
+
+            border: none !important;
+
+            box-shadow: none !important;
+        }
+
+
+        /* ======================================================
+           KILL ALL OLD PSEUDO ELEMENTS
+        ====================================================== */
+
+        #collectorDashboardMain > div:first-child::before,
+
+        #collectorDashboardMain > div:first-child::after,
+
+        #collectorDashboardMain > div:first-child *::before,
+
+        #collectorDashboardMain > div:first-child *::after {
+
+            content: none !important;
+
+            display: none !important;
+
+            background: transparent !important;
+
+            background-image: none !important;
+
+            box-shadow: none !important;
+        }
+
+
+        /* ======================================================
+           FIRST CONTENT ROW
+        ====================================================== */
+
+        #collectorDashboardMain > div:first-child
+        > div:first-child {
+
+            width: 100% !important;
+
+            max-width: none !important;
+
+            min-width: 0 !important;
+
+            min-height: 160px !important;
+
+            padding: 0 !important;
+
+            margin: 0 !important;
+
+            background: transparent !important;
+
+            background-color: transparent !important;
+
+            border: none !important;
+
+            border-radius: 0 !important;
+
+            box-shadow: none !important;
+
+            position: relative !important;
+
+            z-index: 5 !important;
+        }
+
+
+        /* ======================================================
+           LEFT TEXT AREA
+        ====================================================== */
+
+        #collectorDashboardMain > div:first-child
+        > div:first-child
+        > div:first-child {
+
+            background: transparent !important;
+
+            background-color: transparent !important;
+
+            background-image: none !important;
+
+            border: none !important;
+
+            border-radius: 0 !important;
+
+            box-shadow: none !important;
+
+            position: relative !important;
+
+            z-index: 10 !important;
+        }
+
+
+        /* ======================================================
+           TRUCK AREA
+        ====================================================== */
+
+        #collectorDashboardMain > div:first-child
+        > div:first-child
+        > div:last-child {
+
+            background: transparent !important;
+
+            background-color: transparent !important;
+
+            background-image: none !important;
+
+            border: none !important;
+
+            border-radius: 0 !important;
+
+            box-shadow: none !important;
+
+            position: relative !important;
+
+            z-index: 30 !important;
+        }
+
+
+        /* ======================================================
+           TEXT
+        ====================================================== */
+
+        #collectorDashboardMain > div:first-child
+        h1,
+
+        #collectorDashboardMain > div:first-child
+        h2,
+
+        #collectorDashboardMain > div:first-child
+        h3,
+
+        #collectorDashboardMain > div:first-child
+        p,
+
+        #collectorDashboardMain > div:first-child
+        strong {
+
+            background: transparent !important;
+
+            background-color: transparent !important;
+
+            color: #ffffff !important;
+
+            position: relative !important;
+
+            z-index: 20 !important;
+        }
+
+
+        /* ======================================================
+           COLLECTOR PORTAL
+        ====================================================== */
+
+        #collectorDashboardMain > div:first-child
+        h2 {
+
+            font-size: 36px !important;
+
+            font-weight: 800 !important;
+
+            letter-spacing: -0.03em !important;
+
+            margin: 0 0 10px 0 !important;
+
+            color: #ffffff !important;
+        }
+
+
+        /* ======================================================
+           DESCRIPTION
+        ====================================================== */
+
+        #collectorDashboardMain > div:first-child
+        p {
+
+            color:
+                rgba(255,255,255,.90) !important;
+
+            font-size: 16px !important;
+
+            line-height: 1.7 !important;
+
+            max-width: 900px !important;
+
+            margin: 0 !important;
+        }
+
+
+        /* ======================================================
+           TRUCK
+        ====================================================== */
+
+        #collectorDashboardMain > div:first-child
+        img {
+
+            position: relative !important;
+
+            z-index: 50 !important;
+
+            background: transparent !important;
+
+            border: none !important;
+
+            box-shadow: none !important;
+        }
+
+
+        /* ======================================================
+           PARTICLES
+        ====================================================== */
+
+        .kabadi-final-particle {
+
+            position: absolute !important;
+
+            display: block !important;
+
+            border-radius: 50% !important;
+
+            background:
+                rgba(255,255,255,.28) !important;
+
+            box-shadow:
+                0 0 7px
+                rgba(255,255,255,.12) !important;
+
+            pointer-events: none !important;
+
+            z-index: 3 !important;
+
+            animation:
+                kabadiFinalParticleMove
+                var(--speed)
+                ease-in-out
+                infinite !important;
+
+            animation-delay:
+                var(--delay) !important;
+        }
+
+
+        @keyframes kabadiFinalParticleMove {
+
+            0% {
+
+                transform:
+                    translate3d(0,0,0);
+
+                opacity: .12;
+            }
+
+            25% {
+
+                transform:
+                    translate3d(6px,-8px,0);
+
+                opacity: .40;
+            }
+
+            50% {
+
+                transform:
+                    translate3d(-5px,-14px,0);
+
+                opacity: .18;
+            }
+
+            75% {
+
+                transform:
+                    translate3d(7px,-6px,0);
+
+                opacity: .45;
+            }
+
+            100% {
+
+                transform:
+                    translate3d(0,0,0);
+
+                opacity: .12;
+            }
+        }
+
+
+        /* ======================================================
+           MOBILE
+        ====================================================== */
+
+        @media (max-width:700px) {
+
+            #collectorDashboardMain > div:first-child {
+
+                min-height: 240px !important;
+
+                padding: 24px !important;
+
+                border-radius: 20px !important;
+            }
+
+            #collectorDashboardMain > div:first-child
+            h2 {
+
+                font-size: 28px !important;
+            }
+
+        }
+
+    `;
+
+    document.head.appendChild(style);
+
+
+    // ==========================================================
+    // FIND HERO
+    // ==========================================================
+
+    function getHero() {
+
+        const dashboard =
+            document.getElementById(
+                "collectorDashboardMain"
+            );
+
+        if (!dashboard) {
+            return null;
+        }
+
+        return dashboard.children[0] || null;
+    }
+
+
+    // ==========================================================
+    // REMOVE OLD DECORATIONS
+    // ==========================================================
+
+    function removeOldParticles(hero) {
+
+        hero.querySelectorAll(
+            ".kabadi-floating-particle," +
+            ".kabadi-final-hero-particle," +
+            ".kabadi-ultimate-particle," +
+            ".kabadi-tiny-hero-particle," +
+            ".kabadi-clean-particle," +
+            ".kabadi-final-particle," +
+            ".collectorDecorCircleOne," +
+            ".collectorDecorCircleTwo"
+        ).forEach(function (element) {
+
+            element.remove();
+
+        });
+
+    }
+
+
+    // ==========================================================
+    // FORCE ALL INNER ELEMENTS TRANSPARENT
+    // ==========================================================
+
+    function clearInnerLayers(hero) {
+
+        hero.querySelectorAll("*").forEach(function (element) {
+
+            if (
+                element.tagName === "IMG"
+            ) {
+                return;
+            }
+
+            element.style.setProperty(
+                "background",
+                "transparent",
+                "important"
+            );
+
+            element.style.setProperty(
+                "background-color",
+                "transparent",
+                "important"
+            );
+
+            element.style.setProperty(
+                "background-image",
+                "none",
+                "important"
+            );
+
+            element.style.setProperty(
+                "box-shadow",
+                "none",
+                "important"
+            );
+
+            /*
+             * Remove the old rounded inner-panel appearance.
+             */
+
+            if (
+                !element.classList.contains(
+                    "kabadi-final-particle"
+                )
+            ) {
+
+                element.style.setProperty(
+                    "border-radius",
+                    "0",
+                    "important"
+                );
+
+            }
+
+        });
+
+    }
+
+
+    // ==========================================================
+    // CREATE SMALL PARTICLES
+    // ==========================================================
+
+    function createParticles(hero) {
+
+        const particles = [
+
+            ["18%", "22%", "3px", "8s", "-2s"],
+            ["27%", "68%", "4px", "10s", "-5s"],
+            ["36%", "34%", "3px", "9s", "-3s"],
+            ["44%", "76%", "4px", "11s", "-7s"],
+            ["52%", "25%", "3px", "8s", "-4s"],
+            ["60%", "65%", "4px", "12s", "-8s"],
+            ["68%", "36%", "3px", "9s", "-2s"],
+            ["76%", "72%", "4px", "10s", "-6s"],
+            ["83%", "23%", "3px", "8s", "-4s"],
+            ["89%", "57%", "4px", "11s", "-7s"],
+            ["94%", "32%", "3px", "9s", "-3s"],
+            ["48%", "48%", "3px", "8s", "-5s"],
+            ["33%", "52%", "3px", "12s", "-9s"],
+            ["72%", "18%", "3px", "9s", "-6s"],
+            ["57%", "82%", "3px", "11s", "-4s"]
+        ];
+
+
+        particles.forEach(function (data) {
+
+            const particle =
+                document.createElement("span");
+
+            particle.className =
+                "kabadi-final-particle";
+
+            particle.style.left =
+                data[0];
+
+            particle.style.top =
+                data[1];
+
+            particle.style.width =
+                data[2];
+
+            particle.style.height =
+                data[2];
+
+            particle.style.setProperty(
+                "--speed",
+                data[3]
+            );
+
+            particle.style.setProperty(
+                "--delay",
+                data[4]
+            );
+
+            hero.appendChild(
+                particle
+            );
+
+        });
+
+    }
+
+
+    // ==========================================================
+    // APPLY FINAL HERO
+    // ==========================================================
+
+    function applyFinalHero() {
+
+        const hero = getHero();
+
+        if (!hero) {
+            return;
+        }
+
+
+        // Remove old decorations
+        removeOldParticles(hero);
+
+
+        // Remove all inner backgrounds
+        clearInnerLayers(hero);
+
+
+        // ------------------------------------------------------
+        // OUTER HERO GETS THE ONLY GREEN BACKGROUND
+        // ------------------------------------------------------
+
+        hero.style.setProperty(
+            "background",
+            "linear-gradient(135deg,#087f5b 0%,#11966f 48%,#16b981 100%)",
+            "important"
+        );
+
+        hero.style.setProperty(
+            "background-color",
+            "#11966f",
+            "important"
+        );
+
+        hero.style.setProperty(
+            "width",
+            "100%",
+            "important"
+        );
+
+        hero.style.setProperty(
+            "max-width",
+            "100%",
+            "important"
+        );
+
+        hero.style.setProperty(
+            "min-height",
+            "220px",
+            "important"
+        );
+
+        hero.style.setProperty(
+            "border",
+            "none",
+            "important"
+        );
+
+        hero.style.setProperty(
+            "border-radius",
+            "24px",
+            "important"
+        );
+
+        hero.style.setProperty(
+            "overflow",
+            "hidden",
+            "important"
+        );
+
+        hero.style.setProperty(
+            "position",
+            "relative",
+            "important"
+        );
+
+
+        // ------------------------------------------------------
+        // PARTICLES
+        // ------------------------------------------------------
+
+        createParticles(hero);
+
+
+        hero.dataset.finalCleanCollectorHero =
+            "true";
+
+
+        console.log(
+            "✅ FINAL HERO: one green surface, no partition."
+        );
+
+    }
+
+
+    // ==========================================================
+    // INITIAL LOAD
+    // ==========================================================
+
+    setTimeout(
+        applyFinalHero,
+        300
+    );
+
+    setTimeout(
+        applyFinalHero,
+        800
+    );
+
+    setTimeout(
+        applyFinalHero,
+        1500
+    );
+
+    setTimeout(
+        applyFinalHero,
+        2500
+    );
+
+
+    // ==========================================================
+    // WATCH DYNAMIC RENDERING
+    // ==========================================================
+
+    const observer =
+        new MutationObserver(
+            function () {
+
+                const hero = getHero();
+
+                if (!hero) {
+                    return;
+                }
+
+                if (
+                    hero.dataset.finalCleanCollectorHero !==
+                    "true"
+                ) {
+
+                    applyFinalHero();
+
+                }
+
+            }
+        );
+
+
+    observer.observe(
+        document.body,
+        {
+            childList: true,
+            subtree: true
+        }
+    );
+
+
+    console.log(
+        "🚀 Collector hero final clean design ready."
+    );
+
+})();
+
+// ============================================================
+// KABADI SETU - FINAL COLLECTOR HERO CLEAN DESIGN
+// ONE CONTINUOUS GREEN HERO
+// NO INNER GREEN PANEL
+// SUBTLE MOVING PARTICLES
+// ============================================================
+
+(function () {
+
+    console.log("💚 Final Collector Hero Clean Design loaded.");
+
+    // ==========================================================
+    // CSS
+    // ==========================================================
+
+    const style = document.createElement("style");
+
+    style.id = "kabadiFinalCleanCollectorHero";
+
+    style.innerHTML = `
+
+        /* ======================================================
+           OUTER HERO
+        ====================================================== */
+
+        #collectorDashboardMain > div:first-child {
+
+            width: 100% !important;
+            max-width: 100% !important;
+
+            min-height: 220px !important;
+
+            margin: 0 0 24px 0 !important;
+
+            padding: 30px 46px !important;
+
+            background:
+                linear-gradient(
+                    135deg,
+                    #087f5b 0%,
+                    #11966f 48%,
+                    #16b981 100%
+                ) !important;
+
+            border: none !important;
+
+            border-radius: 24px !important;
+
+            box-shadow:
+                0 18px 40px
+                rgba(8,127,91,.18) !important;
+
+            position: relative !important;
+
+            overflow: hidden !important;
+
+            isolation: isolate !important;
+        }
+
+
+        /* ======================================================
+           REMOVE EVERY INNER BACKGROUND
+        ====================================================== */
+
+        #collectorDashboardMain > div:first-child * {
+
+            background-image: none !important;
+        }
+
+
+        #collectorDashboardMain > div:first-child
+        > div {
+
+            background-color: transparent !important;
+
+            background-image: none !important;
+
+            border: none !important;
+
+            box-shadow: none !important;
+        }
+
+
+        /* ======================================================
+           KILL ALL OLD PSEUDO ELEMENTS
+        ====================================================== */
+
+        #collectorDashboardMain > div:first-child::before,
+
+        #collectorDashboardMain > div:first-child::after,
+
+        #collectorDashboardMain > div:first-child *::before,
+
+        #collectorDashboardMain > div:first-child *::after {
+
+            content: none !important;
+
+            display: none !important;
+
+            background: transparent !important;
+
+            background-image: none !important;
+
+            box-shadow: none !important;
+        }
+
+
+        /* ======================================================
+           FIRST CONTENT ROW
+        ====================================================== */
+
+        #collectorDashboardMain > div:first-child
+        > div:first-child {
+
+            width: 100% !important;
+
+            max-width: none !important;
+
+            min-width: 0 !important;
+
+            min-height: 160px !important;
+
+            padding: 0 !important;
+
+            margin: 0 !important;
+
+            background: transparent !important;
+
+            background-color: transparent !important;
+
+            border: none !important;
+
+            border-radius: 0 !important;
+
+            box-shadow: none !important;
+
+            position: relative !important;
+
+            z-index: 5 !important;
+        }
+
+
+        /* ======================================================
+           LEFT TEXT AREA
+        ====================================================== */
+
+        #collectorDashboardMain > div:first-child
+        > div:first-child
+        > div:first-child {
+
+            background: transparent !important;
+
+            background-color: transparent !important;
+
+            background-image: none !important;
+
+            border: none !important;
+
+            border-radius: 0 !important;
+
+            box-shadow: none !important;
+
+            position: relative !important;
+
+            z-index: 10 !important;
+        }
+
+
+        /* ======================================================
+           TRUCK AREA
+        ====================================================== */
+
+        #collectorDashboardMain > div:first-child
+        > div:first-child
+        > div:last-child {
+
+            background: transparent !important;
+
+            background-color: transparent !important;
+
+            background-image: none !important;
+
+            border: none !important;
+
+            border-radius: 0 !important;
+
+            box-shadow: none !important;
+
+            position: relative !important;
+
+            z-index: 30 !important;
+        }
+
+
+        /* ======================================================
+           TEXT
+        ====================================================== */
+
+        #collectorDashboardMain > div:first-child
+        h1,
+
+        #collectorDashboardMain > div:first-child
+        h2,
+
+        #collectorDashboardMain > div:first-child
+        h3,
+
+        #collectorDashboardMain > div:first-child
+        p,
+
+        #collectorDashboardMain > div:first-child
+        strong {
+
+            background: transparent !important;
+
+            background-color: transparent !important;
+
+            color: #ffffff !important;
+
+            position: relative !important;
+
+            z-index: 20 !important;
+        }
+
+
+        /* ======================================================
+           COLLECTOR PORTAL
+        ====================================================== */
+
+        #collectorDashboardMain > div:first-child
+        h2 {
+
+            font-size: 36px !important;
+
+            font-weight: 800 !important;
+
+            letter-spacing: -0.03em !important;
+
+            margin: 0 0 10px 0 !important;
+
+            color: #ffffff !important;
+        }
+
+
+        /* ======================================================
+           DESCRIPTION
+        ====================================================== */
+
+        #collectorDashboardMain > div:first-child
+        p {
+
+            color:
+                rgba(255,255,255,.90) !important;
+
+            font-size: 16px !important;
+
+            line-height: 1.7 !important;
+
+            max-width: 900px !important;
+
+            margin: 0 !important;
+        }
+
+
+        /* ======================================================
+           TRUCK
+        ====================================================== */
+
+        #collectorDashboardMain > div:first-child
+        img {
+
+            position: relative !important;
+
+            z-index: 50 !important;
+
+            background: transparent !important;
+
+            border: none !important;
+
+            box-shadow: none !important;
+        }
+
+
+        /* ======================================================
+           PARTICLES
+        ====================================================== */
+
+        .kabadi-final-particle {
+
+            position: absolute !important;
+
+            display: block !important;
+
+            border-radius: 50% !important;
+
+            background:
+                rgba(255,255,255,.28) !important;
+
+            box-shadow:
+                0 0 7px
+                rgba(255,255,255,.12) !important;
+
+            pointer-events: none !important;
+
+            z-index: 3 !important;
+
+            animation:
+                kabadiFinalParticleMove
+                var(--speed)
+                ease-in-out
+                infinite !important;
+
+            animation-delay:
+                var(--delay) !important;
+        }
+
+
+        @keyframes kabadiFinalParticleMove {
+
+            0% {
+
+                transform:
+                    translate3d(0,0,0);
+
+                opacity: .12;
+            }
+
+            25% {
+
+                transform:
+                    translate3d(6px,-8px,0);
+
+                opacity: .40;
+            }
+
+            50% {
+
+                transform:
+                    translate3d(-5px,-14px,0);
+
+                opacity: .18;
+            }
+
+            75% {
+
+                transform:
+                    translate3d(7px,-6px,0);
+
+                opacity: .45;
+            }
+
+            100% {
+
+                transform:
+                    translate3d(0,0,0);
+
+                opacity: .12;
+            }
+        }
+
+
+        /* ======================================================
+           MOBILE
+        ====================================================== */
+
+        @media (max-width:700px) {
+
+            #collectorDashboardMain > div:first-child {
+
+                min-height: 240px !important;
+
+                padding: 24px !important;
+
+                border-radius: 20px !important;
+            }
+
+            #collectorDashboardMain > div:first-child
+            h2 {
+
+                font-size: 28px !important;
+            }
+
+        }
+
+    `;
+
+    document.head.appendChild(style);
+
+
+    // ==========================================================
+    // FIND HERO
+    // ==========================================================
+
+    function getHero() {
+
+        const dashboard =
+            document.getElementById(
+                "collectorDashboardMain"
+            );
+
+        if (!dashboard) {
+            return null;
+        }
+
+        return dashboard.children[0] || null;
+    }
+
+
+    // ==========================================================
+    // REMOVE OLD DECORATIONS
+    // ==========================================================
+
+    function removeOldParticles(hero) {
+
+        hero.querySelectorAll(
+            ".kabadi-floating-particle," +
+            ".kabadi-final-hero-particle," +
+            ".kabadi-ultimate-particle," +
+            ".kabadi-tiny-hero-particle," +
+            ".kabadi-clean-particle," +
+            ".kabadi-final-particle," +
+            ".collectorDecorCircleOne," +
+            ".collectorDecorCircleTwo"
+        ).forEach(function (element) {
+
+            element.remove();
+
+        });
+
+    }
+
+
+    // ==========================================================
+    // FORCE ALL INNER ELEMENTS TRANSPARENT
+    // ==========================================================
+
+    function clearInnerLayers(hero) {
+
+        hero.querySelectorAll("*").forEach(function (element) {
+
+            if (
+                element.tagName === "IMG"
+            ) {
+                return;
+            }
+
+            element.style.setProperty(
+                "background",
+                "transparent",
+                "important"
+            );
+
+            element.style.setProperty(
+                "background-color",
+                "transparent",
+                "important"
+            );
+
+            element.style.setProperty(
+                "background-image",
+                "none",
+                "important"
+            );
+
+            element.style.setProperty(
+                "box-shadow",
+                "none",
+                "important"
+            );
+
+            /*
+             * Remove the old rounded inner-panel appearance.
+             */
+
+            if (
+                !element.classList.contains(
+                    "kabadi-final-particle"
+                )
+            ) {
+
+                element.style.setProperty(
+                    "border-radius",
+                    "0",
+                    "important"
+                );
+
+            }
+
+        });
+
+    }
+
+
+    // ==========================================================
+    // CREATE SMALL PARTICLES
+    // ==========================================================
+
+    function createParticles(hero) {
+
+        const particles = [
+
+            ["18%", "22%", "3px", "8s", "-2s"],
+            ["27%", "68%", "4px", "10s", "-5s"],
+            ["36%", "34%", "3px", "9s", "-3s"],
+            ["44%", "76%", "4px", "11s", "-7s"],
+            ["52%", "25%", "3px", "8s", "-4s"],
+            ["60%", "65%", "4px", "12s", "-8s"],
+            ["68%", "36%", "3px", "9s", "-2s"],
+            ["76%", "72%", "4px", "10s", "-6s"],
+            ["83%", "23%", "3px", "8s", "-4s"],
+            ["89%", "57%", "4px", "11s", "-7s"],
+            ["94%", "32%", "3px", "9s", "-3s"],
+            ["48%", "48%", "3px", "8s", "-5s"],
+            ["33%", "52%", "3px", "12s", "-9s"],
+            ["72%", "18%", "3px", "9s", "-6s"],
+            ["57%", "82%", "3px", "11s", "-4s"]
+        ];
+
+
+        particles.forEach(function (data) {
+
+            const particle =
+                document.createElement("span");
+
+            particle.className =
+                "kabadi-final-particle";
+
+            particle.style.left =
+                data[0];
+
+            particle.style.top =
+                data[1];
+
+            particle.style.width =
+                data[2];
+
+            particle.style.height =
+                data[2];
+
+            particle.style.setProperty(
+                "--speed",
+                data[3]
+            );
+
+            particle.style.setProperty(
+                "--delay",
+                data[4]
+            );
+
+            hero.appendChild(
+                particle
+            );
+
+        });
+
+    }
+
+
+    // ==========================================================
+    // APPLY FINAL HERO
+    // ==========================================================
+
+    function applyFinalHero() {
+
+        const hero = getHero();
+
+        if (!hero) {
+            return;
+        }
+
+
+        // Remove old decorations
+        removeOldParticles(hero);
+
+
+        // Remove all inner backgrounds
+        clearInnerLayers(hero);
+
+
+        // ------------------------------------------------------
+        // OUTER HERO GETS THE ONLY GREEN BACKGROUND
+        // ------------------------------------------------------
+
+        hero.style.setProperty(
+            "background",
+            "linear-gradient(135deg,#087f5b 0%,#11966f 48%,#16b981 100%)",
+            "important"
+        );
+
+        hero.style.setProperty(
+            "background-color",
+            "#11966f",
+            "important"
+        );
+
+        hero.style.setProperty(
+            "width",
+            "100%",
+            "important"
+        );
+
+        hero.style.setProperty(
+            "max-width",
+            "100%",
+            "important"
+        );
+
+        hero.style.setProperty(
+            "min-height",
+            "220px",
+            "important"
+        );
+
+        hero.style.setProperty(
+            "border",
+            "none",
+            "important"
+        );
+
+        hero.style.setProperty(
+            "border-radius",
+            "24px",
+            "important"
+        );
+
+        hero.style.setProperty(
+            "overflow",
+            "hidden",
+            "important"
+        );
+
+        hero.style.setProperty(
+            "position",
+            "relative",
+            "important"
+        );
+
+
+        // ------------------------------------------------------
+        // PARTICLES
+        // ------------------------------------------------------
+
+        createParticles(hero);
+
+
+        hero.dataset.finalCleanCollectorHero =
+            "true";
+
+
+        console.log(
+            "✅ FINAL HERO: one green surface, no partition."
+        );
+
+    }
+
+
+    // ==========================================================
+    // INITIAL LOAD
+    // ==========================================================
+
+    setTimeout(
+        applyFinalHero,
+        300
+    );
+
+    setTimeout(
+        applyFinalHero,
+        800
+    );
+
+    setTimeout(
+        applyFinalHero,
+        1500
+    );
+
+    setTimeout(
+        applyFinalHero,
+        2500
+    );
+
+
+    // ==========================================================
+    // WATCH DYNAMIC RENDERING
+    // ==========================================================
+
+    const observer =
+        new MutationObserver(
+            function () {
+
+                const hero = getHero();
+
+                if (!hero) {
+                    return;
+                }
+
+                if (
+                    hero.dataset.finalCleanCollectorHero !==
+                    "true"
+                ) {
+
+                    applyFinalHero();
+
+                }
+
+            }
+        );
+
+
+    observer.observe(
+        document.body,
+        {
+            childList: true,
+            subtree: true
+        }
+    );
+
+
+    console.log(
+        "🚀 Collector hero final clean design ready."
+    );
+
+})();
+
+// ============================================================
+// KABADI SETU - ACTUAL FINAL COLLECTOR HERO FIX
+// Removes the unwanted inner green partition
+// Keeps ONE continuous green hero + tiny particles
+// ============================================================
+
+(function () {
+
+    console.log("💚 ACTUAL FINAL COLLECTOR HERO FIX LOADED");
+
+    // ----------------------------------------------------------
+    // CSS
+    // ----------------------------------------------------------
+
+    const style = document.createElement("style");
+
+    style.id = "kabadiActualCollectorHeroFix";
+
+    style.innerHTML = `
+
+        /* ======================================================
+           THE REAL OUTER HERO
+        ====================================================== */
+
+        #collectorDashboardMain > div:first-child {
+
+            width: 100% !important;
+
+            max-width: none !important;
+
+            min-height: 220px !important;
+
+            padding: 30px 46px !important;
+
+            margin-bottom: 24px !important;
+
+            background:
+                linear-gradient(
+                    135deg,
+                    #087f5b 0%,
+                    #159570 50%,
+                    #16b981 100%
+                ) !important;
+
+            border: none !important;
+
+            border-radius: 24px !important;
+
+            box-shadow:
+                0 18px 40px
+                rgba(8,127,91,.18) !important;
+
+            position: relative !important;
+
+            overflow: hidden !important;
+
+            isolation: isolate !important;
+        }
+
+
+        /* ======================================================
+           THIS IS THE PARTITION WE ARE REMOVING
+        ====================================================== */
+
+        #collectorDashboardMain > div:first-child
+        > div:first-child {
+
+            background: transparent !important;
+
+            background-color: transparent !important;
+
+            background-image: none !important;
+
+            border: none !important;
+
+            border-color: transparent !important;
+
+            border-radius: 0 !important;
+
+            box-shadow: none !important;
+
+            outline: none !important;
+
+            width: 100% !important;
+
+            max-width: none !important;
+
+            min-width: 0 !important;
+
+            margin: 0 !important;
+
+            position: relative !important;
+
+            z-index: 5 !important;
+        }
+
+
+        /* ======================================================
+           REMOVE BACKGROUND FROM THE TEXT CONTAINER
+        ====================================================== */
+
+        #collectorDashboardMain > div:first-child
+        > div:first-child
+        > div:first-child {
+
+            background: transparent !important;
+
+            background-color: transparent !important;
+
+            background-image: none !important;
+
+            border: none !important;
+
+            border-radius: 0 !important;
+
+            box-shadow: none !important;
+
+            outline: none !important;
+
+            position: relative !important;
+
+            z-index: 10 !important;
+        }
+
+
+        /* ======================================================
+           REMOVE BACKGROUND FROM TRUCK CONTAINER
+        ====================================================== */
+
+        #collectorDashboardMain > div:first-child
+        > div:first-child
+        > div:last-child {
+
+            background: transparent !important;
+
+            background-color: transparent !important;
+
+            background-image: none !important;
+
+            border: none !important;
+
+            border-radius: 0 !important;
+
+            box-shadow: none !important;
+
+            outline: none !important;
+
+            position: relative !important;
+
+            z-index: 20 !important;
+        }
+
+
+        /* ======================================================
+           KILL OLD DECORATIVE CIRCLES
+        ====================================================== */
+
+        #collectorDashboardMain
+        .collectorHeroDecoration1,
+
+        #collectorDashboardMain
+        .collectorHeroDecoration2,
+
+        #collectorDashboardMain
+        .collectorDecorCircleOne,
+
+        #collectorDashboardMain
+        .collectorDecorCircleTwo {
+
+            display: none !important;
+
+            width: 0 !important;
+
+            height: 0 !important;
+
+            background: transparent !important;
+        }
+
+
+        /* ======================================================
+           KILL OLD PARTICLE SYSTEMS
+        ====================================================== */
+
+        #collectorDashboardMain
+        .kabadi-floating-particle,
+
+        #collectorDashboardMain
+        .kabadi-final-hero-particle,
+
+        #collectorDashboardMain
+        .kabadi-ultimate-particle,
+
+        #collectorDashboardMain
+        .kabadi-tiny-hero-particle,
+
+        #collectorDashboardMain
+        .kabadi-clean-particle,
+
+        #collectorDashboardMain
+        .kabadi-final-particle {
+
+            display: none !important;
+        }
+
+
+        /* ======================================================
+           TEXT
+        ====================================================== */
+
+        #collectorDashboardMain > div:first-child
+        h1,
+
+        #collectorDashboardMain > div:first-child
+        h2,
+
+        #collectorDashboardMain > div:first-child
+        h3,
+
+        #collectorDashboardMain > div:first-child
+        p,
+
+        #collectorDashboardMain > div:first-child
+        strong {
+
+            color: #ffffff !important;
+
+            background: transparent !important;
+
+            background-color: transparent !important;
+
+            position: relative !important;
+
+            z-index: 10 !important;
+        }
+
+
+        /* ======================================================
+           HEADING
+        ====================================================== */
+
+        #collectorDashboardMain > div:first-child
+        h2 {
+
+            font-size: 36px !important;
+
+            font-weight: 800 !important;
+
+            letter-spacing: -0.03em !important;
+
+            margin: 0 0 10px 0 !important;
+        }
+
+
+        /* ======================================================
+           DESCRIPTION
+        ====================================================== */
+
+        #collectorDashboardMain > div:first-child
+        p {
+
+            color:
+                rgba(255,255,255,.90) !important;
+
+            font-size: 16px !important;
+
+            line-height: 1.7 !important;
+
+            max-width: 900px !important;
+
+            margin: 0 !important;
+        }
+
+
+        /* ======================================================
+           TRUCK
+        ====================================================== */
+
+        #collectorDashboardMain > div:first-child
+        img {
+
+            position: relative !important;
+
+            z-index: 50 !important;
+
+            background: transparent !important;
+
+            border: none !important;
+
+            box-shadow: none !important;
+        }
+
+
+        /* ======================================================
+           TINY PARTICLES
+        ====================================================== */
+
+        .kabadi-real-particle {
+
+            position: absolute !important;
+
+            display: block !important;
+
+            width: 3px;
+
+            height: 3px;
+
+            border-radius: 50% !important;
+
+            background:
+                rgba(255,255,255,.25) !important;
+
+            box-shadow:
+                0 0 6px
+                rgba(255,255,255,.10) !important;
+
+            pointer-events: none !important;
+
+            z-index: 3 !important;
+
+            animation:
+                kabadiRealParticleMove
+                var(--particle-time)
+                ease-in-out
+                infinite !important;
+
+            animation-delay:
+                var(--particle-delay) !important;
+        }
+
+
+        @keyframes kabadiRealParticleMove {
+
+            0% {
+
+                transform:
+                    translate3d(0,0,0);
+
+                opacity: .10;
+            }
+
+            30% {
+
+                transform:
+                    translate3d(5px,-7px,0);
+
+                opacity: .35;
+            }
+
+            60% {
+
+                transform:
+                    translate3d(-4px,-13px,0);
+
+                opacity: .18;
+            }
+
+            100% {
+
+                transform:
+                    translate3d(0,0,0);
+
+                opacity: .10;
+            }
+        }
+
+    `;
+
+    document.head.appendChild(style);
+
+
+    // ----------------------------------------------------------
+    // FIND THE ACTUAL HERO
+    // ----------------------------------------------------------
+
+    function getHero() {
+
+        const dashboard =
+            document.getElementById(
+                "collectorDashboardMain"
+            );
+
+        if (!dashboard) {
+            return null;
+        }
+
+        return dashboard.children[0] || null;
+    }
+
+
+    // ----------------------------------------------------------
+    // REMOVE ALL OLD DECORATIONS
+    // ----------------------------------------------------------
+
+    function cleanHero(hero) {
+
+        hero.querySelectorAll(
+            ".collectorHeroDecoration1," +
+            ".collectorHeroDecoration2," +
+            ".collectorDecorCircleOne," +
+            ".collectorDecorCircleTwo," +
+            ".kabadi-floating-particle," +
+            ".kabadi-final-hero-particle," +
+            ".kabadi-ultimate-particle," +
+            ".kabadi-tiny-hero-particle," +
+            ".kabadi-clean-particle," +
+            ".kabadi-final-particle," +
+            ".kabadi-real-particle"
+        ).forEach(function (element) {
+
+            element.remove();
+
+        });
+
+    }
+
+
+    // ----------------------------------------------------------
+    // FORCE NESTED PANEL TRANSPARENT
+    // ----------------------------------------------------------
+
+    function removePartition(hero) {
+
+        /*
+         * Every element INSIDE the hero except the truck
+         * gets a transparent background.
+         */
+
+        hero.querySelectorAll("*").forEach(
+            function (element) {
+
+                if (
+                    element.tagName === "IMG"
+                ) {
+                    return;
+                }
+
+                element.style.setProperty(
+                    "background",
+                    "transparent",
+                    "important"
+                );
+
+                element.style.setProperty(
+                    "background-color",
+                    "transparent",
+                    "important"
+                );
+
+                element.style.setProperty(
+                    "background-image",
+                    "none",
+                    "important"
+                );
+
+                element.style.setProperty(
+                    "box-shadow",
+                    "none",
+                    "important"
+                );
+
+                element.style.setProperty(
+                    "outline",
+                    "none",
+                    "important"
+                );
+
+
+                /*
+                 * Remove rounded corners from every
+                 * nested layer.
+                 */
+
+                element.style.setProperty(
+                    "border-radius",
+                    "0",
+                    "important"
+                );
+
+            }
+        );
+
+    }
+
+
+    // ----------------------------------------------------------
+    // ADD TINY PARTICLES
+    // ----------------------------------------------------------
+
+    function addParticles(hero) {
+
+        const particleData = [
+
+            ["15%", "20%", "3px", "8s", "-2s"],
+            ["23%", "63%", "3px", "10s", "-5s"],
+            ["31%", "31%", "4px", "9s", "-3s"],
+            ["39%", "72%", "3px", "11s", "-7s"],
+            ["48%", "24%", "3px", "8s", "-4s"],
+            ["55%", "66%", "4px", "12s", "-8s"],
+            ["63%", "34%", "3px", "9s", "-2s"],
+            ["70%", "70%", "3px", "10s", "-6s"],
+            ["77%", "22%", "3px", "8s", "-4s"],
+            ["84%", "57%", "4px", "11s", "-7s"],
+            ["91%", "31%", "3px", "9s", "-3s"],
+            ["46%", "48%", "3px", "8s", "-5s"],
+            ["28%", "47%", "3px", "12s", "-9s"],
+            ["67%", "18%", "3px", "9s", "-6s"],
+            ["58%", "82%", "3px", "10s", "-4s"]
+        ];
+
+
+        particleData.forEach(
+            function (data) {
+
+                const particle =
+                    document.createElement("span");
+
+                particle.className =
+                    "kabadi-real-particle";
+
+                particle.style.left =
+                    data[0];
+
+                particle.style.top =
+                    data[1];
+
+                particle.style.width =
+                    data[2];
+
+                particle.style.height =
+                    data[2];
+
+                particle.style.setProperty(
+                    "--particle-time",
+                    data[3]
+                );
+
+                particle.style.setProperty(
+                    "--particle-delay",
+                    data[4]
+                );
+
+                hero.appendChild(
+                    particle
+                );
+
+            }
+        );
+
+    }
+
+
+    // ----------------------------------------------------------
+    // APPLY
+    // ----------------------------------------------------------
+
+    function applyFix() {
+
+        const hero = getHero();
+
+        if (!hero) {
+            return;
+        }
+
+
+        // Clean old decorations
+        cleanHero(hero);
+
+
+        // Remove the unwanted inner panel
+        removePartition(hero);
+
+
+        // ------------------------------------------------------
+        // OUTER HERO = ONLY GREEN SURFACE
+        // ------------------------------------------------------
+
+        hero.style.setProperty(
+            "background",
+            "linear-gradient(135deg,#087f5b 0%,#159570 50%,#16b981 100%)",
+            "important"
+        );
+
+        hero.style.setProperty(
+            "background-color",
+            "#11966f",
+            "important"
+        );
+
+        hero.style.setProperty(
+            "width",
+            "100%",
+            "important"
+        );
+
+        hero.style.setProperty(
+            "max-width",
+            "100%",
+            "important"
+        );
+
+        hero.style.setProperty(
+            "min-height",
+            "220px",
+            "important"
+        );
+
+        hero.style.setProperty(
+            "border",
+            "none",
+            "important"
+        );
+
+        hero.style.setProperty(
+            "border-radius",
+            "24px",
+            "important"
+        );
+
+        hero.style.setProperty(
+            "overflow",
+            "hidden",
+            "important"
+        );
+
+        hero.style.setProperty(
+            "position",
+            "relative",
+            "important"
+        );
+
+
+        // Add particles
+        addParticles(hero);
+
+
+        hero.dataset.realCollectorHero =
+            "fixed";
+
+
+        console.log(
+            "✅ Collector hero: partition removed."
+        );
+
+    }
+
+
+    // ----------------------------------------------------------
+    // RUN
+    // ----------------------------------------------------------
+
+    setTimeout(applyFix, 100);
+    setTimeout(applyFix, 400);
+    setTimeout(applyFix, 800);
+    setTimeout(applyFix, 1500);
+    setTimeout(applyFix, 2500);
+
+
+    // ----------------------------------------------------------
+    // WATCH FOR RE-RENDER
+    // ----------------------------------------------------------
+
+    const observer =
+        new MutationObserver(
+            function () {
+
+                const hero = getHero();
+
+                if (!hero) {
+                    return;
+                }
+
+                if (
+                    hero.dataset.realCollectorHero !==
+                    "fixed"
+                ) {
+
+                    applyFix();
+
+                }
+
+            }
+        );
+
+
+    observer.observe(
+        document.body,
+        {
+            childList: true,
+            subtree: true
+        }
+    );
+
+
+    console.log(
+        "🚀 Collector hero final cleanup active."
+    );
+
+})();
+
+/* ============================================================
+   KABADI SETU - REMOVE INNER COLLECTOR HERO PARTITION
+   FINAL OVERRIDE
+   ============================================================ */
+
+(function () {
+
+    console.log("🧹 Removing inner Collector hero partition...");
+
+    function fixCollectorHeroPartition() {
+
+        const panel =
+            document.getElementById("collectorPanel");
+
+        if (!panel) return;
+
+        /*
+         * The actual hero is the first large child.
+         */
+        const hero = panel.firstElementChild;
+
+        if (!hero) return;
+
+        /*
+         * Make the OUTER hero the only visible surface.
+         */
+        hero.style.setProperty(
+            "background",
+            "linear-gradient(135deg,#087f5b 0%,#159570 52%,#16b981 100%)",
+            "important"
+        );
+
+        hero.style.setProperty(
+            "border",
+            "none",
+            "important"
+        );
+
+        hero.style.setProperty(
+            "box-shadow",
+            "0 18px 40px rgba(8,127,91,.18)",
+            "important"
+        );
+
+        hero.style.setProperty(
+            "overflow",
+            "hidden",
+            "important"
+        );
+
+
+        /*
+         * --------------------------------------------------------
+         * FIND THE UNWANTED LARGE INNER RECTANGLE
+         * --------------------------------------------------------
+         *
+         * We look at every descendant.
+         *
+         * If an element:
+         * - is large
+         * - has rounded corners
+         * - is inside the hero
+         * - is NOT the hero itself
+         *
+         * then remove its background/border/shadow.
+         */
+
+        const heroRect =
+            hero.getBoundingClientRect();
+
+        hero.querySelectorAll("*").forEach(
+            function (element) {
+
+                if (element === hero) return;
+
+                if (
+                    element.classList.contains(
+                        "collectorHeroDecoration1"
+                    ) ||
+                    element.classList.contains(
+                        "collectorHeroDecoration2"
+                    )
+                ) {
+                    return;
+                }
+
+                const rect =
+                    element.getBoundingClientRect();
+
+                /*
+                 * Ignore tiny elements.
+                 */
+                if (
+                    rect.width < 500 ||
+                    rect.height < 100
+                ) {
+                    return;
+                }
+
+                /*
+                 * Must actually be INSIDE the hero.
+                 */
+                if (
+                    rect.left < heroRect.left - 5 ||
+                    rect.right > heroRect.right + 5 ||
+                    rect.top < heroRect.top - 5 ||
+                    rect.bottom > heroRect.bottom + 5
+                ) {
+                    return;
+                }
+
+                /*
+                 * Do NOT remove the actual hero.
+                 */
+                if (
+                    rect.width >=
+                        heroRect.width * 0.95 &&
+                    rect.height >=
+                        heroRect.height * 0.85
+                ) {
+                    return;
+                }
+
+
+                /*
+                 * THIS is the important part.
+                 *
+                 * Kill every visual property that can create
+                 * the unwanted partition.
+                 */
+
+                element.style.setProperty(
+                    "background",
+                    "transparent",
+                    "important"
+                );
+
+                element.style.setProperty(
+                    "background-color",
+                    "transparent",
+                    "important"
+                );
+
+                element.style.setProperty(
+                    "background-image",
+                    "none",
+                    "important"
+                );
+
+                element.style.setProperty(
+                    "border",
+                    "none",
+                    "important"
+                );
+
+                element.style.setProperty(
+                    "box-shadow",
+                    "none",
+                    "important"
+                );
+
+                element.style.setProperty(
+                    "outline",
+                    "none",
+                    "important"
+                );
+
+                /*
+                 * The rectangle itself should not have rounded
+                 * corners anymore.
+                 */
+                element.style.setProperty(
+                    "border-radius",
+                    "0",
+                    "important"
+                );
+
+                console.log(
+                    "🧹 Removed inner hero layer:",
+                    element
+                );
+
+            }
+        );
+
+
+        /*
+         * --------------------------------------------------------
+         * REMOVE OLD DECORATIVE LAYERS
+         * --------------------------------------------------------
+         */
+
+        hero.querySelectorAll(
+            ".collectorHeroDecoration1," +
+            ".collectorHeroDecoration2"
+        ).forEach(
+            function (element) {
+                element.remove();
+            }
+        );
+
+
+        /*
+         * --------------------------------------------------------
+         * REMOVE ANY OLD HERO PARTICLES
+         * --------------------------------------------------------
+         */
+
+        hero.querySelectorAll(
+            "[class*='particle']," +
+            "[class*='Particle']," +
+            "[class*='decoration']," +
+            "[class*='Decoration']"
+        ).forEach(
+            function (element) {
+
+                /*
+                 * Only remove decorative elements,
+                 * not content containers.
+                 */
+                const rect =
+                    element.getBoundingClientRect();
+
+                if (
+                    rect.width < 100 &&
+                    rect.height < 100
+                ) {
+                    element.remove();
+                }
+
+            }
+        );
+
+
+        /*
+         * --------------------------------------------------------
+         * CREATE ONLY VERY SMALL PARTICLES
+         * --------------------------------------------------------
+         */
+
+        if (
+            !hero.querySelector(
+                ".ks-clean-particle"
+            )
+        ) {
+
+            const particles = [
+                [18, 24],
+                [27, 67],
+                [36, 35],
+                [48, 72],
+                [58, 28],
+                [68, 62],
+                [77, 34],
+                [86, 70],
+                [93, 25],
+                [43, 48]
+            ];
+
+            particles.forEach(
+                function (position, index) {
+
+                    const p =
+                        document.createElement("span");
+
+                    p.className =
+                        "ks-clean-particle";
+
+                    p.style.cssText = `
+                        position:absolute;
+                        left:${position[0]}%;
+                        top:${position[1]}%;
+                        width:3px;
+                        height:3px;
+                        border-radius:50%;
+                        background:rgba(255,255,255,.22);
+                        pointer-events:none;
+                        z-index:1;
+                        animation:ksParticleFloat ${7 + index % 4}s ease-in-out infinite;
+                        animation-delay:-${index}s;
+                    `;
+
+                    hero.appendChild(p);
+
+                }
+            );
+
+        }
+
+
+        /*
+         * --------------------------------------------------------
+         * KEEP CONTENT ABOVE PARTICLES
+         * --------------------------------------------------------
+         */
+
+        Array.from(hero.children).forEach(
+            function (child) {
+
+                if (
+                    child.classList.contains(
+                        "ks-clean-particle"
+                    )
+                ) {
+                    return;
+                }
+
+                child.style.position =
+                    "relative";
+
+                child.style.zIndex =
+                    "5";
+
+            }
+        );
+
+    }
+
+
+    /*
+     * ----------------------------------------------------------
+     * PARTICLE ANIMATION
+     * ----------------------------------------------------------
+     */
+
+    const particleStyle =
+        document.createElement("style");
+
+    particleStyle.id =
+        "ks-clean-particle-style";
+
+    particleStyle.textContent = `
+
+        @keyframes ksParticleFloat {
+
+            0% {
+                transform:translate(0,0);
+                opacity:.10;
+            }
+
+            50% {
+                transform:translate(4px,-8px);
+                opacity:.30;
+            }
+
+            100% {
+                transform:translate(0,0);
+                opacity:.10;
+            }
+
+        }
+
+        /*
+         * Absolutely no inner hero panel.
+         */
+        #collectorPanel > :first-child > div {
+            /*
+             * Do not blindly style every child.
+             * The JavaScript geometry detector handles it.
+             */
+        }
+
+    `;
+
+    document.head.appendChild(
+        particleStyle
+    );
+
+
+    /*
+     * ----------------------------------------------------------
+     * RUN AFTER RENDER
+     * ----------------------------------------------------------
+     */
+
+    setTimeout(
+        fixCollectorHeroPartition,
+        100
+    );
+
+    setTimeout(
+        fixCollectorHeroPartition,
+        500
+    );
+
+    setTimeout(
+        fixCollectorHeroPartition,
+        1000
+    );
+
+    setTimeout(
+        fixCollectorHeroPartition,
+        2000
+    );
+
+    setTimeout(
+        fixCollectorHeroPartition,
+        3500
+    );
+
+
+    /*
+     * ----------------------------------------------------------
+     * WATCH FOR RERENDER
+     * ----------------------------------------------------------
+     */
+
+    let fixing = false;
+
+    const observer =
+        new MutationObserver(
+            function () {
+
+                if (fixing) return;
+
+                fixing = true;
+
+                requestAnimationFrame(
+                    function () {
+
+                        fixCollectorHeroPartition();
+
+                        fixing = false;
+
+                    }
+                );
+
+            }
+        );
+
+    observer.observe(
+        document.body,
+        {
+            childList:true,
+            subtree:true
+        }
+    );
+
+
+    console.log(
+        "✅ FINAL INNER HERO PARTITION REMOVER ACTIVE"
+    );
+
+})();
+
+// ============================================================
+// KABADI SETU - FINAL INNER GREEN PANEL KILLER
+// The outer hero stays green.
+// The unwanted inner rounded panel becomes transparent.
+// ============================================================
+
+(function () {
+
+    console.log("🧹 FINAL INNER GREEN PANEL KILLER ACTIVE");
+
+    function removeInnerGreenPanel() {
+
+        const panel =
+            document.getElementById("collectorPanel");
+
+        if (!panel) return;
+
+        /*
+         * THIS is the unwanted rounded rectangle:
+         *
+         * collectorPanel
+         *      └── firstElementChild
+         *
+         * Your existing code explicitly paints this element
+         * green, so we force ONLY this layer transparent.
+         */
+
+        const innerHero =
+            panel.firstElementChild;
+
+        if (!innerHero) return;
+
+
+        /* =====================================================
+           REMOVE THE INNER GREEN BACKGROUND
+        ===================================================== */
+
+        innerHero.style.setProperty(
+            "background",
+            "transparent",
+            "important"
+        );
+
+        innerHero.style.setProperty(
+            "background-color",
+            "transparent",
+            "important"
+        );
+
+        innerHero.style.setProperty(
+            "background-image",
+            "none",
+            "important"
+        );
+
+
+        /* =====================================================
+           REMOVE INNER BORDER / RADIUS / SHADOW
+        ===================================================== */
+
+        innerHero.style.setProperty(
+            "border",
+            "none",
+            "important"
+        );
+
+        innerHero.style.setProperty(
+            "border-radius",
+            "0",
+            "important"
+        );
+
+        innerHero.style.setProperty(
+            "box-shadow",
+            "none",
+            "important"
+        );
+
+
+        /* =====================================================
+           MAKE SURE IT DOES NOT CREATE A SECOND SURFACE
+        ===================================================== */
+
+        innerHero.style.setProperty(
+            "outline",
+            "none",
+            "important"
+        );
+
+
+        /* =====================================================
+           KEEP CONTENT VISIBLE
+        ===================================================== */
+
+        innerHero.style.setProperty(
+            "position",
+            "relative",
+            "important"
+        );
+
+        innerHero.style.setProperty(
+            "z-index",
+            "5",
+            "important"
+        );
+
+
+        /* =====================================================
+           KEEP THE OUTER PANEL GREEN
+        ===================================================== */
+
+        panel.style.setProperty(
+            "background",
+            "linear-gradient(135deg,#087f5b 0%,#159570 52%,#16b981 100%)",
+            "important"
+        );
+
+        panel.style.setProperty(
+            "border-radius",
+            "24px",
+            "important"
+        );
+
+        panel.style.setProperty(
+            "overflow",
+            "hidden",
+            "important"
+        );
+
+        panel.style.setProperty(
+            "position",
+            "relative",
+            "important"
+        );
+
+
+        /*
+         * Remove the old large decorative circles.
+         * We will keep only the tiny particles.
+         */
+
+        panel.querySelectorAll(
+            ".collectorHeroDecoration1," +
+            ".collectorHeroDecoration2"
+        ).forEach(function (element) {
+
+            element.remove();
+
+        });
+
+
+        /*
+         * Mark it.
+         */
+
+        innerHero.dataset.innerGreenRemoved =
+            "true";
+
+    }
+
+
+    // ==========================================================
+    // RUN
+    // ==========================================================
+
+    setTimeout(
+        removeInnerGreenPanel,
+        50
+    );
+
+    setTimeout(
+        removeInnerGreenPanel,
+        150
+    );
+
+    setTimeout(
+        removeInnerGreenPanel,
+        300
+    );
+
+    setTimeout(
+        removeInnerGreenPanel,
+        500
+    );
+
+    setTimeout(
+        removeInnerGreenPanel,
+        1000
+    );
+
+    setTimeout(
+        removeInnerGreenPanel,
+        2000
+    );
+
+
+    // ==========================================================
+    // IMPORTANT
+    // Your existing hero scripts keep modifying the element.
+    // This watchdog puts it back to transparent.
+    // ==========================================================
+
+    setInterval(
+        removeInnerGreenPanel,
+        250
+    );
+
+
+    console.log(
+        "✅ INNER GREEN PANEL WILL STAY TRANSPARENT"
+    );
+
+})();
+
+// ============================================================
+// KABADI SETU - TINY MOVING PARTICLES
+// ============================================================
+
+(function () {
+
+    function addCollectorParticles() {
+
+        const panel =
+            document.getElementById("collectorPanel");
+
+        if (!panel) return;
+
+        const hero =
+            panel.firstElementChild;
+
+        if (!hero) return;
+
+        // Remove only our particles before recreating them
+        hero.querySelectorAll(
+            ".ks-moving-particle"
+        ).forEach(function (p) {
+            p.remove();
+        });
+
+        // Make sure hero can contain particles
+        hero.style.setProperty(
+            "position",
+            "relative",
+            "important"
+        );
+
+        hero.style.setProperty(
+            "overflow",
+            "hidden",
+            "important"
+        );
+
+        // ------------------------------------------------------
+        // Tiny particle positions
+        // ------------------------------------------------------
+
+        const particles = [
+            [12, 20, 3],
+            [19, 68, 2],
+            [27, 35, 3],
+            [34, 76, 2],
+            [41, 24, 3],
+            [48, 61, 2],
+            [55, 34, 3],
+            [62, 76, 2],
+            [69, 21, 3],
+            [76, 58, 2],
+            [83, 32, 3],
+            [90, 70, 2],
+            [95, 25, 3],
+            [31, 48, 2],
+            [58, 52, 2],
+            [72, 44, 3]
+        ];
+
+        particles.forEach(
+            function (item, index) {
+
+                const particle =
+                    document.createElement("span");
+
+                particle.className =
+                    "ks-moving-particle";
+
+                particle.style.position =
+                    "absolute";
+
+                particle.style.left =
+                    item[0] + "%";
+
+                particle.style.top =
+                    item[1] + "%";
+
+                particle.style.width =
+                    item[2] + "px";
+
+                particle.style.height =
+                    item[2] + "px";
+
+                particle.style.borderRadius =
+                    "50%";
+
+                particle.style.background =
+                    "rgba(255,255,255,0.28)";
+
+                particle.style.pointerEvents =
+                    "none";
+
+                particle.style.zIndex =
+                    "1";
+
+                particle.style.opacity =
+                    "0.15";
+
+                particle.style.animation =
+                    "ksTinyParticleMove " +
+                    (6 + (index % 5)) +
+                    "s ease-in-out infinite";
+
+                particle.style.animationDelay =
+                    "-" + (index % 6) + "s";
+
+                hero.appendChild(
+                    particle
+                );
+
+            }
+        );
+    }
+
+
+    // ==========================================================
+    // Animation
+    // ==========================================================
+
+    const particleCSS =
+        document.createElement("style");
+
+    particleCSS.id =
+        "ksTinyParticleAnimation";
+
+    particleCSS.textContent = `
+
+        @keyframes ksTinyParticleMove {
+
+            0% {
+                transform: translate3d(0, 0, 0);
+                opacity: 0.08;
+            }
+
+            25% {
+                transform: translate3d(5px, -7px, 0);
+                opacity: 0.28;
+            }
+
+            50% {
+                transform: translate3d(-3px, -13px, 0);
+                opacity: 0.14;
+            }
+
+            75% {
+                transform: translate3d(6px, -5px, 0);
+                opacity: 0.30;
+            }
+
+            100% {
+                transform: translate3d(0, 0, 0);
+                opacity: 0.08;
+            }
+
+        }
+
+    `;
+
+    document.head.appendChild(
+        particleCSS
+    );
+
+
+    // ==========================================================
+    // Run after dashboard renders
+    // ==========================================================
+
+    setTimeout(
+        addCollectorParticles,
+        300
+    );
+
+    setTimeout(
+        addCollectorParticles,
+        1000
+    );
+
+    setTimeout(
+        addCollectorParticles,
+        2000
+    );
+
+
+    // ==========================================================
+    // Expose for testing
+    // ==========================================================
+
+    window.addCollectorParticles =
+        addCollectorParticles;
+
+})();
+
+// ============================================================
+// KABADI SETU — TINY MOVING PARTICLES
+// ============================================================
+
+(function () {
+
+    function createParticles() {
+
+        const panel = document.getElementById("collectorPanel");
+
+        if (!panel) return;
+
+        const hero = panel.firstElementChild;
+
+        if (!hero) return;
+
+        // Remove previously created particles
+        hero.querySelectorAll(".ks-particle").forEach(function (p) {
+            p.remove();
+        });
+
+        // Make hero the particle container
+        hero.style.position = "relative";
+        hero.style.overflow = "hidden";
+
+        const particlePositions = [
+            [18, 22, 3],
+            [27, 67, 2],
+            [35, 31, 3],
+            [43, 74, 2],
+            [51, 25, 3],
+            [59, 62, 2],
+            [67, 34, 3],
+            [74, 72, 2],
+            [82, 23, 3],
+            [89, 58, 2],
+            [94, 31, 3],
+            [32, 50, 2],
+            [47, 47, 2],
+            [64, 18, 2],
+            [78, 45, 3],
+            [56, 82, 2]
+        ];
+
+        particlePositions.forEach(function (data, index) {
+
+            const particle = document.createElement("span");
+
+            particle.className = "ks-particle";
+
+            particle.style.cssText = `
+                position:absolute;
+                left:${data[0]}%;
+                top:${data[1]}%;
+                width:${data[2]}px;
+                height:${data[2]}px;
+                border-radius:50%;
+                background:rgba(255,255,255,0.28);
+                pointer-events:none;
+                z-index:2;
+                opacity:0.15;
+                animation:ksParticleFloat ${7 + (index % 5)}s ease-in-out infinite;
+                animation-delay:-${index % 7}s;
+            `;
+
+            hero.appendChild(particle);
+
+        });
+
+    }
+
+
+    // ----------------------------------------------------------
+    // PARTICLE ANIMATION
+    // ----------------------------------------------------------
+
+    if (!document.getElementById("ks-particle-animation")) {
+
+        const style = document.createElement("style");
+
+        style.id = "ks-particle-animation";
+
+        style.textContent = `
+
+            @keyframes ksParticleFloat {
+
+                0% {
+                    transform:translate3d(0,0,0);
+                    opacity:0.08;
+                }
+
+                25% {
+                    transform:translate3d(5px,-8px,0);
+                    opacity:0.28;
+                }
+
+                50% {
+                    transform:translate3d(-4px,-14px,0);
+                    opacity:0.12;
+                }
+
+                75% {
+                    transform:translate3d(6px,-6px,0);
+                    opacity:0.30;
+                }
+
+                100% {
+                    transform:translate3d(0,0,0);
+                    opacity:0.08;
+                }
+
+            }
+
+        `;
+
+        document.head.appendChild(style);
+
+    }
+
+
+    // ----------------------------------------------------------
+    // WAIT FOR COLLECTOR DASHBOARD
+    // ----------------------------------------------------------
+
+    function startParticles() {
+
+        const panel =
+            document.getElementById("collectorPanel");
+
+        if (!panel) return;
+
+        const hero =
+            panel.firstElementChild;
+
+        if (!hero) return;
+
+        createParticles();
+
+    }
+
+
+    setTimeout(startParticles, 300);
+    setTimeout(startParticles, 800);
+    setTimeout(startParticles, 1500);
+    setTimeout(startParticles, 2500);
+
+
+    // Make it available manually too
+    window.createCollectorParticles = createParticles;
+
+})();
+
+// ============================================================
+// KABADI SETU — SUBTLE MOVING PARTICLES
+// ============================================================
+
+(function () {
+
+    function addTinyParticles() {
+
+        const panel = document.getElementById("collectorPanel");
+
+        if (!panel) return;
+
+        const hero = panel.firstElementChild;
+
+        if (!hero) return;
+
+        // Remove old particles created by this code
+        hero.querySelectorAll(".ks-tiny-particle").forEach(function (p) {
+            p.remove();
+        });
+
+        // Hero must contain the particles
+        hero.style.position = "relative";
+        hero.style.overflow = "hidden";
+
+        // Particle positions
+        const particles = [
+            [12, 18, 3],
+            [19, 42, 2],
+            [25, 70, 3],
+            [32, 28, 2],
+            [38, 62, 3],
+            [45, 18, 2],
+            [51, 48, 3],
+            [57, 76, 2],
+            [63, 30, 3],
+            [69, 65, 2],
+            [75, 20, 3],
+            [81, 50, 2],
+            [87, 72, 3],
+            [93, 30, 2],
+            [29, 50, 2],
+            [54, 35, 2],
+            [72, 43, 2],
+            [90, 55, 2]
+        ];
+
+        particles.forEach(function (data, index) {
+
+            const particle = document.createElement("span");
+
+            particle.className = "ks-tiny-particle";
+
+            particle.style.position = "absolute";
+            particle.style.left = data[0] + "%";
+            particle.style.top = data[1] + "%";
+            particle.style.width = data[2] + "px";
+            particle.style.height = data[2] + "px";
+            particle.style.borderRadius = "50%";
+
+            particle.style.background =
+                "rgba(255,255,255,0.25)";
+
+            particle.style.pointerEvents = "none";
+
+            particle.style.zIndex = "2";
+
+            particle.style.animation =
+                "ksTinyFloat " +
+                (7 + (index % 5)) +
+                "s ease-in-out infinite";
+
+            particle.style.animationDelay =
+                "-" + (index % 6) + "s";
+
+            hero.appendChild(particle);
+
+        });
+
+        console.log("✨ Tiny collector particles added.");
+
+    }
+
+
+    // ========================================================
+    // ANIMATION
+    // ========================================================
+
+    if (!document.getElementById("ksTinyParticleCSS")) {
+
+        const style = document.createElement("style");
+
+        style.id = "ksTinyParticleCSS";
+
+        style.textContent = `
+
+            @keyframes ksTinyFloat {
+
+                0% {
+                    transform: translate3d(0, 0, 0);
+                    opacity: 0.08;
+                }
+
+                25% {
+                    transform: translate3d(5px, -8px, 0);
+                    opacity: 0.30;
+                }
+
+                50% {
+                    transform: translate3d(-4px, -15px, 0);
+                    opacity: 0.12;
+                }
+
+                75% {
+                    transform: translate3d(6px, -6px, 0);
+                    opacity: 0.32;
+                }
+
+                100% {
+                    transform: translate3d(0, 0, 0);
+                    opacity: 0.08;
+                }
+
+            }
+
+        `;
+
+        document.head.appendChild(style);
+
+    }
+
+
+    // ========================================================
+    // WAIT FOR COLLECTOR DASHBOARD
+    // ========================================================
+
+    function initializeParticles() {
+
+        const panel =
+            document.getElementById("collectorPanel");
+
+        if (!panel) return;
+
+        if (!panel.firstElementChild) return;
+
+        addTinyParticles();
+
+    }
+
+
+    // Run after dashboard rendering
+    setTimeout(initializeParticles, 300);
+    setTimeout(initializeParticles, 800);
+    setTimeout(initializeParticles, 1500);
+    setTimeout(initializeParticles, 2500);
+
+
+    // Allow manual refresh
+    window.addTinyCollectorParticles =
+        addTinyParticles;
+
+
+})();
